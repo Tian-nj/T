@@ -17,13 +17,63 @@
 set -u
 cd "$(dirname "$0")"
 
-PY="${PY:-C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
+PY="${PY:-$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
 export PYTHONIOENCODING=utf-8
 export WORKBENCH_ROOT_KEY="${WORKBENCH_ROOT_KEY:-dev-root-key-2026-please-replace}"
 
 N="${1:-6}"
 OUT="evidence/round${N}_full.txt"
 mkdir -p evidence
+
+# ---------------------------------------------------------------------------
+# 临时目录沙箱：本轮的**所有**临时产物都落在一个目录里，跑完一起回收。
+#
+# 为什么在入口拦，而不是逐个测试去改：全仓 100+ 处 `tempfile.mkdtemp(...)`，
+# 只有少数用 `TemporaryDirectory()` 上下文管理器，其余全靠「写在临时目录里」
+# 这句话自我安慰 —— **写在临时目录里不等于临时目录会被清理**。实测
+# 2026-11-15 一天，跑几轮回归就往 %TEMP% 里堆了 543 个目录 / 605 MB：
+# 172 个 `wb_lock_*`（每轮 86 个，来自 test_lock_timeout_and_contention 的
+# 两个 tag）、`probe_*` 52 个、`w4_drill_*` 三份各 400 MB、demo 的一整份克隆
+# 215 MB。逐个去补 `rmtree` 是治标，而且下一个人新写测试照样会漏。
+#
+# 重定向 TEMP/TMP/TMPDIR 是治本：Python 的 tempfile 与 bash 的 mktemp 都认
+# 这三个变量，于是**任何**新写的测试自动被这条规则覆盖，不需要它配合。
+# `$WB_TMP` 是唯一出口，跑完在 EXIT trap 里连同只读文件一起删干净。
+# 出事要留现场：`WB_KEEP_TMP=1 bash run_all_checks.sh 108`。
+# ---------------------------------------------------------------------------
+WB_TMP=""
+
+_purge() {
+    # 删一棵树。为什么不是裸 `rm -rf`：本仓有 `platform_ops.set_readonly`
+    # （`mode & ~0o222`）会给文件加只读位，Windows 上 rm -rf 遇到只读项会
+    # **静默留下整棵树且返回 0** —— 「以为删了」和「真删了」不是一回事。
+    local p="$1"
+    [ -n "$p" ] && [ -d "$p" ] || return 0
+    chmod -R u+w "$p" 2>/dev/null || true
+    rm -rf "$p" 2>/dev/null || true
+    [ -d "$p" ] && echo "WARN 临时目录未删净: $p" >&2
+    return 0
+}
+
+_cleanup_tmp() {
+    if [ -n "$WB_TMP" ] && [ -d "$WB_TMP" ]; then
+        if [ "${WB_KEEP_TMP:-0}" = "1" ]; then
+            echo "temp kept (WB_KEEP_TMP=1): $WB_TMP"
+        else
+            _purge "$WB_TMP"
+            echo "temp removed: $WB_TMP"
+        fi
+    fi
+}
+trap _cleanup_tmp EXIT INT TERM
+
+WB_TMP="$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/wb_round_$$")"
+mkdir -p "$WB_TMP"
+export TEMP="$WB_TMP"
+export TMP="$WB_TMP"
+export TMPDIR="$WB_TMP"
+# 让子进程里的 Python 也走 utf-8，否则中文测试名在管道里会变 ANSI。
+export PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}"
 
 FAILED=()
 WARNED=()

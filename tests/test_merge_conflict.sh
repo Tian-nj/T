@@ -11,7 +11,7 @@ set -u
 cd "$(dirname "$0")/../.." || exit 2
 
 export PYTHONIOENCODING=utf-8
-PY="${PY:-C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
+PY="${PY:-$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
 
 TMP=".workbench/state/_conflict_test"
 rm -rf "$TMP"; mkdir -p "$TMP/repo"

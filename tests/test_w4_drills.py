@@ -13,7 +13,7 @@ WB_HOME 路径全程恒定，每条演练前用 PRISTINE 覆盖回 WB_HOME 得�
 生产链只读一次（copytree 源），绝不写。
 
 用法：
-  C:/Users/THH32/.dsh/.../python.exe test_w4_drills.py
+  <python> test_w4_drills.py    # python 在 ~/.dsh/dsh-runtimes/.../dependencies/python/
 输出逐条打印结论，并写出 JSON 结果表。
 """
 from __future__ import annotations
@@ -35,8 +35,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 WORKBENCH = os.path.dirname(HERE)                    # .../workbench
 PROD_WB = os.path.join(WORKBENCH, ".workbench")      # 只读源
 EVIDENCE = os.path.join(WORKBENCH, "evidence", "round11_w4_drills.json")
-EXPECTED_PYTHON = ("C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/"
-                   "dependencies/python/python.exe")
+EXPECTED_PYTHON = os.path.join(os.path.expanduser("~"),
+                               ".dsh/dsh-runtimes/dsh-primary-runtime",
+                               "dependencies/python/python.exe")
 ROOT_KEY = "dev-root-key-2026-please-replace"
 
 STANDARD = {
@@ -78,11 +79,40 @@ os.environ["PYTHONIOENCODING"] = "utf-8"
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
 
+def _purge(path):
+    """Windows 上删干净一棵树：先摘只读位再删。
+
+    实测教训（2026-11-15）：`shutil.rmtree(..., ignore_errors=True)` 在 Windows
+    遇到只读文件会**静默放弃**，留下一半文件、整个目录还在 —— 0 MB 空壳
+    照样占一个 Temp 目录，而调用方还以为删成功了。本仓的 `set_readonly()`
+    正是给文件加只读位的（platform_ops.set_readonly 用 `mode & ~0o222`），
+    于是「演练自己造了只读文件」和「演练收不了尾」是同一件事的两面。
+    """
+    if not os.path.isdir(path):
+        return
+
+    def _onerror(func, p, exc_info):
+        try:
+            os.chmod(p, os.stat(p).st_mode | 0o200)
+            func(p)
+        except OSError:
+            pass
+
+    for root, dirs, files in os.walk(path, topdown=False):
+        for name in files:
+            fp = os.path.join(root, name)
+            try:
+                os.chmod(fp, os.stat(fp).st_mode | 0o200)
+            except OSError:
+                pass
+    shutil.rmtree(path, onerror=_onerror)
+
+
 def reset():
     """把 WB_HOME 恢复成干净快照；不动生产链。"""
     os.environ.pop("W4_WEBHOOK_URL", None)
     if os.path.isdir(WB_HOME):
-        shutil.rmtree(WB_HOME)
+        _purge(WB_HOME)
     shutil.copytree(PRISTINE, WB_HOME)
 
 
@@ -760,6 +790,18 @@ def main():
     print("SUMMARY %s  (DESIGNED_ONLY 见 designed_only_notes，不计入六项)" % counts)
     print("JSON -> %s" % EVIDENCE)
     print("touched_production_chain = false")
+
+    # 临时仓回收：每次演练在 TMP_ROOT 下 copytree 一整份 .workbench（约 400 MB），
+    # 原先从不删。实测 2026-11-15 一个上午 Temp 里堆了 3 份共 1.2 GB
+    # （w4_drill_i_d4dgd1 / _9yjytjfl / _tysgp2az），全是这台测试的遗骸 ——
+    # 「只写临时目录」不等于「临时目录会被清理」，写的人不管收，就没人收。
+    # 证据已落在 EVIDENCE（JSON）里，TMP_ROOT 的路径也一并记进去了，
+    # 所以删掉不影响「证据可复核」：需要人工翻现场时设 W4_KEEP=1 重跑一次即可。
+    if os.environ.get("W4_KEEP") == "1":
+        print("temp_repo kept (W4_KEEP=1): %s" % TMP_ROOT)
+    else:
+        _purge(TMP_ROOT)
+        print("temp_repo removed: %s" % TMP_ROOT)
     return 0
 
 

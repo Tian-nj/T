@@ -31,9 +31,22 @@ done
 
 export PYTHONIOENCODING=utf-8
 export WORKBENCH_ROOT_KEY="${WORKBENCH_ROOT_KEY:-dev-root-key-2026-please-replace}"
-PY="${PY:-C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
+PY="${PY:-$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
 
 SRC="$(cd "$(dirname "$0")" && pwd)"
+
+# 删临时克隆。为什么不是裸 `rm -rf`：演示链里会跑 platform_ops.set_readonly
+# 造只读文件（`mode & ~0o222`），Windows 上 rm -rf 遇到只读项会留下整棵树，
+# 而返回值照样是 0 —— 「以为删了」和「真删了」在这里不是一回事。
+_purge() {
+  local p="$1"
+  [ -d "$p" ] || return 0
+  chmod -R u+w "$p" 2>/dev/null || true
+  rm -rf "$p" 2>/dev/null || true
+  if [ -d "$p" ]; then
+    echo "WARN demo repo not fully removed: $p"
+  fi
+}
 
 if [ "$MODE" = "inplace" ]; then
   echo "!! --in-place：将在当前仓库运行，会删除事件链并重置 calc.py。"
@@ -299,6 +312,13 @@ if [ "$MODE" != "inplace" ]; then
   if [ "$KEEP" -eq 1 ]; then
     echo "demo repo kept: $WORK"
   else
-    echo "demo repo: $WORK （未删除；如不需要可手动清理）"
+    # 回收临时克隆：一份演示仓含 .workbench 全量副本，实测 215 MB。
+    # 原先这里只打印「未删除；如不需要可手动清理」—— 而 run_all_checks.sh
+    # 每跑一轮全量就调一次 demo.sh，于是每轮回归往 %TEMP% 里留 215 MB，
+    # 没有任何一步会去清。实测 2026-11-15 一天内 Temp 堆到 1.2 GB+215 MB
+    # 全是回归产物。「留着给人看」的价格是每一轮都付，而没人会真的去看。
+    # 要现场就显式 --keep（那就写明 kept，路径照旧打印）。
+    _purge "$(dirname "$WORK")"
+    echo "demo repo removed: $WORK （要保留现场用 --keep 重跑）"
   fi
 fi

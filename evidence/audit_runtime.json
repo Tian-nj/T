@@ -57,7 +57,7 @@
   "id": "P10",
   "title": "对照：中间行篡改被抓",
   "as_designed": true,
-  "detail": "C:\\Users\\THH32\\AppData\\Local\\Temp\\probe_s_yaxlz_\\events\\2026-11.jsonl: hash mismatch at line 2"
+  "detail": "C:\\Users\\admin\\AppData\\Local\\Temp\\tmp.DHh9SMTtWt\\probe_640x76zp\\events\\2026-11.jsonl: hash mismatch "
  },
  {
   "id": "P11",
@@ -69,7 +69,7 @@
   "id": "P12",
   "title": "ts_ms 是否只能由 store 生成",
   "as_designed": true,
-  "detail": "meta.ts_ms=None 与顶层 ts_ms=1794625734848 并存（期望：meta 里不许有 ts_ms）"
+  "detail": "meta.ts_ms=None 与顶层 ts_ms=1794678807850 并存（期望：meta 里不许有 ts_ms）"
  },
  {
   "id": "P13",

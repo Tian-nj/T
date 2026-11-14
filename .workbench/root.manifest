@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794615752277,
-  "digest": "hmac-sha256:b10ddc8d57414822186dc4286f572997563b34042c2777804048fa225f2ac7a8",
+  "created_ms": 1794677561136,
+  "digest": "hmac-sha256:3ac90e67befc8a5344d6030cc65f5180b8f9ea6b32f469834c761855cab531b8",
   "entries": [
     {
       "bytes": 3315,
@@ -479,9 +479,9 @@
       "sha256": "sha256:7fec7d89ba5a580790a46237995ebebc08fdd404da9cff63875e5261109bff56"
     },
     {
-      "bytes": 1862,
+      "bytes": 1853,
       "path": "scripts/smoke.sh",
-      "sha256": "sha256:3768ef39d45d1cf6ffc8765c82f2f5f73af0bba78dad6a680a5039cf3cce4c15"
+      "sha256": "sha256:3384684d954472535434aaa105e6b9949dc3f1e2a9f332cb5ebf80517ce112ee"
     },
     {
       "bytes": 31055,
@@ -504,9 +504,9 @@
       "sha256": "sha256:00cadcf8c0abc816edb8c46ba318632cf5de317ccfba5db10a04a631c7926ab8"
     },
     {
-      "bytes": 1804,
+      "bytes": 1795,
       "path": "scripts/verify.sh",
-      "sha256": "sha256:2749fc74ce2501b3baed4e01e8d765cfb61fb4d9448a7bfe87ed591eac156fd3"
+      "sha256": "sha256:582672b886cf83a159f57301985d771b95eb81778df9b15c04f3b36e8ee0390d"
     },
     {
       "bytes": 20849,
@@ -606,7 +606,7 @@
   ],
   "entry_count": 120,
   "manifest_version": 1,
-  "sig": "hmac-sha256:b10ddc8d57414822186dc4286f572997563b34042c2777804048fa225f2ac7a8",
+  "sig": "hmac-sha256:3ac90e67befc8a5344d6030cc65f5180b8f9ea6b32f469834c761855cab531b8",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

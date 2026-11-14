@@ -3,7 +3,7 @@
 这是 [`智能工作台-完整方案-v3.2（实现定稿）`](../../../05-docs/specs/智能工作台-完整方案-v3.2（实现定稿）.md) 的**参考实现**，不是又一份文档。
 每个机制都有对应的脚本、每条脚本都真跑过、每个「已验证」结论都能对应到一次真实执行。
 
-- 仓库根：`D:\Users\THH32\DSH\02-projects\znz-workbench\workbench\`
+- 仓库根：`C:\Users\admin\Documents\DSH-Migration-Kit\02-projects\znz-workbench\workbench\`（2026-11-14 整理补记；源机器历史路径为 `D:\Users\THH32\DSH\02-projects\znz-workbench\workbench\`）
 - 文档版本 `3.2` / config_version `5` / events_schema_version `4`
 - project_uuid：`175dcd06006595c5e20809e3138ba255`
 
@@ -44,7 +44,7 @@ bash demo.sh --keep   # 保留那个临时克隆，便于事后翻
 ```bash
 export PYTHONIOENCODING=utf-8
 export WORKBENCH_ROOT_KEY="dev-root-key-2026-please-replace"
-PY="C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe"
+PY="$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe"
 
 $PY .workbench/scripts/spec_lint.py            # 跨表对账 S001–S014
 $PY .workbench/scripts/constitution_check.py   # 便宜巡检 K1–K6
@@ -402,7 +402,7 @@ MISSING: none             → 复用了"排除了 wb_core.py"的源列表，而 
 ### 12.1 一条命令跑一个角色
 
 ```bash
-PY=C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe
+PY="$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe"
 "$PY" .workbench/scripts/lead.py task-claim --task T-0001
 "$PY" .workbench/scripts/agent_runner.py run \
       --task T-0001 --role coder \

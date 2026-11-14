@@ -23,7 +23,7 @@ shift || true
 
 export PYTHONIOENCODING=utf-8
 export WORKBENCH_ROOT_KEY="${WORKBENCH_ROOT_KEY:-dev-root-key-2026-please-replace}"
-PY="${PY:-C:/Users/THH32/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
+PY="${PY:-$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe}"
 
 WT=".workbench/wt/$TID"
 LOG=".workbench/tasks/$TID/verify.log"
