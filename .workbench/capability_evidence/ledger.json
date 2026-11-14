@@ -1,0 +1,67 @@
+{
+  "capabilities": {
+    "credential_deny": {
+      "bypass_succeeded": false,
+      "effective": true,
+      "slots": {
+        "bypass": "capability_evidence/credential_deny/bypass.json",
+        "injection": "capability_evidence/credential_deny/injection.json",
+        "real": "capability_evidence/credential_deny/real.json"
+      },
+      "track": "implementable"
+    },
+    "external_alert": {
+      "bypass_succeeded": false,
+      "effective": true,
+      "slots": {
+        "bypass": "capability_evidence/external_alert/bypass.json",
+        "injection": "capability_evidence/external_alert/injection.json",
+        "real": "capability_evidence/external_alert/real.json"
+      },
+      "track": "implementable"
+    },
+    "network_deny": {
+      "bypass_succeeded": false,
+      "effective": true,
+      "slots": {
+        "bypass": "capability_evidence/network_deny/bypass.json",
+        "injection": "capability_evidence/network_deny/injection.json",
+        "real": "capability_evidence/network_deny/real.json"
+      },
+      "track": "implementable"
+    },
+    "os_sandbox": {
+      "bypass_succeeded": false,
+      "effective": true,
+      "slots": {
+        "bypass": "capability_evidence/os_sandbox/bypass.json",
+        "injection": "capability_evidence/os_sandbox/injection.json",
+        "real": "capability_evidence/os_sandbox/real.json"
+      },
+      "track": "compensated_absent"
+    },
+    "path_isolation": {
+      "bypass_succeeded": false,
+      "effective": true,
+      "slots": {
+        "bypass": "capability_evidence/path_isolation/bypass.json",
+        "injection": "capability_evidence/path_isolation/injection.json",
+        "real": "capability_evidence/path_isolation/real.json"
+      },
+      "track": "implementable"
+    },
+    "token_metering": {
+      "bypass_succeeded": false,
+      "effective": true,
+      "slots": {
+        "bypass": "capability_evidence/token_metering/bypass.json",
+        "injection": "capability_evidence/token_metering/injection.json",
+        "real": "capability_evidence/token_metering/real.json"
+      },
+      "track": "compensated_absent"
+    }
+  },
+  "criterion": "dual_track_v1",
+  "generated_by": "capability_probes.py",
+  "schema": 1
+}

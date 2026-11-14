@@ -1,0 +1,23 @@
+{
+  "active_key_id": "sha256:5effaa694147115d24dce0cf91cc10a4e8841025a6f86fe8014a4d8415fe316f",
+  "criterion": "signing_keyring_v1",
+  "keys": [
+    {
+      "key_id": "sha256:574d4a728df04c54aca93c793f04521fba0c24fabbc760739c155761b3f8c7f0",
+      "note": "从 signing_pubkey.json 单键回填",
+      "public_blob_b64": "RUNTMSAAAABbXKAhb3bwyUUcIagu8GuryMZjtuIpWhXa/YvOrLPam2cC4HINEESJjebrLknmo8LT+tqFVtkwkrjMAVXtXk90",
+      "public_blob_bytes": 72,
+      "retired": true
+    },
+    {
+      "added_at_ms": 1794410205330,
+      "key_id": "sha256:5effaa694147115d24dce0cf91cc10a4e8841025a6f86fe8014a4d8415fe316f",
+      "public_blob_b64": "RUNTMSAAAADsdFqMLwNgLxyEsbBIWMJVC3m06Q2/vO3aK6rcL2t2EApyvPEB8S0wY4ogK9Fs6vMlUMI7+xo8/fEoF0HvtMfZ",
+      "public_blob_bytes": 72,
+      "retired": false
+    }
+  ],
+  "rotated_at_ms": 1794410205330,
+  "schema": 1,
+  "w4_participates": false
+}

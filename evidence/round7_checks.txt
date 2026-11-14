@@ -1,0 +1,81 @@
+=== 真实仓库十项独立检查（2026-11-09 23:12 UTC+8）===
+
+--- lead.py status ---
+TASK       STATE        LAST_SEQ
+T-0001     claimed      10
+
+1 task(s), 12 chain line(s)
+[exit=0]
+
+--- lead.py check ---
+chain: ok lines=12
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN
+RESULT: PASS (0 failure(s))
+[exit=0]
+
+--- spec_lint.py ---
+RESULT: PASS (0 finding(s))
+[exit=0]
+
+--- constitution_check.py ---
+RESULT: PASS (0 failure(s))
+[exit=0]
+
+--- gen_spec.py --check ---
+ok    events.schema.json
+ok    states.json
+ok    enums.json
+ok    config.schema.json
+ok    rules.json
+ok    paths.yaml
+ok    changelog.json
+
+RESULT: PASS — 7 file(s) identical
+[exit=0]
+
+--- sign_manifest.py --verify ---
+algo   : hmac-sha256-v1
+uuid   : 175dcd06006595c5e20809e3138ba255
+checked: 45 file(s)
+RESULT: PASS
+[exit=0]
+
+--- metrics_collector.py ---
+metrics window = 7d, tasks=1
+  (各级比率单位 = 万分比 basis points；- 表示分母为 0)
+  first_pass_rate_bp         0 bp (0.00%)
+  rework_rate_bp             0 bp (0.00%)
+  zombie_rate_bp             0 bp (0.00%)
+  human_touch_rate_bp        10000 bp (100.00%)
+  escalate_false_rate_bp     -
+  cost_ms_median             -
+  chain_ok                   1
+  capability_coverage_bp     1667 bp (16.67%)
+  zombie denominator         1
+[exit=0]
+
+--- merge_queue.py --dry-run ---
+merge_queue → master (dry_run=True)
+merged 0 / rejected 0 / gated 0 / skipped 0
+[exit=0]
+
+--- migrate_vx_to_vy.py --plan ---
+config_version         5
+doc_version            3.2
+events_schema_version  4
+project_uuid           175dcd06006595c5e20809e3138ba255
+chain_files            2026-11.jsonl
+chain_rows             14
+canonical_schema_version 3
+known_migrations       3→4, 4→5
+[exit=0]
+
+--- bootstrap.py ---
+manifest     : PASS (mode=full, 45 files)
+uuid         : PASS
+git          : PASS (actual=2.56.0, min=2.38)
+chain        : ok
+capabilities : os_sandbox=absent, network_deny=designed, credential_deny=designed, path_isolation=designed, token_metering=absent, external_alert=verified
+RESULT: PASS  events=['E42']
+[exit=0]
+

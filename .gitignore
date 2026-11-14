@@ -1,0 +1,49 @@
+# 控制面运行态：不入 Git（真相在 events/*.jsonl 与 tasks/ 的产物里，
+# 但它们是运行时状态而非源码，提交进 Git 只会让每次 append 都变成 diff 噪声）
+.workbench/events/
+.workbench/state/
+.workbench/tasks/
+.workbench/wt/
+.workbench/metrics/
+.workbench/archive/
+.workbench/notify/
+
+# 例外：成员表属可信根覆盖范围（v3.2 §2.3），必须随源码一起版本化，
+# 否则 checkout 出来的仓没有成员表，human_cli 的身份校验无从落地。
+!.workbench/state/members.json
+
+# 识海内容（W1–W4）三个目录的取舍不同，理由必须分开写：
+#
+#   persona/  进 Git。它是人写的、变化极慢、而且"人格何时变成现在这样"
+#             必须能追溯 —— 这正是 E53 存在的意义。丢了这个目录，
+#             growth.md 里每一条 accepted 候选都失去它最终改了什么。
+#
+#   memory/   不进 Git。一天几十条，每条都会 diff。它的权威在链上
+#             记忆事件与 sidecar，不在这个目录的版本历史里。
+#
+#   diary/    不进 Git。理由同上，且日记是给人回看的产物，不是源码。
+memory/
+diary/
+
+# 契约索引是缓存（权威摘要在链上 E29），但它是给人看的那份，
+# 缺了它 `contract list` 与 K7 漂移检查就无从对账 —— 所以进库。
+# 说明写在这里是因为 .gitignore 只允许一个位置解释"为什么这个例外存在"。
+
+# 验收沙箱的临时 HOME / interpreter shim
+.verify_home/
+.verify_home_*/
+
+# Python 编译产物
+__pycache__/
+*.pyc
+
+# 脚本改动前的本地备份（保留在磁盘上便于回滚，但不进版本库：
+# 它是"某个中间时刻的副本"，进库等于给仓库塞第二份真相）
+*.py.bak
+
+# 第六十一轮候选 ①：调度器 observe 每 300s 往 evidence/trend/ 追加
+# 一个趋势点。它是运行态观测，不是源码 —— 提交进去只会让每次 tick
+# 都变成 diff，第六十轮已经为这个补过一次独立提交。这里从版本库跟踪里
+# 移出（磁盘文件保留），已跟踪的三片历史分片用 git rm --cached 留档，
+# 不抹掉曾经记过的点；权威仍在链与 sidecar，不在这份目录的版本史里。
+evidence/trend/

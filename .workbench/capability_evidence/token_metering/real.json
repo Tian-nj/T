@@ -1,0 +1,10 @@
+{
+  "capability": "token_metering",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport wb_core; cfg=wb_core.yaml_parse_file(os.path.join(os.path.dirname(os.environ['WB_SCRIPTS']),'config.yaml'))\nw=cfg['global_config']['single_task_budget']['wall_clock_min']\nprint('WALL_CLOCK_MIN',w)\nassert w>0\nprint('OK wall_clock budget compensation present')",
+  "evidence_sha256": "b26a5925206ec40fa1f91d13213deebc56be4ca305dd8b3d217b0b741e7eba42",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "WALL_CLOCK_MIN 45\r\nOK wall_clock budget compensation present\r\n"
+}

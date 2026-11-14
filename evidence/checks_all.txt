@@ -1,0 +1,67 @@
+########## [5] 十项独立检查 ##########
+--- lead.py check ---
+chain: ok lines=15
+RESULT: PASS (0 failure(s))
+--- spec_lint.py ---
+RESULT: PASS (0 finding(s))
+--- constitution_check.py ---
+RESULT: PASS (0 failure(s))
+--- gen_spec.py --check ---
+
+RESULT: PASS — 7 file(s) identical
+--- sign_manifest --verify ---
+uuid   : 175dcd06006595c5e20809e3138ba255
+checked: 39 file(s)
+RESULT: PASS
+--- bootstrap.py ---
+chain        : ok
+capabilities : os_sandbox=absent, network_deny=designed, credential_deny=designed, path_isolation=designed, token_metering=absent, external_alert=verified
+RESULT: PASS  events=['E42']
+--- metrics_collector.py ---
+{
+  "window_days": 7,
+  "since_ms": 1793624084220,
+  "now_ms": 1794228884220,
+  "tasks_total": 1,
+  "first_pass_rate_bp": 10000,
+  "rework_rate_bp": 0,
+  "zombie_rate_bp": 0,
+  "zombie_denominator": 1,
+  "human_touch_rate_bp": 0,
+  "escalate_false_rate_bp": null,
+  "cost_ms_median": 2144,
+  "cost_samples": 1,
+  "chain_health_lines": 16,
+  "chain_ok": 1,
+  "capability_coverage_bp": 1667,
+  "number_policy": "int_only",
+  "ratio_unit": "basis_points",
+  "event_seq": 17
+}
+--- merge_queue --dry-run ---
+merge_queue → master (dry_run=True)
+  SKIP     T-0001  — already merged
+merged 0 / rejected 0 / skipped 1
+--- migrate --plan ---
+config_version         5
+doc_version            3.2
+events_schema_version  4
+project_uuid           175dcd06006595c5e20809e3138ba255
+chain_files            2026-11.jsonl
+chain_rows             17
+canonical_schema_version 3
+known_migrations       3→4, 4→5
+--- smoke.sh ---
+== smoke ==
+  ok   baseline tests
+  ok   import src.calc
+  ok   lead.py status
+  ok   spec_lint
+SMOKE: PASS
+--- platform_ops selftest ---
+
+9 checks, 0 failed
+--- test_merge_conflict.sh ---
+  MERGE_HEAD present: yes (yes = 停在冲突态，可人工处理或删仓重来)
+== result ==
+PASS: 冲突被预演捕捉（merge-tree rc!=0），预演后工作区干净，真合失败停在冲突态

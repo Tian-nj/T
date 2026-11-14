@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "criterion": "lock_semantics_v1",
+  "equivalent": false,
+  "why_not_equivalent": "msvcrt.locking 是强制锁（OS 对任意进程生效），fcntl.flock 是建议锁（只对其他自愿加锁者生效）。二者对『不配合的第三方进程』行为完全不同，故不等价。",
+  "platforms": {
+    "win32": {
+      "primitive": "msvcrt.locking(fileno, LK_NBLCK, 1)",
+      "semantics": "mandatory",
+      "scope": "1 byte at offset 0 of state/.lock",
+      "third_party_respects": true,
+      "note": "强制锁。崩溃时随句柄释放；但『活着不动』的持有者会一直挡住别人，所以调用方必须给 timeout。"
+    },
+    "posix": {
+      "primitive": "fcntl.flock(fileno, LOCK_EX | LOCK_NB)",
+      "semantics": "advisory",
+      "scope": "whole file (flock is per-inode, not per-range)",
+      "third_party_respects": false,
+      "note": "建议锁。同一台机器上的 git/编辑器/cp 不会理会它。用 LOCK_NB + 轮询而不是阻塞 LOCK_EX：阻塞 flock 进入后既不能超时也不能被打断。"
+    }
+  },
+  "common": {
+    "timeout_ms_default": 30000,
+    "backoff_start_ms": 2,
+    "backoff_max_ms": 50,
+    "timeout_exception": "wb_core.LockTimeout",
+    "retryable": true,
+    "timeout_writes_no_row": true,
+    "aging_floor": 0.25,
+    "fairness": "none",
+    "fairness_note": "不是公平锁。aging 只在等待方等久时降低其退避上限，使先到者的成功概率单调上升；正确性仍是『抢到就锁上』。公平需要票据队列，而队列会引入『队首卡死＝全员卡死』这种本仓目前没有的故障模式。",
+    "telemetry_dir": "state/lock_telemetry",
+    "telemetry_timeout_samples_counted": false,
+    "telemetry_timeout_samples_why": "等到超时的样本 waited_ms 天然等于 timeout_ms，混进分布会让 p99 永远收敛到超时值本身 —— 用量尺的读数去校准量尺。",
+    "calibration": {
+      "criterion": "lock_calibration_v1",
+      "tool": ".workbench/scripts/lock_calibrate.py",
+      "statistic": "p99(hold_ms)",
+      "factor": 20,
+      "floor_ms": 2000,
+      "ceiling_ms": 120000,
+      "min_samples": 200,
+      "invariant": "timeout_ms_default >= p99(hold_ms)",
+      "insufficient_verdict": "INSUFFICIENT",
+      "insufficient_is_failure": false
+    }
+  },
+  "runner_scope": {
+    "github_actions_runner": "shared ephemeral container VM",
+    "proves": "代码路径在 Linux/macOS 上可运行",
+    "does_not_prove": "真实 Linux 服务器上的行为；生产环境里抢锁的可能是一个长期驻留的服务进程，不是同类 python 进程"
+  },
+  "w4_participates": false
+}

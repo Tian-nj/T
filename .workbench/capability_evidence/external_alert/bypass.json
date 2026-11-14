@@ -1,0 +1,10 @@
+{
+  "capability": "external_alert",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport secret_scan\nos.environ['W4_WEBHOOK']='http://127.0.0.1:1/alert'\nr=secret_scan._send_webhook({'url_env':'W4_WEBHOOK'},{'kind':'probe'})\nprint('DEAD_ENDPOINT',r)\nfaked=any(x.get('status')==200 for x in r)\nprint('BYPASS_OK success faked on dead endpoint' if faked else 'BYPASS_BLOCKED webhook success cannot be faked on dead endpoint')",
+  "evidence_sha256": "f6ef3a69ac6c263a2d3c7e9884ebc7fb72f484a613b965c61939ddf27a254d65",
+  "exit_code": 0,
+  "marker": "BYPASS_BLOCKED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "DEAD_ENDPOINT [{'channel': 'webhook', 'error': 'URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>'}]\r\nBYPASS_BLOCKED webhook success cannot be faked on dead endpoint\r\n"
+}

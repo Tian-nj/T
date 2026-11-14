@@ -1,0 +1,97 @@
+# WorkBench v3.2 — 实现期证据（最终态）
+# 生成时间: 2026-11-09T20:36:27+08:00
+# 仓库: D:\Users\THH32\DSH-ZNT\workbench
+# 说明: 每条命令都是真实执行，输出未经编辑。链尾多出的 metrics_snapshot(E41) 是第 33 行，
+#       由 metrics_collector.py 运行时写入，属设计内事件。
+
+## [1] lead.py status
+TASK       STATE        LAST_SEQ
+T-0001     done         14
+T-0002     cancelled    32
+T-0003     pending      26
+T-0004     pending      29
+
+4 task(s), 33 chain line(s)
+
+## [2] lead.py check（含 C.A1/B1/C1/D1 + 链完整性）
+chain: ok lines=33
+RESULT: PASS (0 failure(s))
+
+## [3] spec_lint.py（S001–S014 跨表对账）
+RESULT: PASS (0 finding(s))
+
+## [4] constitution_check.py（K1–K6 便宜巡检）
+RESULT: PASS (0 failure(s))
+
+## [5] gen_spec.py --check（七件 spec 漂移检测）
+ok    events.schema.json
+ok    states.json
+ok    enums.json
+ok    config.schema.json
+ok    rules.json
+ok    paths.yaml
+ok    changelog.json
+
+RESULT: PASS — 7 file(s) identical
+
+## [6] sign_manifest.py --verify（HMAC 可信根）
+algo   : hmac-sha256-v1
+uuid   : 175dcd06006595c5e20809e3138ba255
+checked: 38 file(s)
+RESULT: PASS
+
+## [7] metrics_collector.py（八指标，万分比整数）
+metrics window = 7d, tasks=4
+  (各级比率单位 = 万分比 basis points；- 表示分母为 0)
+  first_pass_rate_bp         2500 bp (25.00%)
+  rework_rate_bp             0 bp (0.00%)
+  zombie_rate_bp             0 bp (0.00%)
+  human_touch_rate_bp        2500 bp (25.00%)
+  escalate_false_rate_bp     -
+  cost_ms_median             994
+  chain_ok                   1
+  capability_coverage_bp     1667 bp (16.67%)
+  zombie denominator         4
+
+## [8] merge_queue.py --dry-run
+merge_queue → master (dry_run=True)
+  SKIP     T-0001  — already merged
+merged 0 / rejected 0 / skipped 1
+
+## [9] migrate_vx_to_vy.py --plan
+config_version         5
+doc_version            3.2
+events_schema_version  4
+project_uuid           175dcd06006595c5e20809e3138ba255
+chain_files            2026-11.jsonl
+chain_rows             34
+canonical_schema_version 3
+known_migrations       3→4, 4→5
+
+## [10] smoke.sh（主干四项冒烟）
+== smoke ==
+  ok   baseline tests
+  ok   import src.calc
+  ok   lead.py status
+  ok   spec_lint
+SMOKE: PASS
+
+## [11] tests/test_merge_conflict.sh（冲突预演反证）
+== setup: master @ 74ad0685 ==
+== step 1: 合 A（应成功）==
+  A in main: 1
+== step 2: 用 merge-tree 预演 B（应报冲突，不动工作区）==
+  merge-tree rc=1  (0=可合, 1=冲突)
+  first line: 1ce5c7741c378153a1deb784480aaf10212205dd
+  conflict detected: yes
+== step 3: 预演之后工作区必须干净 ==
+  porcelain=0  markers=0  MERGE_HEAD=no
+  main still has A only: 0 (0 = 未被 B 污染)
+== step 4: 真的去合 B，必须失败 ==
+Auto-merging calc.py
+CONFLICT (content): Merge conflict in calc.py
+Automatic merge failed; fix conflicts and then commit the result.
+  git merge 如预期失败
+  MERGE_HEAD present: yes (yes = 停在冲突态，可人工处理或删仓重来)
+== result ==
+PASS: 冲突被预演捕捉（merge-tree rc!=0），预演后工作区干净，真合失败停在冲突态

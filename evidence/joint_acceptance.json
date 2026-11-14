@@ -1,0 +1,75 @@
+{
+  "blocked_count": 3,
+  "criterion": "joint_acceptance_v1",
+  "headline": "0/3 项就绪，3 项阻塞 —— 现在**不能**宣布整套验收完成",
+  "items": [
+    {
+      "acceptance": null,
+      "how": "export WB_REF_MODEL_ENDPOINT=<OpenAI 兼容 .../chat/completions>; export WB_REF_MODEL_KEY=<key>",
+      "id": "model",
+      "missing": [
+        "WB_REF_MODEL_ENDPOINT",
+        "WB_REF_MODEL_KEY"
+      ],
+      "ready": false,
+      "title": "真供应商模型",
+      "verify": "python tests/test_ref_subagent_model_e2e.py",
+      "why": "缺 WB_REF_MODEL_ENDPOINT、WB_REF_MODEL_KEY：执行体会以 `refusing to pretend a model ran` 直接失败，不降级成 mock（这是设计，不是缺陷）"
+    },
+    {
+      "acceptance": null,
+      "actions_ran": false,
+      "actions_ran_reason": "本机无 remote / GitHub Actions 从未真跑",
+      "how": "git remote add origin <url> && git push -u origin master；在仓库 Settings 里设 secret WORKBENCH_CI_KEY；跑完把两个 artifact 拉回来 喂给 platform_runner_probe.py ingest",
+      "id": "actions",
+      "ready": false,
+      "remote_configured": false,
+      "title": "GitHub Actions 真跑",
+      "verify": "python .workbench/scripts/ci_narrow_probe.py --check",
+      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED",
+      "workflow_contract_passed": true
+    },
+    {
+      "acceptance": null,
+      "covered_hours": 48.491,
+      "eta": "2026-11-18T14:36:06Z",
+      "how": "等。这个不能加速：横轴是真实时间，补数据只会造假",
+      "id": "window",
+      "points": 566,
+      "ready": false,
+      "target_hours": 168,
+      "title": "7 天观察窗口",
+      "verify": "python .workbench/scripts/scheduler_observe.py --check",
+      "why": "观察跨度 48.491/168 小时，ETA 2026-11-18T14:36:06Z；此时任何「日级结论」都是单点外推"
+    }
+  ],
+  "next_actions": [
+    {
+      "how": "export WB_REF_MODEL_ENDPOINT=<OpenAI 兼容 .../chat/completions>; export WB_REF_MODEL_KEY=<key>",
+      "id": "model",
+      "title": "真供应商模型",
+      "verify": "python tests/test_ref_subagent_model_e2e.py",
+      "why": "缺 WB_REF_MODEL_ENDPOINT、WB_REF_MODEL_KEY：执行体会以 `refusing to pretend a model ran` 直接失败，不降级成 mock（这是设计，不是缺陷）"
+    },
+    {
+      "how": "git remote add origin <url> && git push -u origin master；在仓库 Settings 里设 secret WORKBENCH_CI_KEY；跑完把两个 artifact 拉回来 喂给 platform_runner_probe.py ingest",
+      "id": "actions",
+      "title": "GitHub Actions 真跑",
+      "verify": "python .workbench/scripts/ci_narrow_probe.py --check",
+      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+    },
+    {
+      "how": "等。这个不能加速：横轴是真实时间，补数据只会造假",
+      "id": "window",
+      "title": "7 天观察窗口",
+      "verify": "python .workbench/scripts/scheduler_observe.py --check",
+      "why": "观察跨度 48.491/168 小时，ETA 2026-11-18T14:36:06Z；此时任何「日级结论」都是单点外推"
+    }
+  ],
+  "note": "就绪与验收是两件事：就绪回答「能不能跑」，验收回答「跑得对不对」。任何一项没就绪时 verdict 最高只有 JOINT_BLOCKED —— 因为「没跑」与「跑过且通过」在输出上必须不同形。就绪但 acceptance 非 True（含 None／没出结论）按 JOINT_PARTIAL 计，绝不并入 JOINT_PASS。",
+  "ready_count": 0,
+  "schema": 1,
+  "unverified_count": 0,
+  "verdict": "JOINT_BLOCKED",
+  "w4_participates": false
+}

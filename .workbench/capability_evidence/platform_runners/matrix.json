@@ -1,0 +1,36 @@
+{
+  "criterion": "platform_runner_matrix_v1",
+  "generated_at_ms": 1794405000000,
+  "note": "平台矩阵只登记跨 OS 隔离面验证承接，不把 UNTESTED/INSPECTED_NOT_VALIDATED 涂成 PASS，不参与 W4 三证。",
+  "rows": [
+    {
+      "evidence": [],
+      "evidence_path": "capability_evidence/platform_runners/linux.json",
+      "note": "Win32 主机不产出 Linux 实机结论；GitHub Actions ubuntu-latest runner 负责只读存在性探测。",
+      "platform": "linux",
+      "runner": "ubuntu-latest",
+      "unresolved_gaps": [
+        "需要 Linux runner：namespace/seccomp/Landlock/AppArmor 对照实验"
+      ],
+      "verdict": "UNTESTED",
+      "w4_participates": false,
+      "workflow": ".github/workflows/platform-runners.yml"
+    },
+    {
+      "evidence": [],
+      "evidence_path": "capability_evidence/platform_runners/macos.json",
+      "note": "Win32 主机不产出 macOS 实机结论；GitHub Actions macos-latest runner 负责只读存在性探测。",
+      "platform": "macos",
+      "runner": "macos-latest",
+      "unresolved_gaps": [
+        "需要 macOS runner：App Sandbox / Seatbelt / entitlement 对照实验"
+      ],
+      "verdict": "UNTESTED",
+      "w4_participates": false,
+      "workflow": ".github/workflows/platform-runners.yml"
+    }
+  ],
+  "runner_workflow": ".github/workflows/platform-runners.yml",
+  "schema": 1,
+  "w4_participates": false
+}

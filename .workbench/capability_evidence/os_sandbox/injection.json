@@ -1,0 +1,10 @@
+{
+  "capability": "os_sandbox",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport json\nsch=json.load(open(os.path.join(os.path.dirname(os.environ['WB_SCRIPTS']),'spec','config.schema.json'),encoding='utf-8'))\nxs=[x for x in sch.get('cross_checks',[]) if x.get('id')=='X3']\nprint('X3_BINDING',bool(xs and xs[0].get('bindings')))\nassert xs and xs[0].get('bindings')\nprint('OK X3 cross-check has real bindings (S015 evaluates it)')",
+  "evidence_sha256": "f4df423945c3a0bd7c9e1e7d351474da4fb4b5ce52a5b8c258ed250e855baeed",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "X3_BINDING True\r\nOK X3 cross-check has real bindings (S015 evaluates it)\r\n"
+}

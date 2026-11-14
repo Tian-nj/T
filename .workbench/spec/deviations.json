@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "criterion": "known_deviations_v1",
+  "note": "这张表只登记「已经发生且不能改写的偏离」，不是豁免通道。改它必须跑 gen_spec.py 并重签 root.manifest —— 那时扩大边界会表现为一次可观测的 drift。说不清 why 的记录不配在这里。",
+  "deviations": [
+    {
+      "event": "E32",
+      "actor": "lead",
+      "max_seq": 159,
+      "ref": "R-26",
+      "why": "定稿 D-53 收紧 E32.actors 为 human:* 之前，lead 写过 6 条 acceptance_approved。历史行只追加不回写，这 6 条不能改；但也不能因为它们存在就让整类检查失效。截止 seq 以内只计数不判红，以后的照判。"
+    }
+  ],
+  "counts": {
+    "deviations": 1
+  }
+}

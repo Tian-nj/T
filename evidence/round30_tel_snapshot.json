@@ -1,0 +1,54 @@
+{
+  "criterion": "telemetry_snapshot_v1",
+  "generated_at_ms": 1794409466273,
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\telemetry_window_snapshot.json",
+  "report_digest": "sha256:318b9e884f0da5378d582285cbddf4e2585e3cee6d15e1b26fa8c8530cf254b4",
+  "signature_chain": [
+    {
+      "criterion": "telemetry_snapshot_chain_v1",
+      "digest": "sha256:e06f0594822078515a45e289291343cb2f181b55b5512cb820f114ca1f065102",
+      "label": "report",
+      "report_digest": "sha256:318b9e884f0da5378d582285cbddf4e2585e3cee6d15e1b26fa8c8530cf254b4",
+      "schema": 1,
+      "step": 1
+    },
+    {
+      "criterion": "telemetry_snapshot_chain_v1",
+      "digest": "sha256:806ee0f13fbe6790b73932fbb44671f08ed1a73f445d9ddad35fdfe118d9b5fa",
+      "label": "source_hashes",
+      "prev": "sha256:e06f0594822078515a45e289291343cb2f181b55b5512cb820f114ca1f065102",
+      "schema": 1,
+      "source_hashes_digest": "sha256:59d72f8c412e8ca506e43377809974c03330fe1ab87132900edd674841af17e0",
+      "step": 2
+    },
+    {
+      "criterion": "telemetry_snapshot_chain_v1",
+      "digest": "sha256:f6bf32107139b0b85749e5bf5230088f384c466ec3e0fd4be791ba4c77e7100c",
+      "label": "public_body",
+      "prev": "sha256:806ee0f13fbe6790b73932fbb44671f08ed1a73f445d9ddad35fdfe118d9b5fa",
+      "public_body_digest": "sha256:0bf540e56cebb092a06cc488f2ac1265b03843dbe2b6cae45daefbd3e4b7fb32",
+      "schema": 1,
+      "step": 3
+    }
+  ],
+  "snapshot_digest": "sha256:0bf540e56cebb092a06cc488f2ac1265b03843dbe2b6cae45daefbd3e4b7fb32",
+  "snapshot_hmac": "hmac-sha256:73be6cc19be6ea79566cf155bab691a56553864847c27fd924e27d503e3e4a6c",
+  "source_hashes": {
+    "state/appcontainer_probe.jsonl": {
+      "bytes": 1113,
+      "exists": true,
+      "lines": 2,
+      "mtime_ms": 1794380904874,
+      "path": "state/appcontainer_probe.jsonl",
+      "sha256": "7a39fbe6f10dc80c5fade47c6907b11cbbdae88a293355487791436ddc3f04f2"
+    },
+    "state/containment.jsonl": {
+      "bytes": 5711,
+      "exists": true,
+      "lines": 18,
+      "mtime_ms": 1794409401858,
+      "path": "state/containment.jsonl",
+      "sha256": "e5dfb03023bdcada4ec195b6b47b422565e158ff4319eb6bd6f097a3b86fc002"
+    }
+  }
+}

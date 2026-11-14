@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "days": 1,
+  "since_ms": 1794444691875,
+  "now_ms": 1794531091875,
+  "ledgers": {
+    "memory_decay": {
+      "path": "events/sidecar/memory_decay.jsonl",
+      "exists": true,
+      "rows": 20,
+      "files": 1,
+      "last_ts_ms": 1794528710581,
+      "age_ms": 2381294,
+      "stale_after_ms": 14400000,
+      "stale": false,
+      "scanned": 120,
+      "demoted": 0,
+      "archived": 0,
+      "changed": 0
+    },
+    "memory_settle": {
+      "path": "events/sidecar/memory_settle.jsonl",
+      "exists": true,
+      "rows": 23,
+      "files": 1,
+      "last_ts_ms": 1794530522326,
+      "age_ms": 569549,
+      "stale_after_ms": 7200000,
+      "stale": false,
+      "checked": 1,
+      "settled": 1,
+      "unresolved": 0,
+      "unaccounted_unresolved": 0
+    },
+    "memory_recall": {
+      "path": "events/sidecar/memory_recall.jsonl",
+      "exists": true,
+      "rows": 49,
+      "files": 1,
+      "last_ts_ms": 1794528840719,
+      "age_ms": 2251156,
+      "stale_after_ms": null,
+      "stale": null,
+      "stale_reason": "event-driven：memory_recall 由事件触发，无固定写周期，不判停写",
+      "queries": 49,
+      "hits": 178,
+      "task_known_false": 1
+    }
+  },
+  "exists": true,
+  "bad_lines": 0,
+  "untimed": 0,
+  "future_rows": 0
+}

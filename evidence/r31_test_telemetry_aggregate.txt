@@ -1,0 +1,131 @@
+  ok   source_truth exclude_containment
+  ok   source_truth exclude_appcontainer
+  ok   source_truth rail_check
+  ok   source_truth rail_test
+  ok   source_truth ledger_unpolluted
+  ok   source_truth os_sandbox_compensated_absent
+  ok   source_truth ledger_criterion_dual_track_v1
+  ok   source_truth w4_participates_false
+  ok   no source_truth exception
+  ok   report produced schema
+  ok   report criterion
+  ok   report top-level W4 false
+  ok   report has both sources
+  ok   report has future list
+  ok   report overall has future_rows
+  ok   report did not rewrite runtime ledgers
+  ok   report did not rewrite W4 ledger
+  ok   report did not create default snapshot
+  ok   window keeps only 60min rows
+  ok   window counts outside rows
+  ok   clean window has no future rows
+  ok   old residual outside window not current red
+  ok   containment applied/degraded counted
+  ok   clean window verdict OK
+PASS: telemetry window aggregate clean (window=60min in_window=4 total=6 bad_lines=0 future=0 residuals=0 failed=0 w4=0)
+  ok   clean window check green
+FAIL: telemetry aggregate has W4 participation rows: 1
+  ok   w4 participation red
+FAIL: telemetry aggregate has bad lines: 1
+  ok   bad line red
+FAIL: telemetry aggregate has residual rows: 1
+  ok   in-window residual red
+FAIL: telemetry aggregate has failed assemblies: 1
+  ok   in-window failed assembly red
+  ok   future row counted separately
+  ok   future row not washed as outside history
+  ok   future detail carries delta_ms
+  ok   future row splits per source
+  ok   future row makes verdict red
+FAIL: telemetry aggregate has future-dated rows: 1
+  ok   future row makes check red
+  ok   snapshot file written
+  ok   snapshot criterion
+  ok   snapshot top-level W4 false
+  ok   snapshot embeds report
+  ok   snapshot source hashes match bytes at write time
+  ok   snapshot report_digest has sha256 prefix
+  ok   snapshot has public body digest
+  ok   snapshot has root-key HMAC
+  ok   snapshot has 3-step signature chain
+  ok   snapshot does not rewrite runtime ledgers
+  ok   snapshot does not rewrite W4 ledger
+  ok   snapshot file is outside .workbench
+  ok   verify_snapshot criterion
+  ok   verify_snapshot clean snapshot OK
+  ok   verify_snapshot public body digest matches
+  ok   verify_snapshot root HMAC matches
+  ok   verify_snapshot signature chain matches
+PASS: telemetry window aggregate clean (window=60min in_window=2 total=2 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_VERIFIED)
+  ok   check with snapshot_path green
+  ok   wrong root key invalid
+  ok   missing root key invalid
+  ok   verify_snapshot appended ledger STALE
+NOTE: telemetry evidence snapshot is STALE (ledgers appended); internal seal and source prefixes are valid
+PASS: telemetry window aggregate clean (window=60min in_window=3 total=3 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_STALE)
+  ok   check appended ledger only NOTE
+  ok   verify_snapshot forged report invalid
+  ok   forged report breaks HMAC or signature chain
+FAIL: telemetry evidence snapshot invalid: report_digest does not match embedded report; public body digest does not match snapshot body; signature_chain mismatch; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check forged snapshot red
+  ok   regression wires read-only --check
+  ok   regression wires test
+  ok   regression never wires --assemble
+  ok   regression never wires explicit snapshot
+  ok   regression never wires explicit verify
+  ok   W4 ledger has no aggregate key
+  ok   W4 ledger criterion unchanged
+  ok   os_sandbox still compensated_absent
+  ok   空窗口 exists=False / in_window=0
+  ok   聚合器顶层 W4 分离
+  ok   生产门禁接线 source_truth 成套
+  ok   窗口边界只取 60min 内记录
+  ok   旧残留留在窗口外，不污染当前门禁
+  ok   干净窗口没有 future 行
+  ok   containment applied/degraded 聚合正确
+  ok   干净窗口 verdict=OK
+PASS: telemetry window aggregate clean (window=60min in_window=4 total=6 bad_lines=0 future=0 residuals=0 failed=0 w4=0)
+  ok   干净窗口 check=0
+FAIL: telemetry aggregate has W4 participation rows: 1
+  ok   W4 混入红
+FAIL: telemetry aggregate has bad lines: 1
+  ok   坏行红
+FAIL: telemetry aggregate has residual rows: 1
+  ok   窗口内残留红
+FAIL: telemetry aggregate has failed assemblies: 1
+  ok   窗口内失败装配红
+  ok   未来时间戳单列 future_rows=1
+  ok   未来时间戳不算窗口外历史
+  ok   未来时间戳明细带 delta_ms
+  ok   未来时间戳 verdict 红
+FAIL: telemetry aggregate has future-dated rows: 1
+  ok   未来时间戳 check 红
+  ok   snapshot 写出证据文件
+  ok   snapshot criterion 独立
+  ok   snapshot 带两份源哈希
+  ok   snapshot 不改写源台账
+  ok   snapshot 顶层 W4 分离
+  ok   snapshot report_digest 非空
+  ok   snapshot public body digest 非空
+  ok   snapshot has root-key HMAC
+  ok   snapshot has 3-step signature chain
+  ok   snapshot carries asymmetric envelope when backend ready
+  ok   HMAC is never passed off as asymmetric
+  ok   verify_snapshot 干净快照 OK
+  ok   verify_snapshot asymmetric ok
+  ok   verify_snapshot root HMAC matches
+  ok   verify_snapshot signature chain matches
+PASS: telemetry window aggregate clean (window=60min in_window=2 total=2 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_VERIFIED)
+  ok   check 带 snapshot_path 干净绿
+  ok   wrong root key invalid
+  ok   missing root key invalid
+  ok   verify_snapshot 尾部追加判 STALE
+NOTE: telemetry evidence snapshot is STALE (ledgers appended); internal seal and source prefixes are valid
+PASS: telemetry window aggregate clean (window=60min in_window=3 total=3 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_STALE)
+  ok   check 尾部追加只打印 NOTE 放行
+  ok   verify_snapshot 伪改报告红
+FAIL: telemetry evidence snapshot invalid: report_digest does not match embedded report; public body digest does not match snapshot body; signature_chain mismatch; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check 伪改快照红
+telemetry_aggregate: PASS (40 checks, 0 failed)
+  ok   aggregate selftest green
+test_telemetry_aggregate: PASS (0 failed)

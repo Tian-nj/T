@@ -1,0 +1,10 @@
+{
+  "capability": "credential_deny",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport json,subprocess,platform_ops as p\nenv=p.scrub_env({'PATH':os.environ.get('PATH',''),'WORKBENCH_ROOT_KEY':'k','W4_SECRET_KEY':'s','WB_TASK':'t'})\ncode=\"import os,json;print(json.dumps(sorted(k for k in os.environ if any(t in k.upper() for t in ('KEY','SECRET','TOKEN','PASSWORD')))))\"\npr=p.spawn_group([sys.executable,'-c',code],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)\nout,_=pr.communicate(timeout=30)\ns=out.decode('utf-8','replace').strip()\nprint('WORKER_SECRET_VARS',s)\nassert pr.returncode==0 and s=='[]'\nprint('OK worker process sees no secret env names')",
+  "evidence_sha256": "a3441aee01df54b8db07eda5c935cdc8fcb05107e6004910c15442176ffe14b4",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "WORKER_SECRET_VARS []\r\nOK worker process sees no secret env names\r\n"
+}

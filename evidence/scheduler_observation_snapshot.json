@@ -1,0 +1,221 @@
+{
+  "criterion": "scheduler_observation_snapshot_v1",
+  "generated_at_ms": 1794414359415,
+  "note": "显式 snapshot 是发布动作。sidecar 每次 tick 被覆盖属正常，verify 只判 STALE。",
+  "report": {
+    "criterion": "scheduler_observe_v1",
+    "current": {
+      "age_ms": 57490,
+      "bad_jobs": [],
+      "deferred_jobs": [],
+      "exists": true,
+      "fail_streak_max": 0,
+      "fresh": true,
+      "freshness": "FRESH",
+      "jobs": [
+        {
+          "defer_streak": 0,
+          "deferred": false,
+          "fail_streak": 0,
+          "last_duration_ms": 3,
+          "name": "dream",
+          "ok_ms": 1794340802375,
+          "rc": 0,
+          "success_age_ms": 73557038,
+          "try_count": 4
+        },
+        {
+          "defer_streak": 0,
+          "deferred": false,
+          "fail_streak": 0,
+          "last_duration_ms": 14,
+          "name": "gate_timer",
+          "ok_ms": 1794414301923,
+          "rc": 0,
+          "success_age_ms": 57490,
+          "try_count": 1865
+        },
+        {
+          "defer_streak": 0,
+          "deferred": false,
+          "fail_streak": 0,
+          "last_duration_ms": 11,
+          "name": "gc",
+          "ok_ms": 1794413942698,
+          "rc": 0,
+          "success_age_ms": 416715,
+          "try_count": 58
+        },
+        {
+          "defer_streak": 0,
+          "deferred": false,
+          "fail_streak": 0,
+          "last_duration_ms": 18,
+          "name": "health",
+          "ok_ms": 1794414301923,
+          "rc": 0,
+          "success_age_ms": 57490,
+          "try_count": 1865
+        },
+        {
+          "defer_streak": 0,
+          "deferred": false,
+          "fail_streak": 0,
+          "last_duration_ms": 283,
+          "name": "metrics",
+          "ok_ms": 1794414002256,
+          "rc": 0,
+          "success_age_ms": 357157,
+          "try_count": 526
+        },
+        {
+          "defer_streak": 0,
+          "deferred": false,
+          "fail_streak": 0,
+          "last_duration_ms": 19,
+          "name": "observe",
+          "ok_ms": 1794414258843,
+          "rc": 0,
+          "success_age_ms": 100570,
+          "try_count": 14
+        }
+      ],
+      "last_tick_ms": 1794414301923,
+      "now_ms": 1794414359413,
+      "source_meta": {
+        "bytes": 1094,
+        "exists": true,
+        "lines": 57,
+        "mtime_ms": 1794414301960,
+        "path": "state/scheduler.json",
+        "sha256": "9e5b47ba7a275a04c4d009c2d3e9a224ad9863f44bc85ec934aa18c2840890fd"
+      },
+      "stale_after_ms": 120000,
+      "stale_factor": 4,
+      "tick_sec": 30,
+      "ticks": 2818
+    },
+    "generated_at_ms": 1794414359414,
+    "note": "只读观察；STALE/NEVER_TICKED 不等于机器坏，只说明本次门禁不把时间敏感事实判成硬红。",
+    "schema": 1,
+    "trend": {
+      "bad_lines": [],
+      "delta_ticks": 117,
+      "delta_wall_ms": 6774397,
+      "exists": true,
+      "expected_ticks_per_hour": 120,
+      "first": {
+        "_shard": "evidence/scheduler_trend.jsonl",
+        "criterion": "scheduler_trend_point_v1",
+        "fail_streak_max": 0,
+        "fresh": true,
+        "last_tick_ms": 1794407461995,
+        "schema": 1,
+        "sidecar_sha256": "e2c6aa5cc403fd2f968a25bd78fe9e25842db912945cb2907bc4fa52bba73886",
+        "ticks": 2700,
+        "ts_ms": 1794407496953,
+        "w4_participates": false
+      },
+      "keep_days": 90,
+      "last": {
+        "_shard": "evidence/trend/scheduler_trend-20261112.jsonl",
+        "criterion": "scheduler_trend_point_v1",
+        "fail_streak_max": 0,
+        "fresh": true,
+        "last_tick_ms": 1794414258843,
+        "schema": 1,
+        "sidecar_sha256": "f60f08f4d305ccb35954d5cc40518d1f595c5692a8c24720b927e251be9b08cb",
+        "ticks": 2817,
+        "ts_ms": 1794414271350,
+        "w4_participates": false
+      },
+      "maturity": {
+        "covered_hours": 1.882,
+        "note": "观察跨度 1.9 小时 < 目标 168 小时，日级结论尚未成立",
+        "points": 28,
+        "ready": false,
+        "remaining_hours": 166.118,
+        "target_hours": 168
+      },
+      "points": 28,
+      "shards": [
+        "evidence/trend/scheduler_trend-20261111.jsonl",
+        "evidence/trend/scheduler_trend-20261112.jsonl",
+        "evidence/scheduler_trend.jsonl"
+      ],
+      "stats": {
+        "points": 28,
+        "sample_warning": "观测跨度 1.9 小时 < 24 小时，日级分布未成立",
+        "span_hours": 1.882,
+        "span_ms": 6774397,
+        "tick_delta": {
+          "max": 15,
+          "mean": 4,
+          "min": 1,
+          "n": 27,
+          "p50": 3,
+          "p95": 15
+        },
+        "tick_gap_ms": {
+          "max": 889696,
+          "mean": 250903,
+          "min": 7664,
+          "n": 27,
+          "p50": 190878,
+          "p95": 889173
+        },
+        "ticks_per_hour_overall": 62
+      },
+      "ticks_per_hour": 62
+    },
+    "verdict": "SCHEDULER_OBSERVE_OK",
+    "w4_participates": false
+  },
+  "report_digest": "sha256:90d08641317ae83893fe8db8d5cff9572c1e7ed17eb0b4b9939f68094aad4942",
+  "schema": 1,
+  "snapshot_hmac": "hmac-sha256:1cf05bf7ac7a0b16cb0a526109468d4e082dc5807211b6ae09c4e57f4b291718",
+  "snapshot_signature": {
+    "algo": "cng-ecdsa-p256-sha256",
+    "body_digest": "sha256:0b1e748ba0f08499a2f607df8c8fdd5ce6385329b3638f4d9340dad154e2b431",
+    "curve": "P-256",
+    "key_id": "sha256:5effaa694147115d24dce0cf91cc10a4e8841025a6f86fe8014a4d8415fe316f",
+    "sig_b64": "OXFOo12tEZhKfo1pKU/fues7Ef/TpINEqxWlazQr5XxVtqE1bZ4O6/g8iSKjgeP6yyBYTSOiwBeWu5Y7jdhqYw==",
+    "sig_bytes": 64,
+    "w4_participates": false
+  },
+  "source_hashes": {
+    "evidence/scheduler_trend.jsonl": {
+      "bytes": 4676,
+      "exists": true,
+      "lines": 17,
+      "mtime_ms": 1794412540684,
+      "path": "evidence/scheduler_trend.jsonl",
+      "sha256": "5c2fafa8848521087aba973661c765339702435fe9744756e7c166f0a9bea701"
+    },
+    "evidence/trend/scheduler_trend-20261111.jsonl": {
+      "bytes": 275,
+      "exists": true,
+      "lines": 1,
+      "mtime_ms": 1794414340528,
+      "path": "evidence/trend/scheduler_trend-20261111.jsonl",
+      "sha256": "de3152955d1e9105bd26c9d302505a9876914fedd08b4985739768283e416adb"
+    },
+    "evidence/trend/scheduler_trend-20261112.jsonl": {
+      "bytes": 2750,
+      "exists": true,
+      "lines": 10,
+      "mtime_ms": 1794414340528,
+      "path": "evidence/trend/scheduler_trend-20261112.jsonl",
+      "sha256": "c06a8fbb2d0fafdaadda1170e19df4fe1d9e23c7e313aca38158fc8f386bf8fe"
+    },
+    "state/scheduler.json": {
+      "bytes": 1094,
+      "exists": true,
+      "lines": 57,
+      "mtime_ms": 1794414301960,
+      "path": "state/scheduler.json",
+      "sha256": "9e5b47ba7a275a04c4d009c2d3e9a224ad9863f44bc85ec934aa18c2840890fd"
+    }
+  },
+  "w4_participates": false
+}

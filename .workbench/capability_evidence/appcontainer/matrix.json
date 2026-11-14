@@ -1,0 +1,68 @@
+{
+  "criterion": "appcontainer_matrix_v1",
+  "note": "平台矩阵不是 W4 三证；Linux/macOS 的 UNTESTED 不得改写成 PASS。",
+  "rows": [
+    {
+      "api_ready": true,
+      "assembly_tested": true,
+      "capabilities_tested": [
+        "internetClient"
+      ],
+      "capability_sids": {
+        "appointments": "S-1-15-3-11",
+        "contacts": "S-1-15-3-12",
+        "documentsLibrary": "S-1-15-3-7",
+        "enterpriseAuthentication": "S-1-15-3-8",
+        "internetClient": "S-1-15-3-1",
+        "internetClientServer": "S-1-15-3-2",
+        "musicLibrary": "S-1-15-3-6",
+        "picturesLibrary": "S-1-15-3-4",
+        "privateNetworkClientServer": "S-1-15-3-3",
+        "removableStorage": "S-1-15-3-10",
+        "sharedUserCertificates": "S-1-15-3-9",
+        "videosLibrary": "S-1-15-3-5"
+      },
+      "evidence": [
+        "capability_evidence/appcontainer/bypass.json",
+        "capability_evidence/appcontainer/cleanup.json",
+        "capability_evidence/appcontainer/injection.json",
+        "capability_evidence/appcontainer/real.json"
+      ],
+      "inspect_verdict": "APPCONTAINER_EXPORT_INSPECT_ONLY",
+      "note": "Windows 真装配证据落在 capability_evidence/appcontainer；易变 profile/SID 在排除的 state/appcontainer_probe.jsonl。",
+      "platform": "win32",
+      "residual": false,
+      "unresolved_gaps": [],
+      "verdict": "APPCONTAINER_ASSEMBLED_VALIDATED",
+      "windows_version": "sys.getwindowsversion(major=10, minor=0, build=26200, platform=2, service_pack='')"
+    },
+    {
+      "api_ready": false,
+      "assembly_tested": false,
+      "capabilities_tested": [],
+      "evidence": [],
+      "note": "Win32 主机不产出 Linux 实机结论。",
+      "platform": "linux",
+      "residual": false,
+      "unresolved_gaps": [
+        "需要 Linux runner：namespace/seccomp/Landlock/AppArmor 对照实验"
+      ],
+      "verdict": "UNTESTED"
+    },
+    {
+      "api_ready": false,
+      "assembly_tested": false,
+      "capabilities_tested": [],
+      "evidence": [],
+      "note": "Win32 主机不产出 macOS 实机结论。",
+      "platform": "macos",
+      "residual": false,
+      "unresolved_gaps": [
+        "需要 macOS runner：App Sandbox / Seatbelt / entitlement 对照实验"
+      ],
+      "verdict": "UNTESTED"
+    }
+  ],
+  "schema": 1,
+  "w4_participates": false
+}

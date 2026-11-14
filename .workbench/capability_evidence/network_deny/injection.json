@@ -1,0 +1,10 @@
+{
+  "capability": "network_deny",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport platform_ops as p\nsrc={'PATH':'/x','NO_PROXY':'localhost'}\nsrc.update({'HTTP_PROXY':'a','HTTPS_PROXY':'b','FTP_PROXY':'c','ALL_PROXY':'d',\n  'AWS_SECRET_ACCESS_KEY':'s','W4_API_KEY':'k','W4_AUTH_TOKEN':'t','WORKBENCH_ROOT_KEY':'r'})\ne=p.scrub_env(src)\nbad={'HTTP_PROXY','HTTPS_PROXY','FTP_PROXY','ALL_PROXY','AWS_SECRET_ACCESS_KEY','W4_API_KEY','W4_AUTH_TOKEN','WORKBENCH_ROOT_KEY'}\nprint('LEAKED',sorted(bad&set(e)))\nassert not (bad&set(e))\nassert 'NO_PROXY' in e\nprint('OK injected proxy+secret names scrubbed, NO_PROXY preserved')",
+  "evidence_sha256": "bf8ca1d95afa9454cb915bdfa396c5057dee8e3d922f414ead5dc19d9c0fdb90",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "LEAKED []\r\nOK injected proxy+secret names scrubbed, NO_PROXY preserved\r\n"
+}

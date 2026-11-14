@@ -1,0 +1,1123 @@
+{
+  "schema": 1,
+  "events_schema_version": 4,
+  "doc_version": "3.2",
+  "number_policy": "int_only",
+  "ts_field": "ts_ms",
+  "ts_source": "system:store",
+  "carrier": "E08",
+  "frozen_whitelist_source": "writable_in_frozen",
+  "counts": {
+    "total": 56,
+    "active": 52,
+    "retired": 4
+  },
+  "retired_ids": [
+    "E11",
+    "E14",
+    "E41",
+    "E47"
+  ],
+  "events": [
+    {
+      "id": "E01",
+      "kind": "plan",
+      "group": "计划",
+      "actors": [
+        "lead",
+        "architect"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "plan_id"
+      ],
+      "note": "计划生成"
+    },
+    {
+      "id": "E02",
+      "kind": "draft_created",
+      "group": "计划",
+      "actors": [
+        "lead",
+        "architect",
+        "human:*"
+      ],
+      "from_states": [
+        "(none)",
+        "draft"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task"
+      ],
+      "note": "任务草案创建"
+    },
+    {
+      "id": "E03",
+      "kind": "draft_approved",
+      "group": "计划",
+      "actors": [
+        "lead",
+        "human:*"
+      ],
+      "from_states": [
+        "draft"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task"
+      ],
+      "note": "草案转正（配 T02）"
+    },
+    {
+      "id": "E04",
+      "kind": "claim",
+      "group": "执行",
+      "actors": [
+        "lead"
+      ],
+      "from_states": [
+        "pending",
+        "rejected"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "epoch"
+      ],
+      "note": "领取任务"
+    },
+    {
+      "id": "E05",
+      "kind": "spawn",
+      "group": "执行",
+      "actors": [
+        "lead",
+        "system:runner"
+      ],
+      "from_states": [
+        "claimed",
+        "in_progress"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "pid"
+      ],
+      "note": "启动 worker"
+    },
+    {
+      "id": "E06",
+      "kind": "heartbeat_lost",
+      "group": "执行",
+      "actors": [
+        "system:watchdog"
+      ],
+      "from_states": [
+        "claimed",
+        "in_progress"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "last_beat_ms",
+        "miss"
+      ],
+      "note": "存活心跳丢失"
+    },
+    {
+      "id": "E07",
+      "kind": "kill",
+      "group": "执行",
+      "actors": [
+        "lead",
+        "system:runner",
+        "system:watchdog"
+      ],
+      "from_states": [
+        "claimed",
+        "in_progress"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "pid"
+      ],
+      "note": "终止 worker"
+    },
+    {
+      "id": "E08",
+      "kind": "state",
+      "group": "状态",
+      "actors": [
+        "*authority*"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "from",
+        "to"
+      ],
+      "note": "迁移唯一载体"
+    },
+    {
+      "id": "E09",
+      "kind": "submit",
+      "group": "提交",
+      "actors": [
+        "lead",
+        "coder"
+      ],
+      "from_states": [
+        "claimed",
+        "in_progress"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "patch_sha256"
+      ],
+      "note": "提交结果"
+    },
+    {
+      "id": "E10",
+      "kind": "verify",
+      "group": "提交",
+      "actors": [
+        "system:verifier",
+        "system:merge_queue"
+      ],
+      "from_states": [
+        "submitted"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "result",
+        "reason_code"
+      ],
+      "note": "验收，result: pass|fail"
+    },
+    {
+      "id": "E11",
+      "kind": "verify_fail",
+      "group": "提交",
+      "actors": [],
+      "from_states": [],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": true,
+      "required_payload": [],
+      "note": "已退役：合并进 E10.result，编号保留"
+    },
+    {
+      "id": "E12",
+      "kind": "retry",
+      "group": "提交",
+      "actors": [
+        "lead"
+      ],
+      "from_states": [
+        "rejected"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "attempt"
+      ],
+      "note": "重试"
+    },
+    {
+      "id": "E13",
+      "kind": "reopen",
+      "group": "提交",
+      "actors": [
+        "human:*",
+        "lead"
+      ],
+      "from_states": [
+        "escalated",
+        "cancelled"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "root_cause_class"
+      ],
+      "note": "重开"
+    },
+    {
+      "id": "E14",
+      "kind": "cancelled",
+      "group": "提交",
+      "actors": [],
+      "from_states": [],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": true,
+      "required_payload": [],
+      "note": "已退役：由 E08{to:cancelled} 承接"
+    },
+    {
+      "id": "E15",
+      "kind": "merge",
+      "group": "合并",
+      "actors": [
+        "system:merge_queue"
+      ],
+      "from_states": [
+        "done"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "merge_commit"
+      ],
+      "note": "合并成功"
+    },
+    {
+      "id": "E16",
+      "kind": "merge_reverted",
+      "group": "合并",
+      "actors": [
+        "system:merge_queue"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "tasks",
+        "merge_commit"
+      ],
+      "note": "批量回退"
+    },
+    {
+      "id": "E17",
+      "kind": "escalate",
+      "group": "升级",
+      "actors": [
+        "lead",
+        "system:verifier",
+        "system:merge_queue",
+        "system:metrics"
+      ],
+      "from_states": [
+        "draft",
+        "pending",
+        "blocked",
+        "claimed",
+        "in_progress",
+        "submitted",
+        "done",
+        "rejected",
+        "pending_human"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "reason_code"
+      ],
+      "note": "升级给人"
+    },
+    {
+      "id": "E18",
+      "kind": "escalate_resolve",
+      "group": "升级",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "escalated"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "verdict"
+      ],
+      "note": "人工裁定完成"
+    },
+    {
+      "id": "E19",
+      "kind": "dep_cascade",
+      "group": "升级",
+      "actors": [
+        "system:dep_resolver"
+      ],
+      "from_states": [
+        "pending",
+        "blocked"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "cause_task"
+      ],
+      "note": "依赖级联"
+    },
+    {
+      "id": "E20",
+      "kind": "gate_open",
+      "group": "人工",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "pending_human"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "gate",
+        "task"
+      ],
+      "note": "开闸"
+    },
+    {
+      "id": "E21",
+      "kind": "human_approve",
+      "group": "人工",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "claimed",
+        "done",
+        "escalated",
+        "pending_human"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "task"
+      ],
+      "note": "人工批准"
+    },
+    {
+      "id": "E22",
+      "kind": "human_reject",
+      "group": "人工",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "draft",
+        "pending",
+        "claimed",
+        "in_progress",
+        "submitted",
+        "escalated",
+        "pending_human"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "reason_code"
+      ],
+      "note": "人工拒绝"
+    },
+    {
+      "id": "E23",
+      "kind": "human_override",
+      "group": "人工",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "draft",
+        "pending",
+        "blocked",
+        "claimed",
+        "in_progress",
+        "submitted",
+        "done",
+        "rejected",
+        "escalated",
+        "pending_human",
+        "cancelled",
+        "archived"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "to"
+      ],
+      "note": "人工覆盖状态"
+    },
+    {
+      "id": "E24",
+      "kind": "human_amend_task",
+      "group": "人工",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "draft",
+        "pending",
+        "blocked",
+        "claimed",
+        "in_progress",
+        "submitted",
+        "done",
+        "rejected",
+        "escalated",
+        "pending_human",
+        "cancelled",
+        "archived"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "fields"
+      ],
+      "note": "人工改任务"
+    },
+    {
+      "id": "E25",
+      "kind": "human_timeout",
+      "group": "人工",
+      "actors": [
+        "system:gate_timer"
+      ],
+      "from_states": [
+        "pending_human",
+        "escalated"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "gate",
+        "task"
+      ],
+      "note": "人工超时"
+    },
+    {
+      "id": "E26",
+      "kind": "config_change",
+      "group": "可信根",
+      "actors": [
+        "human:*",
+        "lead",
+        "system:migrate"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "key",
+        "old",
+        "new"
+      ],
+      "note": "配置变更"
+    },
+    {
+      "id": "E27",
+      "kind": "constitution_change",
+      "group": "可信根",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "file",
+        "digest"
+      ],
+      "note": "宪法/成员表变更"
+    },
+    {
+      "id": "E28",
+      "kind": "constitution_drift",
+      "group": "可信根",
+      "actors": [
+        "system:constitution_check"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "file",
+        "expect",
+        "actual"
+      ],
+      "note": "宪法漂移"
+    },
+    {
+      "id": "E29",
+      "kind": "contract",
+      "group": "可信根",
+      "actors": [
+        "lead",
+        "architect"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "contract_id",
+        "digest"
+      ],
+      "note": "契约登记"
+    },
+    {
+      "id": "E30",
+      "kind": "root_integrity_fail",
+      "group": "可信根",
+      "actors": [
+        "system:bootstrap",
+        "system:constitution_check"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "file",
+        "expect",
+        "actual"
+      ],
+      "note": "可信根校验失败"
+    },
+    {
+      "id": "E31",
+      "kind": "lease_conflict",
+      "group": "可信根",
+      "actors": [
+        "system:store"
+      ],
+      "from_states": [
+        "claimed",
+        "in_progress"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "want_epoch",
+        "have_epoch"
+      ],
+      "note": "租约冲突（主链记录，sidecar 记明细）"
+    },
+    {
+      "id": "E32",
+      "kind": "acceptance_approved",
+      "group": "可信根",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": [
+        "draft",
+        "pending"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "acceptance_digest"
+      ],
+      "note": "验收转正"
+    },
+    {
+      "id": "E33",
+      "kind": "budget_exceeded",
+      "group": "资源",
+      "actors": [
+        "system:metrics",
+        "lead"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "scope",
+        "used",
+        "limit"
+      ],
+      "note": "预算超限"
+    },
+    {
+      "id": "E34",
+      "kind": "gc",
+      "group": "资源",
+      "actors": [
+        "system:gc"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "rule",
+        "target",
+        "action"
+      ],
+      "note": "GC 执行"
+    },
+    {
+      "id": "E35",
+      "kind": "task_archive",
+      "group": "资源",
+      "actors": [
+        "system:gc"
+      ],
+      "from_states": [
+        "done",
+        "cancelled",
+        "rejected",
+        "escalated",
+        "archived"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "archive_path"
+      ],
+      "note": "任务归档"
+    },
+    {
+      "id": "E36",
+      "kind": "wt_reclaim",
+      "group": "资源",
+      "actors": [
+        "system:gc"
+      ],
+      "from_states": [
+        "done",
+        "cancelled",
+        "rejected",
+        "escalated"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "wt_path"
+      ],
+      "note": "worktree 回收"
+    },
+    {
+      "id": "E37",
+      "kind": "log_repair",
+      "group": "完整性",
+      "actors": [
+        "system:store"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "file",
+        "discarded_bytes",
+        "discarded_sha256"
+      ],
+      "note": "链修复"
+    },
+    {
+      "id": "E38",
+      "kind": "migration_rollback",
+      "group": "完整性",
+      "actors": [
+        "system:migrate"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "from_version",
+        "to_version",
+        "reason"
+      ],
+      "note": "迁移回滚"
+    },
+    {
+      "id": "E39",
+      "kind": "snapshot",
+      "group": "完整性",
+      "actors": [
+        "system:store",
+        "system:metrics"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "path",
+        "rows",
+        "sha256"
+      ],
+      "note": "快照导出"
+    },
+    {
+      "id": "E40",
+      "kind": "snapshot_fail",
+      "group": "完整性",
+      "actors": [
+        "system:store"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "reason_code"
+      ],
+      "note": "快照失败"
+    },
+    {
+      "id": "E41",
+      "kind": "metrics_snapshot",
+      "group": "观测",
+      "actors": [
+        "system:metrics"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": true,
+      "required_payload": [
+        "window",
+        "metrics"
+      ],
+      "note": "指标快照"
+    },
+    {
+      "id": "E42",
+      "kind": "capability_check",
+      "group": "观测",
+      "actors": [
+        "system:bootstrap",
+        "system:health"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "capability",
+        "state"
+      ],
+      "note": "能力校验"
+    },
+    {
+      "id": "E43",
+      "kind": "heartbeat_resumed",
+      "group": "观测",
+      "actors": [
+        "system:watchdog"
+      ],
+      "from_states": [
+        "claimed",
+        "in_progress"
+      ],
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "beat_ms"
+      ],
+      "note": "心跳恢复"
+    },
+    {
+      "id": "E44",
+      "kind": "split_requested",
+      "group": "计划",
+      "actors": [
+        "lead",
+        "human:*"
+      ],
+      "from_states": [
+        "draft",
+        "pending",
+        "blocked",
+        "claimed"
+      ],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "task",
+        "children"
+      ],
+      "note": "请求拆任务（配 T20）"
+    },
+    {
+      "id": "E45",
+      "kind": "contract_drift",
+      "group": "可信根",
+      "actors": [
+        "system:constitution_check",
+        "lead"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "contract_id",
+        "expect",
+        "actual"
+      ],
+      "note": "契约漂移"
+    },
+    {
+      "id": "E46",
+      "kind": "memory_remember",
+      "group": "识海",
+      "actors": [
+        "companion",
+        "system:dream"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "layer",
+        "kind",
+        "importance",
+        "source_seq"
+      ],
+      "note": "写入一条记忆（过门槛后）"
+    },
+    {
+      "id": "E48",
+      "kind": "emotion_update",
+      "group": "识海",
+      "actors": [
+        "companion",
+        "system:dream"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "emotion",
+        "intensity",
+        "mood"
+      ],
+      "note": "心绪变更（七情 + 底色）"
+    },
+    {
+      "id": "E49",
+      "kind": "purpose_add",
+      "group": "识海",
+      "actors": [
+        "companion",
+        "system:dream"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "purpose_id",
+        "note"
+      ],
+      "note": "开立一条心念"
+    },
+    {
+      "id": "E50",
+      "kind": "purpose_resolve",
+      "group": "识海",
+      "actors": [
+        "companion",
+        "system:dream",
+        "human:*"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "purpose_id",
+        "verdict"
+      ],
+      "note": "了结一条心念"
+    },
+    {
+      "id": "E51",
+      "kind": "dream_consolidation",
+      "group": "识海",
+      "actors": [
+        "system:dream"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": true,
+      "retired": false,
+      "required_payload": [
+        "date",
+        "events",
+        "stored",
+        "candidates"
+      ],
+      "note": "梦境整合完成（幂等键 date）"
+    },
+    {
+      "id": "E52",
+      "kind": "persona_growth",
+      "group": "识海",
+      "actors": [
+        "system:dream"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "candidate_id",
+        "candidate",
+        "evidence_seqs"
+      ],
+      "note": "性格成长候选入 growth.md"
+    },
+    {
+      "id": "E53",
+      "kind": "persona_upgrade",
+      "group": "识海",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "candidate_id",
+        "file",
+        "digest"
+      ],
+      "note": "人工复核后把候选写进 core.md"
+    },
+    {
+      "id": "E54",
+      "kind": "dream_fail",
+      "group": "识海",
+      "actors": [
+        "system:dream"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "date",
+        "attempts",
+        "error"
+      ],
+      "note": "梦境整合重试用尽失败（不借用 E34）"
+    },
+    {
+      "id": "E55",
+      "kind": "persona_growth_void",
+      "group": "识海",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "candidate_id",
+        "seqs",
+        "verdict",
+        "reason"
+      ],
+      "note": "裁定成长候选作废（不删链行，登记处置）"
+    },
+    {
+      "id": "E56",
+      "kind": "memory_import",
+      "group": "识海",
+      "actors": [
+        "human:*"
+      ],
+      "from_states": null,
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": false,
+      "required_payload": [
+        "bundle_id",
+        "origin_project_uuid",
+        "imported",
+        "skipped",
+        "conflicts",
+        "refused_secret",
+        "layers"
+      ],
+      "note": "记忆库跨机导入留痕（记来源 bundle 与逐类计数）"
+    },
+    {
+      "id": "E47",
+      "kind": "memory_recall",
+      "group": "识海",
+      "actors": [],
+      "from_states": [],
+      "to_state": null,
+      "writable_in_frozen": false,
+      "retired": true,
+      "required_payload": [],
+      "note": "已退役：召回明细走 append_sidecar，编号保留不复用"
+    }
+  ]
+}

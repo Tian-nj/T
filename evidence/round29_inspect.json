@@ -1,0 +1,10 @@
+{
+  "criterion": "platform_runner_matrix_v1",
+  "generated_at_ms": 1794407496728,
+  "host_platform": "win32",
+  "note": "Win32/其他宿主不产出 Linux/macOS 实机结论；本机不写跨 OS 证据文件。",
+  "platform": "win32",
+  "schema": 1,
+  "verdict": "NOT_APPLICABLE",
+  "w4_participates": false
+}

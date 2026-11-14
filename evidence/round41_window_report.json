@@ -1,0 +1,183 @@
+{
+  "criterion": "scheduler_observe_v1",
+  "current": {
+    "age_ms": 12998,
+    "bad_jobs": [],
+    "deferred_jobs": [],
+    "exists": true,
+    "fail_streak_max": 0,
+    "fresh": true,
+    "freshness": "FRESH",
+    "jobs": [
+      {
+        "defer_streak": 0,
+        "deferred": false,
+        "fail_streak": 0,
+        "last_duration_ms": 18,
+        "name": "dream",
+        "ok_ms": 1794427201781,
+        "rc": 0,
+        "success_age_ms": 41653283,
+        "try_count": 5
+      },
+      {
+        "defer_streak": 0,
+        "deferred": false,
+        "fail_streak": 0,
+        "last_duration_ms": 15,
+        "name": "gate_timer",
+        "ok_ms": 1794468842066,
+        "rc": 0,
+        "success_age_ms": 12998,
+        "try_count": 2446
+      },
+      {
+        "defer_streak": 0,
+        "deferred": false,
+        "fail_streak": 0,
+        "last_duration_ms": 9,
+        "name": "gc",
+        "ok_ms": 1794466142071,
+        "rc": 0,
+        "success_age_ms": 2712993,
+        "try_count": 273
+      },
+      {
+        "defer_streak": 0,
+        "deferred": false,
+        "fail_streak": 0,
+        "last_duration_ms": 23,
+        "name": "health",
+        "ok_ms": 1794468842066,
+        "rc": 0,
+        "success_age_ms": 12998,
+        "try_count": 2446
+      },
+      {
+        "defer_streak": 0,
+        "deferred": false,
+        "fail_streak": 0,
+        "last_duration_ms": 183,
+        "name": "metrics",
+        "ok_ms": 1794468722274,
+        "rc": 0,
+        "success_age_ms": 132790,
+        "try_count": 695
+      },
+      {
+        "defer_streak": 0,
+        "deferred": false,
+        "fail_streak": 0,
+        "last_duration_ms": 42,
+        "name": "observe",
+        "ok_ms": 1794468722274,
+        "rc": 0,
+        "success_age_ms": 132790,
+        "try_count": 182
+      }
+    ],
+    "last_tick_ms": 1794468842066,
+    "now_ms": 1794468855064,
+    "source_meta": {
+      "bytes": 1096,
+      "exists": true,
+      "lines": 57,
+      "mtime_ms": 1794468842111,
+      "path": "state/scheduler.json",
+      "sha256": "680db53889145843f313c4690820a66b81b50910aa6a8bb93f769fc7c1d5f780"
+    },
+    "stale_after_ms": 120000,
+    "stale_factor": 4,
+    "tick_sec": 30,
+    "ticks": 3727
+  },
+  "generated_at_ms": 1794468855075,
+  "note": "只读观察；STALE/NEVER_TICKED 不等于机器坏，只说明本次门禁不把时间敏感事实判成硬红。",
+  "schema": 1,
+  "trend": {
+    "bad_lines": [],
+    "delta_ticks": 1024,
+    "delta_wall_ms": 61225549,
+    "exists": true,
+    "expected_ticks_per_hour": 120,
+    "first": {
+      "_shard": "evidence/scheduler_trend.jsonl",
+      "criterion": "scheduler_trend_point_v1",
+      "fail_streak_max": 0,
+      "fresh": true,
+      "last_tick_ms": 1794407461995,
+      "schema": 1,
+      "sidecar_sha256": "e2c6aa5cc403fd2f968a25bd78fe9e25842db912945cb2907bc4fa52bba73886",
+      "ticks": 2700,
+      "ts_ms": 1794407496953,
+      "w4_participates": false
+    },
+    "keep_days": 90,
+    "last": {
+      "_shard": "evidence/trend/scheduler_trend-20261112.jsonl",
+      "criterion": "scheduler_trend_point_v1",
+      "fail_streak_max": 0,
+      "fresh": true,
+      "last_tick_ms": 1794468662334,
+      "schema": 1,
+      "sidecar_sha256": "10ebeaf87d24de5886a446e7248580665ea98ba832d8b81aea5d3fc8688db9f1",
+      "ticks": 3724,
+      "ts_ms": 1794468722502,
+      "w4_participates": false
+    },
+    "maturity": {
+      "covered_hours": 17.007,
+      "estimated_completion_at": "2026-11-18T14:33:49Z",
+      "estimated_completion_ms": 1795012429515,
+      "eta_basis": "linear extrapolation from observed span; not a scheduler promise",
+      "first_observed_at": "2026-11-11T14:31:36Z",
+      "first_observed_at_ms": 1794407496953,
+      "last_observed_at": "2026-11-12T07:32:02Z",
+      "last_observed_at_ms": 1794468722502,
+      "note": "观察跨度 17.0 小时 < 目标 168 小时，日级结论尚未成立；预计还需 151.0 小时（ETA 2026-11-18T14:33:49Z）",
+      "points": 218,
+      "ready": false,
+      "remaining_hours": 150.993,
+      "target_hours": 168
+    },
+    "points": 218,
+    "shards": [
+      "evidence/trend/scheduler_trend-20261111.jsonl",
+      "evidence/trend/scheduler_trend-20261112.jsonl",
+      "evidence/scheduler_trend.jsonl"
+    ],
+    "stats": {
+      "points": 218,
+      "sample_warning": "观测跨度 17.0 小时 < 24 小时，日级分布未成立",
+      "span_hours": 17.007,
+      "span_ms": 61225549,
+      "tick_delta": {
+        "max": 15,
+        "mean": 4,
+        "min": 1,
+        "n": 217,
+        "p50": 5,
+        "p95": 6
+      },
+      "tick_gap_ms": {
+        "max": 889696,
+        "mean": 282145,
+        "min": 7664,
+        "n": 217,
+        "p50": 300160,
+        "p95": 360187
+      },
+      "ticks_per_hour_overall": 60
+    },
+    "ticks_per_hour": 60,
+    "window_conclusion": {
+      "basis": "point_estimate",
+      "distribution_is_primary": false,
+      "headline_metric": "ticks_per_hour",
+      "reason": "观察跨度 17.007/168 小时，预计还需 150.993 小时（ETA 2026-11-18T14:33:49Z）；主结论暂用单点速率，分布只作观察值",
+      "status": "window_not_ready"
+    }
+  },
+  "verdict": "SCHEDULER_OBSERVE_OK",
+  "w4_participates": false
+}

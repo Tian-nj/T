@@ -1,0 +1,91 @@
+{
+  "now_ms": 1794414196860,
+  "last_tick_ms": 1794414191673,
+  "age_ms": 5187,
+  "stale_after_ms": 120000,
+  "fresh": true,
+  "ticks": 2814,
+  "jobs": [
+    {
+      "name": "health",
+      "enabled": true,
+      "ok_ms": 1794414069952,
+      "age_ms": 126908,
+      "interval_sec": 60,
+      "fail_streak": 0,
+      "defer_streak": 0,
+      "last_deferred": null,
+      "rc": 0,
+      "overdue": false,
+      "last_error": null
+    },
+    {
+      "name": "gate_timer",
+      "enabled": true,
+      "ok_ms": 1794414069952,
+      "age_ms": 126908,
+      "interval_sec": 60,
+      "fail_streak": 0,
+      "defer_streak": 0,
+      "last_deferred": null,
+      "rc": 0,
+      "overdue": false,
+      "last_error": null
+    },
+    {
+      "name": "metrics",
+      "enabled": true,
+      "ok_ms": 1794414002256,
+      "age_ms": 194604,
+      "interval_sec": 300,
+      "fail_streak": 0,
+      "defer_streak": 0,
+      "last_deferred": null,
+      "rc": 0,
+      "overdue": false,
+      "last_error": null
+    },
+    {
+      "name": "gc",
+      "enabled": true,
+      "ok_ms": 1794413942698,
+      "age_ms": 254162,
+      "interval_sec": 3600,
+      "fail_streak": 0,
+      "defer_streak": 0,
+      "last_deferred": null,
+      "rc": 0,
+      "overdue": false,
+      "last_error": null
+    },
+    {
+      "name": "dream",
+      "enabled": true,
+      "ok_ms": 1794340802375,
+      "age_ms": 73394485,
+      "interval_sec": 86400,
+      "fail_streak": 0,
+      "defer_streak": 0,
+      "last_deferred": null,
+      "rc": 0,
+      "overdue": false,
+      "last_error": null
+    },
+    {
+      "name": "observe",
+      "enabled": true,
+      "ok_ms": 1794414002256,
+      "age_ms": 194604,
+      "interval_sec": 300,
+      "fail_streak": 0,
+      "defer_streak": 0,
+      "last_deferred": null,
+      "rc": 0,
+      "overdue": false,
+      "last_error": null
+    }
+  ],
+  "bad": [],
+  "cfg_error": null,
+  "ok": true
+}

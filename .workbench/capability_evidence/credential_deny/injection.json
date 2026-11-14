@@ -1,0 +1,10 @@
+{
+  "capability": "credential_deny",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport json,subprocess,platform_ops as p\nsrc={'PATH':os.environ.get('PATH','')}\nsrc.update({'WORKBENCH_ROOT_KEY':'r','GITHUB_TOKEN':'g','AWS_ACCESS_KEY_ID':'a','W4_PASSWORD':'p'})\nenv=p.scrub_env(src)\ncode=\"import os,json;print(json.dumps(sorted(k for k in os.environ if any(t in k.upper() for t in ('KEY','SECRET','TOKEN','PASSWORD')))))\"\npr=p.spawn_group([sys.executable,'-c',code],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)\nout,_=pr.communicate(timeout=30)\ns=out.decode('utf-8','replace').strip()\nprint('INJECTED_LEAK',s)\nassert s=='[]'\nprint('OK injected credential-like env never reaches worker')",
+  "evidence_sha256": "019414ce12bff67a71d824231699a03e52a7ad1fb867e0357db6d9470ab10767",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "INJECTED_LEAK []\r\nOK injected credential-like env never reaches worker\r\n"
+}

@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "doc_version": "3.2",
+  "registry_kind": "role_to_agent_assignment",
+  "note": "角色是工位，agent 是执行体。改本文件必须同时写 E27 constitution_change，且本文件进 root.manifest。",
+
+  "pool": {
+    "name": "local",
+    "max_parallel": 3,
+    "max_parallel_source": "global_config.batch_max_parallel",
+    "concurrency_rule": "并发数 = min(pool.max_parallel, sum(role.slots))；verifier 不计入，因其与被验任务并行",
+    "on_pool_full": "queue"
+  },
+
+  "roles": {
+    "lead": {
+      "role": "lead",
+      "actor": "lead",
+      "display": "调度与裁决",
+      "executor": "harness_subagent",
+      "model": { "provider": "deepseek", "name": "deepseek-v4.1-flash", "reasoning": "high" },
+      "slots": 1,
+      "workdir": ".",
+      "write_scope": ["docs/architecture/**", ".workbench/tasks/**/brief.md", ".workbench/tasks/**/acceptance.draft.yaml"],
+      "write_scope_source": "spec/paths.yaml + 角色卡",
+      "env_allow": ["PATH", "PYTHONIOENCODING", "WORKBENCH_ROOT_KEY"],
+      "env_deny": ["WORKBENCH_HUMAN_KEY"],
+      "can_emit": ["E01", "E02", "E03", "E04", "E05", "E07", "E08", "E09", "E12", "E15", "E16", "E17", "E19", "E20", "E26", "E29", "E44"],
+      "heartbeat_sec": 300,
+      "restart_policy": "stateless — 重启后 verify_chain → rebuild → 覆盖 tasks.json"
+    },
+
+    "architect": {
+      "role": "architect",
+      "actor": "architect",
+      "display": "架构与契约",
+      "executor": "harness_subagent",
+      "model": { "provider": "deepseek", "name": "deepseek-v4.1-flash", "reasoning": "high" },
+      "slots": 1,
+      "workdir": "wt/<task>",
+      "write_scope": ["docs/architecture/**", "contracts/**"],
+      "write_scope_source": "spec/paths.yaml allow_write owner=architect",
+      "env_allow": ["PATH", "PYTHONIOENCODING"],
+      "env_deny": ["WORKBENCH_ROOT_KEY", "WORKBENCH_HUMAN_KEY", "*_API_KEY", "*_TOKEN", "*_SECRET"],
+      "can_emit": ["E29", "E45"],
+      "heartbeat_sec": 10,
+      "lease": { "ttl_sec": 30, "renew_sec": 10 }
+    },
+
+    "coder": {
+      "role": "coder",
+      "actor": "coder",
+      "display": "实现",
+      "executor": "harness_subagent",
+      "model": { "provider": "deepseek", "name": "deepseek-v4.1-flash", "reasoning": "medium" },
+      "slots": 3,
+      "workdir": "wt/<task>",
+      "write_scope": ["<task.scope>"],
+      "write_scope_source": "任务 acceptance.yaml 的 scope ∩ spec/paths.yaml allow_write",
+      "env_allow": ["PATH", "PYTHONIOENCODING", "TMPDIR", "HOME"],
+      "env_deny": ["WORKBENCH_ROOT_KEY", "WORKBENCH_HUMAN_KEY", "*_API_KEY", "*_TOKEN", "*_SECRET", "AWS_*", "GITHUB_TOKEN"],
+      "can_emit": ["E05", "E09"],
+      "heartbeat_sec": 10,
+      "lease": { "ttl_sec": 30, "renew_sec": 10 },
+      "hard_timeout_min": 60,
+      "on_epoch_superseded": "immediately stop writing, exit 0 with result.status=aborted"
+    },
+
+    "verifier": {
+      "role": "verifier",
+      "actor": "system:verifier",
+      "display": "验收",
+      "executor": "local_process",
+      "entrypoint": "scripts/verify_harness.py",
+      "slots": 3,
+      "workdir": "wt/<task>",
+      "write_scope": [".workbench/tasks/<task>/verify.log", ".workbench/tasks/<task>/result.json", ".workbench/verify_harness/**"],
+      "write_scope_source": "角色卡 verifier.md",
+      "env_allow": ["PATH", "PYTHONIOENCODING", "PORT"],
+      "env_deny": ["WORKBENCH_ROOT_KEY", "WORKBENCH_HUMAN_KEY"],
+      "can_emit": ["E10", "E17", "E45"],
+      "independence_rule": "verifier 的 agent 实例必须与被验 coder 不同实例（不同 target id），否则拒跑",
+      "heartbeat_sec": 10,
+      "lease": { "ttl_sec": 30, "renew_sec": 10 }
+    }
+  },
+
+  "system_actors": {
+    "system:bootstrap": { "executor": "local_process", "entrypoint": "scripts/bootstrap.py", "slots": 1, "can_emit": ["E30", "E42"], "heartbeat_sec": 0 },
+    "system:store": { "executor": "local_process", "entrypoint": "scripts/wb_core.py", "slots": "unbounded_but_serialized_by_lock", "can_emit": ["E31", "E37", "E39", "E40"] },
+    "system:watchdog": { "executor": "local_process", "entrypoint": "scripts/health.py", "slots": 1, "can_emit": ["E06", "E07", "E43"], "interval_sec": 300 },
+    "system:dep_resolver": { "executor": "local_process", "entrypoint": "scripts/dep_resolver.py", "slots": 1, "can_emit": ["E19"] },
+    "system:gate_timer": { "executor": "local_process", "entrypoint": "scripts/gate_timer.py", "slots": 1, "can_emit": ["E25"] },
+    "system:gc": { "executor": "local_process", "entrypoint": "scripts/gc_helper.py", "slots": 1, "can_emit": ["E34", "E35", "E36"] },
+    "system:metrics": { "executor": "local_process", "entrypoint": "scripts/metrics_collector.py", "slots": 1, "can_emit": ["E33", "E41"], "interval_sec": 300 },
+    "system:constitution_check": { "executor": "local_process", "entrypoint": "scripts/constitution_check.py", "slots": 1, "can_emit": ["E28", "E45"] },
+    "system:merge_queue": { "executor": "local_process", "entrypoint": "scripts/merge_queue.py", "slots": 1, "can_emit": ["E15", "E16"] },
+    "system:health": { "executor": "local_process", "entrypoint": "scripts/health.py", "slots": 1, "can_emit": ["E42"] },
+    "system:migrate": { "executor": "local_process", "entrypoint": "scripts/migrate_vx_to_vy.py", "slots": 1, "can_emit": ["E38"] }
+  },
+
+  "human": {
+    "actor_template": "human:<principal>",
+    "executor": "human_cli",
+    "entrypoint": "scripts/human_cli.py",
+    "auth": {
+      "scheme": "hmac-sha256",
+      "key_derivation": "HMAC(WORKBENCH_ROOT_KEY, 'human/' + principal)",
+      "sig_input": "principal + '\\n' + op + '\\n' + canonical(args) + '\\n' + nonce + '\\n' + str(ts_ms)",
+      "replay_window_ms": 300000,
+      "on_fail": "write sidecar/reject.jsonl only; never touch the main chain"
+    },
+    "can_emit": ["E18", "E20", "E21", "E22", "E23", "E24", "E26", "E27"]
+  },
+
+  "dispatch": {
+    "order": "priority desc (P0 needs E21) → downstream_dep_count desc → created_at asc",
+    "window_size": "min(pool.max_parallel, free_slots)",
+    "no_batch_barrier": true,
+    "scope_conflict_rule": "后到者排除出本批，不拆批",
+    "pre_checks": ["scope 不相交", "acceptance 已转正(E32)", "依赖就绪", "并行名额", "日预算", "未 FROZEN"]
+  }
+}

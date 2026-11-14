@@ -1,0 +1,95 @@
+{
+  "criterion": "joint_acceptance_fixture_v1",
+  "env": {
+    "WB_REF_MODEL_ENDPOINT": "<loopback http://127.0.0.1:42348/v1/chat/completions>",
+    "WB_REF_MODEL_KEY": "<set len=20>"
+  },
+  "generated_at_ms": 1794615210456,
+  "honest_boundary": {
+    "real_vendor_verified": false,
+    "runner_rc_means": "这次真跑完成（≠ 验收通过）",
+    "still_blocked": [
+      "actions",
+      "window"
+    ],
+    "verdict_means": "联合验收在当前三项输入下的真实结论"
+  },
+  "joint_headline": "1/3 项就绪，2 项阻塞 —— 现在**不能**宣布整套验收完成",
+  "joint_items": [
+    {
+      "id": "model",
+      "provider_kind": "loopback_fixture",
+      "ready": true,
+      "why": null
+    },
+    {
+      "id": "actions",
+      "provider_kind": null,
+      "ready": false,
+      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+    },
+    {
+      "id": "window",
+      "provider_kind": null,
+      "ready": false,
+      "why": "观察跨度 57.624/168 小时，ETA 2026-11-18T14:36:05Z；此时任何「日级结论」都是单点外推"
+    }
+  ],
+  "joint_verdict": "JOINT_BLOCKED",
+  "mode": "local_loopback_fixture",
+  "model_roundtrip": {
+    "backend": "model",
+    "doc_summary": "参考执行体 model 回路：local-echo 返回 36 字",
+    "elapsed_ms": 25,
+    "has_model_output": true,
+    "key_not_in_sentinel": true,
+    "rc": 0,
+    "selfcheck_cmd": "(model)",
+    "sentinel_backend": "model",
+    "signed": true
+  },
+  "note": "本机无真供应商 env，按占位符起本地 OpenAI 兼容 fixture 并配 env；能证 env 装配→消费→一次真 HTTP 往返→联合验收真跑，不能证真供应商到货 / Actions 真跑 / 168h 窗口到点。",
+  "readiness": {
+    "all_ready": false,
+    "blocked_count": 2,
+    "criterion": "joint_acceptance_v1",
+    "items": [
+      {
+        "id": "model",
+        "missing": [],
+        "provider_kind": "loopback_fixture",
+        "ready": true,
+        "title": "真供应商模型",
+        "why": null
+      },
+      {
+        "id": "actions",
+        "missing": [],
+        "provider_kind": null,
+        "ready": false,
+        "title": "GitHub Actions 真跑",
+        "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+      },
+      {
+        "id": "window",
+        "missing": [],
+        "provider_kind": null,
+        "ready": false,
+        "title": "7 天观察窗口",
+        "why": "观察跨度 57.624/168 小时，ETA 2026-11-18T14:36:00Z；此时任何「日级结论」都是单点外推"
+      }
+    ],
+    "mode": "readiness",
+    "ready_count": 1,
+    "schema": 1
+  },
+  "schema": 1,
+  "server_request_count": 1,
+  "server_requests": [
+    {
+      "auth_is_bearer": true,
+      "ctype": "application/json",
+      "path": "/v1/chat/completions"
+    }
+  ]
+}

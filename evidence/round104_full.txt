@@ -1,0 +1,3433 @@
+run_all_checks — 2026-11-13T10:50:14Z UTC
+python: 3.12.14
+
+===== test  test_mg_gate =====
+mg: {'max_file_count': 5, 'max_net_line_count': 200, 'gray_batch_max': 10}
+
+  ok   依赖1行         NEVER_WAIVE   dependencies: requirements.txt
+  ok   CI改3行        NEVER_WAIVE   cicd: .github/workflows/ci.yml
+  ok   契约           NEVER_WAIVE   contracts: contracts/api.yaml
+  ok   凭据           NEVER_WAIVE   credentials: secrets/token.txt
+  ok   迁移           NEVER_WAIVE   db_migration: migrations/001_add.sql
+  ok   权限表          NEVER_WAIVE   permissions: .workbench/roles/coder.md
+  ok   改config      NEVER_WAIVE   manifest_change: .workbench/config.yaml
+  ok   无statuses    AUTO_CORE     files 1<=5, net 1<=200, 全部在 allowed_paths
+  ok   删文件          NEVER_WAIVE   file_delete: src/old.py
+  ok   强推           NEVER_WAIVE   git_force: git push --force origin x
+  ok   生成物          AUTO_ALL      全部改动落在 mg.generated_paths
+  ok   混入手写         NEEDS_REBREAK 不在 mg.allowed_paths: dist/bundle.js
+  ok   小改           AUTO_CORE     files 1<=5, net 6<=200, 全部在 allowed_paths
+  ok   6文件          NEEDS_REBREAK 规模超阈值: files 6>5 或 net 10>200
+  ok   净增210        NEEDS_REBREAK 规模超阈值: files 1>5 或 net 210>200
+  ok   净增200        AUTO_CORE     files 1<=5, net 200<=200, 全部在 allowed_paths
+  ok   出白名单         NEEDS_REBREAK 不在 mg.allowed_paths: vendor/x.py
+  ok   空改动          NEEDS_REBREAK 不在 mg.allowed_paths: 
+  ok   灰区10         AUTO_CORE     files 1<=5, net 1<=200, 全部在 allowed_paths
+  ok   灰区11         GRAY_OVERFLOW 灰区批量 11 > gray_batch_max 10
+  ok   approved     只放行已签，不改分支
+  ok   未知类别     config.mg.never_waive 含未知类别 ['typo_category']；未知类别不能静默忽略——那等
+  ok   段边界       migrations_old 不误判
+
+test_mg_gate: PASS (all cases)
+[exit=0]
+
+===== test  test_gate_integration =====
+  ok   diff_stats statuses
+  ok   diff_stats 行数
+  ok   漏报依赖→NEVER_WAIVE
+  ok     need=double_sign
+  ok     理由含 dependencies
+  ok   小改→AUTO_CORE
+  ok     merge=False（需签）
+  ok   已签→merge=True
+  ok   生成物→AUTO_ALL
+  ok     400 行不被规模拦
+  ok   灰区超批→GRAY_OVERFLOW
+  ok   二进制不计入行数
+  ok   二进制仍出现在 statuses
+
+test_gate_integration: PASS (all cases)
+[exit=0]
+
+===== test  test_actor_and_freeze =====
+  ok   夹具把任务推到 claimed
+  ok   注册 actor 可写
+  ok   拒绝 actor 'totally:fake:actor'
+  ok   拒绝 actor 'system:verifer'
+  ok   拒绝 actor 'lead '
+  ok   拒绝 actor ''
+  ok   拒绝 actor 'human:'
+  ok   拒绝 actor 'human:nobody'
+  ok   拒绝 actor 'system:bootstrap:extra'
+  ok   human:yg 可写
+  ok   拒绝 'human:gone'
+  ok   拒绝 'human:off'
+  ok   拒绝 'human:stranger'
+  ok   置位返回 marker 路径
+  ok   marker 已落盘
+  ok   marker 记了原因
+  ok   冻结期拒绝 submit
+  ok   冻结期放行 human_approve
+  ok   重启后冻结状态读回
+  ok   解冻后 marker 删除
+  ok   解冻后可写 submit
+  ok   链完整
+
+test_actor_and_freeze: PASS (all cases)
+[exit=0]
+
+===== test  test_log_repair_event =====
+  ok   造链 5 行自洽
+  ok   repair=False 时坏尾巴报错
+  ok   修复成功
+  ok   repairs 只有一条
+  ok   discarded_bytes > 0
+  ok   discarded_sha256 是 sha256: 前缀
+  ok   链上有 1 条 log_repair
+  ok   log_repair payload 三键齐全
+  ok   log_repair 数值与 repairs 一致
+  ok   log_repair actor 是 system:store
+  ok   修复后链自洽
+  ok   行数 = 4 保留 + 1 修复记录
+  ok   emit_repair_event=False 仍修复
+  ok   emit_repair_event=False 不写事件
+
+test_log_repair_event: PASS (all cases)
+[exit=0]
+
+===== test  test_deps_order =====
+  ok   传递闭包 A=3
+  ok   传递闭包 B=1
+  ok   传递闭包 C=0
+  ok   传递闭包 D=0
+  ok   自环不把自己算成下游
+  ok   自环任务自身下游为 0
+  ok   互环不死循环
+  ok   task-new T-A rc=0
+  ok   task-approve T-A rc=0
+  ok   task-new T-B rc=0
+  ok   task-approve T-B rc=0
+  ok   task-new T-C rc=0
+  ok   task-approve T-C rc=0
+  ok   depends_on 写入 draft
+  ok   dispatch rc=0
+  ok   A 被选中
+  ok   B 被依赖挡
+  ok   C 被依赖挡
+  ok   A 的 downstream=2
+  ok   A 的 depends_on=[]
+
+test_deps_order: PASS (all cases)
+[exit=0]
+
+===== test  test_round4_entrypoints =====
+  ok   R1 初始未冻结
+  ok   R1 冻结置位
+  ok   R1 marker 落盘
+  ok   R1 冻结拒 draft_created
+  ok   R1 冻结期链没多出 draft_created
+  ok   R1 重启后仍冻结
+  ok   R1 解冻
+  ok   R1 解冻后可写（T-R2 建成功）
+  ok   R1 解冻后 snapshot 可写
+  ok   R4 E39 真发出
+  ok   R4 快照文件存在
+  ok   R4 sha256 与实际文件一致
+  ok   R4 rows 与实际行数一致
+  ok   R2 建第二个任务
+  ok   R2 非 rejected 拒绝重试
+  ok   R2 拒绝时不写 retry
+  ok   R2 零 retry 时 attempts=0
+  ok   R5 写记忆成功
+  ok   R5 文件生成
+  ok   R5 三要素齐全
+  ok   R5 不存在的 source_seq 被拒
+  ok   R5 无 source_seq 允许但标注缺失
+  ok   R5 无来源被标出
+  ok   R5 task 层按任务分文件
+  ok   R3 非 done 拒绝归档
+  ok   R6 预算未超时不拦
+  ok   R6 改配置生效
+  ok   R6 无用量时不拦（哪怕限额=1）
+
+test_round4_entrypoints: PASS (all cases)
+[exit=0]
+
+===== test  test_round5_alerts_snapshot =====
+  ok   A0 sign_manifest --init                        rc=0
+  ok   A1 kind:file 被识别                               [{'channel': 'file', 'path': 'C:\\Users\\THH32\\AppData\\Local\\Temp\\wb_r5_47drclrt\\.workbench/state/alerts.jsonl'}]
+  ok   A1 alerts.jsonl 真的写了                           
+  ok   A1 记录级别 p1                                     p1
+  ok   A1 不带密钥原文                                      
+  ok   A2 p0 门槛挡住 p1 文件告警                             1->1
+  ok   A3 webhook 缺 env → skipped                     [{'channel': 'webhook', 'skipped': 'env WB_R5_HOOK not set'}]
+  ok   B1 首次出快照                                       {'event_seq': 3, 'path': 'state/snapshots/chain-2-1794567025461.jsonl', 'rows': 2, 'pruned': []}
+  ok   B1 快照文件落盘                                      ['chain-2-1794567025461.jsonl']
+  ok   B2 无新事件 → 跳过                                   no new events since seq 3
+  ok   B2 有新事件但间隔不足 → 跳过                              last snapshot 0.0 min ago < 15 min
+  ok   B1 间隔满足 → 出第二份                                 {'event_seq': 6, 'path': 'state/snapshots/chain-5-1794567025713.jsonl', 'rows': 5, 'pruned': []}
+  ok   B2 两份快照共存                                      
+  ok   B3 过期快照被清                                      ['chain-0-0.jsonl']
+  ok   B3 链上事件不被删                                     3 条
+  ok   C1 registry 指错 → 报错不回落                         rc=1
+  ok   C2 pool 不一致 → WARN 且以 config 为准                window = 3 (batch_max_parallel)
+  ok   D1 schema 里有 smoke_cmd                         ['allowed_paths', 'generated_paths', 'gray_batch_max', 'max_file_count', 'max_ne
+  ok   D1 config 里有 smoke_cmd                         
+
+test_round5_alerts_snapshot: PASS (19 checks)
+[exit=0]
+
+===== test  test_contract_registry =====
+
+test_contract_registry: PASS (21 checks)
+[exit=0]
+
+===== test  test_mg_sign =====
+none / 0 人                                     ok  got=True want=True
+single / 0 人                                   ok  got=False want=False
+single / 1 人                                   ok  got=True want=True
+double / 1 人                                   ok  got=False want=False
+double / 2 人                                   ok  got=True want=True
+double / 同一人重复                                 ok  got=False want=False
+rebreak 任何人数                                   ok  got=False want=False
+NEVER_WAIVE 0 签 → 不合                           ok  got=False want=False
+NEVER_WAIVE 0 签 → 要双签                          ok  got='double_sign' want='double_sign'
+NEVER_WAIVE 已签 → 可合                            ok  got=True want=True
+AUTO_CORE 0 签 → 不合                             ok  got=False want=False
+AUTO_CORE 0 签 → 单签                             ok  got='single_sign' want='single_sign'
+AUTO_CORE 已签 → 可合                              ok  got=True want=True
+AUTO_ALL 免签即合                                  ok  got=('AUTO_ALL', True, 'none') want=('AUTO_ALL', True, 'none')
+
+mg_sign: PASS (14/14)
+[exit=0]
+
+===== test  test_revert_boundary =====
+情形1 合并后 HEAD != base                                     ok  got=True want=True
+情形1 a.txt 已被任务改成 A1                                      ok  got='A1 by task' want='A1 by task'
+ctrl.py 是脏的（未提交）                                         ok  got=True want=True
+情形1 revert_to 报告成功                                       ok  got=True want=True
+情形1 HEAD 回到 base                                         ok  got='cd1552d94e7ce1a45c7523d5188cc0c010d20842' want='cd1552d94e7ce1a45c7523d5188cc0c010d20842'
+情形1 a.txt 回到 A0                                          ok  got='A0' want='A0'
+情形1 ctrl.py 的未提交改动仍在                                     ok  got="print('v2 work in progress')" want="print('v2 work in progress')"
+情形1 detail 里没有 LOST                                      ok  got=False want=False
+情形1 detail 写明兜底没启用（未传 merge_commit）                      ok  got=True want=True
+ctrl.py 是脏的（未提交）                                         ok  got=True want=True
+情形2 兜底让回滚成功                                              ok  got=True want=True
+情形2 HEAD 回到 base                                         ok  got='a4dbb73d424324e7dbcea16d5fb6f269646952fe' want='a4dbb73d424324e7dbcea16d5fb6f269646952fe'
+情形2 a.txt 回到 A0（边界不是空的）                                  ok  got='A0' want='A0'
+情形2 ctrl.py 的活没被抹掉                                       ok  got="print('v2 work in progress')" want="print('v2 work in progress')"
+情形2 detail 点名 merge_commit 第一父                           ok  got=True want=True
+情形2 detail 写明 diff 出 1 条路径                               ok  got=True want=True
+情形2 detail 写明两个来源各贡献多少                                   ok  got=True want=True
+情形2 detail 里没有 reset --hard / checkout -B                ok  got=False want=False
+touched_from_merge 算出 a.txt                              ok  got=['a.txt'] want=['a.txt']
+touched_from_merge 的 note 带 commit                       ok  got=True want=True
+没给 merge_commit 时返回空而非假装没触碰                              ok  got=[] want=[]
+没给 merge_commit 时写明原因                                    ok  got=True want=True
+ctrl.py 是脏的（未提交）                                         ok  got=True want=True
+情形3 无边界时明确返回失败                                           ok  got=False want=False
+情形3 detail 写明 REVERT_FAILED                              ok  got=True want=True
+情形3 detail 写明边界为空                                        ok  got=True want=True
+情形3 HEAD 没动（停在坏状态等人处理）                                   ok  got='8bcb3b390aa254fdf2238a5782bb4389a9934c25' want='8bcb3b390aa254fdf2238a5782bb4389a9934c25'
+情形3 ctrl.py 的活没被抹掉                                       ok  got="print('v2 work in progress')" want="print('v2 work in progress')"
+情形3 a.txt 也没被偷偷回滚                                        ok  got='A1 by task' want='A1 by task'
+源码含 def touched_from_merge                               ok  got=True want=True
+源码用 git diff --name-only <merge>^1                       ok  got=True want=True
+主流程把 merge_commit 传给 revert_to                           ok  got=True want=True
+源码不含 git("reset", "--hard"                               ok  got=True want=True
+源码不含 git("checkout", "-B"                                ok  got=True want=True
+源码含 REVERT_FAILED 显式分支                                   ok  got=True want=True
+
+revert_boundary: PASS (35/35)
+[exit=0]
+
+===== test  test_gate_wait =====
+缺签名时不写 escalate                                          ok  got=[] want=[]
+缺签名时不迁移状态                                                ok  got=[] want=[]
+返回 seq 为 None（没有链事件）                                     ok  got=None want=None
+但 sidecar 里留了 gate_wait 账                                ok  got=True want=True
+双签未满也不迁状态                                                ok  got=[] want=[]
+别的原因被拦时写 escalate                                        ok  got=['escalate'] want=['escalate']
+别的原因被拦时迁到 escalated                                      ok  got=['escalated'] want=['escalated']
+need=none 走 escalate 分支                                  ok  got=['escalate'] want=['escalate']
+
+gate_wait: PASS (8/8)
+[exit=0]
+
+===== test  test_external_executor =====
+D-43 外部执行体也写了 E05                                          ok  got='spawn' want='spawn'
+D-43 并迁移到 in_progress                                      ok  got='in_progress' want='in_progress'
+D-44 pid 记为 0                                              ok  got=0 want=0
+D-44 标出 pid_observable=False                               ok  got=False want=False
+D-44 记下 executor                                           ok  got='harness_subagent' want='harness_subagent'
+有真 pid 时 pid_observable=True                               ok  got=True want=True
+有真 pid 时确实写了这个键                                            ok  got=True want=True
+有真 pid 时 creation_date 落链                                  ok  got='133000' want='133000'
+D-42 in_progress 时 announce 不崩                             ok  got=None want=None
+D-42 仍写 E05                                                ok  got='spawn' want='spawn'
+D-42 但返回 tr=None（不写第二条 state）                              ok  got=None want=None
+D-42 且确实没有迁移                                               ok  got=[] want=[]
+done 状态下 announce 被拒                                       ok  got=True want=True
+正常完成也写 E07                                                 ok  got=1 want=1
+method=exited（有本地进程）                                       ok  got='exited' want='exited'
+killed=False（没人杀它）                                         ok  got=False want=False
+rc 落链                                                      ok  got=0 want=0
+pid 取自 spawn，不是自己编的                                        ok  got=4242 want=4242
+meta 标明与 spawn 配对                                          ok  got='spawn' want='spawn'
+外部执行体 method=sentinel                                      ok  got='sentinel' want='sentinel'
+外部执行体不带 rc                                                 ok  got=False want=False
+已有 E07 时不重复写                                               ok  got=[] want=[]
+D-41 job 里 write_scope 已展开                                 ok  got=['src/', 'tests/'] want=['src/', 'tests/']
+job 里有 executor                                            ok  got='harness_subagent' want='harness_subagent'
+job 里有 base                                                ok  got='abc123' want='abc123'
+job 里有 done_sentinel                                       ok  got=True want=True
+job 里有 deadline（= 1800s）                                   ok  got=1800000 want=1800000
+job 里有 model                                               ok  got='m' want='m'
+无可展开 scope 时只留显式项                                          ok  got=['docs/'] want=['docs/']
+
+external_executor: PASS (29/29)
+[exit=0]
+
+===== test  test_human_cli_payload =====
+E18 写了事件                                                 ok  got='escalate_resolve' want='escalate_resolve'
+E18 一并写了 state                                           ok  got='state' want='state'
+spec 里 E18 要 verdict                                     ok  got=True want=True
+spec 里 E21 只要 task                                       ok  got=['task'] want=['task']
+未知 kind 返回空表                                             ok  got=[] want=[]
+E18 payload 顶层有 verdict                                  ok  got='reverted' want='reverted'
+E18 payload 仍保留 args                                     ok  got=True want=True
+E18 payload 有 task                                       ok  got='T-2' want='T-2'
+E22 payload 顶层有 reason_code                              ok  got='HUMAN_REJECTED' want='HUMAN_REJECTED'
+缺 verdict 时报 BAD_ARGS                                    ok  got='BAD_ARGS' want='BAD_ARGS'
+E24 payload 顶层有 fields                                   ok  got={'title': 'x'} want={'title': 'x'}
+
+human_cli_payload: PASS (11/11)
+[exit=0]
+
+===== test  test_event_actors =====
+ok   夹具把任务推到 draft
+ok   escalate by lead 放行
+ok   escalate by system:verifier 放行
+ok   escalate by system:gc 被拒
+ok   log_repair by human:yg 被拒
+ok   被拒的写入不落行
+ok   constitution_change by human:yg 放行（human:* 通配）
+ok   constitution_change by lead 被拒（只声明 human:*）
+ok   E08 state 声明为 *authority*
+ok   state by lead 放行（authority 管，actor 校验不拦）
+ok   退役 E11 verify_fail 写不进
+ok   _actors_of('E17') 返非空声明
+ok   E17 声明的每一项都已注册
+ok   E17 声明含 lead
+ok   _actors_of('EZZZ') 返空表
+
+actors: PASS (15/15)
+[exit=0]
+
+===== test  test_run_task =====
+[1] 状态 → 下一步 的映射
+  ok   NEXT[None]=='new'
+  ok   NEXT['draft']=='approve'
+  ok   NEXT['pending']=='dispatch'
+  ok   NEXT['rejected']=='dispatch'
+  ok   NEXT['claimed']=='prepare'
+  ok   NEXT['in_progress']=='finish'
+  ok   NEXT['submitted']=='verify'
+  ok   NEXT['done']=='merge'
+  ok   NEXT 不含 'cancelled'
+  ok   NEXT 不含 'archived'
+  ok   NEXT 不含 'blocked'
+  ok   NEXT 不含 'escalated'
+[2] next_task_id 取最大号 +1（不是第一个空号）
+  ok   max+1 == T-0008
+  ok   不会回收 T-0002
+  ok   空链空目录 → T-0001
+  ok   空链时看得见 tasks/ 目录
+[3] latest_task_id 取最后一个 draft_created
+  ok   == T-0007
+  ok   空链 == None
+[4] 驱动器明确拒绝的情况
+  REFUSE：建任务需要 --title
+  ok   无 --title 建任务 → 非 0
+  REFUSE：--executor local_process 需要 --entrypoint（执行体脚本）
+  （已在 prepare 之前拦下，worktree 未创建）
+  ok   local_process 缺 entrypoint → 非 0
+  ok   被拒时不建 worktree
+  'cancelled' 不是可自动推进的状态；需要人工判断。
+  ok   'cancelled' 停在原地
+  'blocked' 不是可自动推进的状态；需要人工判断。
+  ok   'blocked' 停在原地
+  'escalated' 不是可自动推进的状态；需要人工判断。
+  ok   'escalated' 停在原地
+[5] 签名是两步：取签名 与 提交签名 不是同一次调用
+  ok   先要签名
+  ok   再提交
+  ok   两次调用分开
+[6] D-51：do_run 打印的 executor=%s 必须真的填了参数
+  ok   占位符已用 % a.executor 填充
+[7] D-52：resume 时按 sentinel 判定 prepare/finish，不能死循环
+  ok   有 sentinel → 走 finish
+  ok   有 sentinel → prepare 未被调用
+  → executor=harness_subagent：驱动器只准备，不代跑。派发完再 --resume。
+
+⏸  执行体已被指引（executor=harness_subagent）。等它写完后：
+   python run_task.py --task T-SENT --resume
+  ok   无 sentinel → 正常 prepare
+  ok   无 sentinel → 不调 finish
+
+32/32 passed
+run_task: PASS (32/32)
+[exit=0]
+
+===== test  test_scheduler =====
+[1] 判死窗口必须比一次 tick 宽
+  ok   stale_after = tick*1000*factor
+  ok   stale_after > 2*tick
+[2] 到期判定看「上次成功」
+  ok   从没成功过 → 立刻跑
+  ok   刚成功 → 不跑
+  ok   超过 interval → 跑
+  ok   只有 try_ms（一直失败）→ 仍该跑
+  ok   disabled → 不跑
+[2b] 按天跑的 job 看 run_time，不看 interval
+  ok   单值 run_time 解析成 [当天该时刻]
+  ok   解析失败返回 None 而不是猜一个默认时刻
+  ok   解析失败返回 None（非 HH:MM 形状）
+  ok   空串 / 全空白 → None
+  ok   今天已成功 → 不跑
+  ok   昨天成功 → 今天该跑
+  ok   还没到 run_time → 不跑
+  ok   跨过 run_time 就该跑（interval 会说不该）
+  ok   今天跑过了就不重复（哪怕距上次很久）
+  ok   配置里没 run_time → 走 interval 分支
+  ok   多时刻解析成两个升序时点
+  ok   多时刻里任何一个写坏 → 整体不可判定
+  ok   10:00 且上次是昨天 20:00 → 该跑（04:00 已过）
+  ok   10:00 且上次是今天 04:01 → 不跑
+  ok   20:00 且上次是今天 04:01 → 该跑（16:00 已过）
+  ok   机器休眠错过两个时刻 → 醒后仍该跑一次（判据是 any 不是 last）
+[2c] sched_cfg 只在配置里写了 run_time 时才透传
+  ok   没写 run_time → 不透传（不默认填 04:00）
+  ok   写了 run_time → 透传
+[3] 逾期判定用的是 interval*factor，不是 interval
+  ok   从未成功 → 逾期
+  ok   180s 未成功 → 未逾期
+  ok   241s 未成功 → 逾期
+[4] tick：成功才推 ok_ms，失败只加 streak
+  ok   两个 job 都跑了
+  ok   失败被记下来
+  ok   成功的 ok_ms 被推进
+  ok   失败的不推进 ok_ms
+  ok   失败 streak=1
+  ok   失败留了 last_error
+  ok   连续失败 streak 递增
+[4b] 延后（DEFER_RC）：既不是成功也不是失败
+  ok   延后不进 failed
+  ok   延后进 deferred
+  ok   延后不推 ok_ms
+  ok   延后不涨 fail_streak
+  ok   延后记 defer_streak
+  ok   延后后仍然 due（这就是重试）
+  ok   连续延后 defer_streak 递增
+  ok   连续延后仍未失败
+  ok   延后超一个 interval 升级为失败
+  ok   升级时留了 last_error
+  ok   成功清空 defer_streak
+  ok   成功清空 defer_since_ms
+  ok   成功清空 last_deferred
+[5] status：新鲜度 + 逐个 job 健康度
+  ok   从未 tick → 不新鲜
+  ok   从未 tick → age=None
+  ok   从未 tick → 所有 enabled job 逾期
+  ok   刚 tick 过 → 新鲜
+  ok   刚 tick 过 → 无逾期
+  ok   ok=True
+  ok   有 fail_streak → bad 里出现
+  ok   有 fail_streak → ok=False
+[6] 调度器不写主链（可重算的瞬时状态不落链）
+  ok   没有 append_event
+  ok   没有 transition(
+  ok   有 sidecar 落盘
+[7] schtasks 的包装命令必须自足
+  ok   设了 WB_HOME
+  ok   WB_HOME 是绝对路径
+  ok   设了 ROOT_KEY
+  ok   设了编码
+  ok   python 是绝对路径
+  ok   跑的是 --once --quiet
+  ok   退出码原样透传
+  ok   首行 @echo off
+[8] /tr 超过 261 字符必须提前拒绝（schtasks 的硬上限）
+wrapper  : C:\xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\w.cmd
+RESULT: FAIL — /tr 长度 311 > 261，schtasks 会拒绝
+  修法：把 python 与脚本路径的公共前缀改短，或改用 .cmd 包装的相对引用。
+  ok   返回非 0
+  ok   一次都没调 schtasks
+wrapper  : C:\Users\THH32\AppData\Local\Temp\wb_sched_sum7qnjr\sched_tick.cmd (430 B, /tr 68 chars)
+schtasks /create /sc minute /mo 5 /tr "C:\Users\THH32\AppData\Local\Temp\wb_sched_sum7qnjr\sched_tick.cmd"
+SUCCESS
+RESULT: OK — 已注册 'DSH-Workbench-Scheduler'，每 5 分钟跑一次 scheduler.py --once
+  第一次 tick 之前 `status` 一定报 STALE（那是真话）。可以 `python sched_install.py once` 立刻跑一次，或等过一分钟。
+  ok   正常长度 rc=0
+  ok   先 delete 再 create（幂等）
+  ok   间隔写进 /mo
+  ok   缩到分钟级
+  ok   覆盖旧任务
+
+74/74 passed
+scheduler: PASS (74/74)
+[exit=0]
+
+===== test  test_worker_env =====
+worker_env: PASS (80/80)
+[exit=0]
+
+===== test  test_e32_defense =====
+  ok   E32 存在
+  ok   E32 actors 收紧为 ['human:*']
+  ok   E32 必填 acceptance_digest
+  ok   夹具把 T-E32 推到 draft
+  ok   lead 不能写 E32
+  ok   human:yg 可写 E32
+  ok   缺 acceptance_digest 被拒
+  ok   未注册 human 不能写 E32
+  ok   human_cli 有 acceptance_approve op
+  ok   yg perms 含 acceptance_approve
+  ok   human.can_emit 含 E32
+  ok   human_cli 从文件重算 digest
+  ok   run_acceptance 下沉链比对
+  ok   lead.verify 比对链上 E32
+  ok   lead 备料不再自写 E32
+  ok   acc_edit --final 拒绝改写
+
+test_e32_defense: PASS (all cases)
+[exit=0]
+
+===== test  test_w4_drills =====
+W4 DRILLS  temp_repo=C:\Users\THH32\AppData\Local\Temp\w4_drill_5zjo9upe  WB_HOME=C:\Users\THH32\AppData\Local\Temp\w4_drill_5zjo9upe\.workbench
+PROD_WB (read-only source)=D:\Users\THH32\DSH-ZNT\workbench\.workbench
+------------------------------------------------------------------------
+[E0] PASS          实测: `python.exe platform_ops.py selftest` rc=0 | 输出末行: '9 checks, 0 failed' | selftest 含 'kill_tree refuses pid reuse': True | 九项实现落点: | atomic_replace -> workbench/.work
+[E1] SCALED        实测(SCALED): 3 个 worker 真起子进程做 append+5.0s 工作，替代定稿 3×5min；串行基线=逐起逐等（3×5.0s 累加），并行=一次起 3 个一起等；按附录H.2 采样 3 轮（单次采样不作基线）。 | 逐轮: [{"serial_s": 15.119, "parallel_s": 5.061, "rat
+[E2] PASS          实测: diff_sandbox_check.check() 三路越界路径 | (a) 带 deny_abs 调用返回: {"ok": false, "violations": [{"file": "C:/Windows/System32/evil.dll", "reason": "deny_absolute_prefix: C:/Win
+[E3] ABSENT        实测(未跑 external API): workbench/.workbench/spec/enums.json:201 token_metering={"state": "absent", "note": "模型供应商无统一用量 API"}；扫描 <TMP>/.workbench/scripts/*.py 命中计量/用量接口符号的文件
+[E4] PASS          实测 E4a: scrub_env 输入含 6 个密钥类键 ["W4_API_KEY", "W4_AUTH_TOKEN", "W4_CREDENTIAL", "W4_PASSWORD", "W4_SECRET", "WORKBENCH_ROOT_KEY"]；漏出=[]；PATH/WB_TASK/WB_HOME 保留=True | 实测 E
+[E5] PASS          实测: 本地 HTTPServer 127.0.0.1:1456，config.yaml 注入 {kind:webhook,url_env:W4_WEBHOOK_URL,min_level:p1}；scan_text 命中 ["aws_access_key"] → alert(...,st=None) 返回 [{"channel": "f
+[F08] PASS          实测: `sign_manifest.main([])` rc=0 输出 'wrote C:\\Users\\THH32\\AppData\\Local\\Temp\\w4_drill_5zjo9upe\\.workbench\\root.manifest  entries=119  algo=hmac-sha256-v1  uuid=1
+[F09] PASS          实测: <TMP>/.workbench/config.yaml 末尾追加顶层 `w4_drill_unknown_key: 1` | spec_lint.lint() 共 3 finding，S008 命中=[{"code": "S008", "detail": "config.yaml 多出未声明键: ['w4_drill_unkno
+[F10] PASS          实测: X1 expr 'lease_heartbeat_sec * 3 <= lease_ttl_sec' → 'lease_heartbeat_sec_typo * 3 <= lease_ttl_sec'（bindings 不变，标识符拼错） | spec_lint.lint() 共 3 finding；S015 求值失败命中=[{"
+[F12] PASS          实测: 链上 E32 acceptance_approved = {"seq": 1482, "acceptance_digest": "sha256:CHAIN_APPROVED_ORIGINAL"} | 篡改 acceptance（A1='python --version'）并重算自洽 digest=sha256:a61a156e87
+[F13] PASS          实测: diff_sandbox_check.check(scopes=['src/'], changed=[...]) | .workbench/scripts/evil.py -> {"ok": false, "violations": [{"file": ".workbench/scripts/evil.py", "reason":
+[F14] PASS          实测: 临时 git 仓造 base=424799c7 / master=7a5ea7b3 / feature=5c7d281e（merge-base=424799c7），conflict.txt 两侧改成不同内容 | `git merge-tree --write-tree 7a5ea7b3 5c7d281e` rc=1 stdout=
+[F15] PASS          实测主分支: append state{from:null,to:'escalated'} ts=1794567132893；注入 now_ms=ts+14400001（SLA=240min=14400000ms） | scan(dry_run=True) -> sla_ms=14400000 fired=[{"task": "T-W4-
+------------------------------------------------------------------------
+SUMMARY {'pass': 11, 'fail': 0, 'scaled': 1, 'absent': 1, 'exposed_gap': 0, 'dependent': 0}  (DESIGNED_ONLY 见 designed_only_notes，不计入六项)
+JSON -> D:\Users\THH32\DSH-ZNT\workbench\evidence\round11_w4_drills.json
+touched_production_chain = false
+[exit=0]
+
+===== test  test_capability_gate =====
+  ok   [1] 现状 verdict=NOT_MET
+  ok   [1] 可实施覆盖 0bp
+  ok   [1] unmet 含覆盖与补偿
+  ok   [1] 判据原理可满足=True
+  ok   [2] 涂状态无证据仍 NOT_MET
+  ok   [2] state=enforced 计数=4
+  ok   [2] 有效 enforced=0
+  ok   [2] 覆盖仍 0bp
+  ok   [3] 三证缺一不计入（有效=3）
+  ok   [3] 覆盖 7500bp
+  ok   [3] 未达 8000 → NOT_MET
+  ok   [3b] 证据文件不存在 → 有效 enforced=0
+  ok   [3b] NOT_MET
+  ok   [4] 全套证据 → MET
+  ok   [4] 可实施覆盖 10000bp
+  ok   [4] 补偿 2/2 成套
+  ok   [4] unmet 空
+  ok   [5] 分区不全 → INVALID
+  ok   [5] 阈值越界 → INVALID
+  ok   [5] absent 涂 enforced → INVALID
+  ok   [6] 生产台账判据=dual_track_v1
+  ok   [6] 生产台账非 INVALID
+  ok   [6] verdict 由三证驱动（MET）
+  ok   [6] 证据路径指向空气 → NOT_MET
+------------------------------------------------------------
+test_capability_gate: PASS (24/24)
+[exit=0]
+
+===== test  test_team_protocol =====
+[t_contract_valid]
+  ok  契约基线合法
+  ok  evaluate verdict=VALID
+  ok  5 条不变量全为真
+  ok  接线状态与源码探针一致（夹具声明 false）
+  ok  源码探针已读到真实 run_task.py
+  ok  evaluate 输出 driver_probe 明细
+  ok  源码已接线但契约声明滞后被如实标注
+  ok  自然语言自述权重为 0
+[t_separation_tampering]
+  ok  篡改被拒: 作者自审
+  ok  篡改被拒: 审计者分发
+  ok  篡改被拒: 全能执行体
+  ok  篡改被拒: 自述有权重
+  ok  篡改被拒: 超时自动完成
+  ok  篡改被拒: INVALID 退出码被抹平
+  ok  篡改被拒: 软依赖变串行栅栏
+  ok  篡改被拒: 伪依赖没禁干净
+  ok  篡改被拒: 三证缺一
+  ok  篡改被拒: 删掉不可自审公理
+[t_triage_minimal]
+  ok  S 级不多起设计/审计/第二签
+  ok  分诊单调递增 S⊆A⊆B
+  ok  B 级才触发 Reviewer
+  ok  分诊非单调被拒
+[t_plan_good_and_bad]
+  ok  合规方案审计 PASS
+  ok  验收缺 evidence 被拒
+  ok  并行写域交叠被拒
+  ok  依赖成环被拒
+  ok  悬空依赖被拒
+  ok  有依赖无契约被拒
+  ok  缺回滚边界被拒
+  ok  缺预算/心跳判据被拒
+  ok  悬空角色引用被拒
+  ok  判据不可满足被拒
+  ok  未闭项无 ID 被拒
+  ok  硬约束无承接被拒
+  ok  软依赖被硬依赖重新引入栅栏
+[t_handoff_and_claims]
+  ok  合规接缝 PASS
+  ok  证据不存在被拒
+  ok  证据空文件被拒
+  ok  接缝无回溯引用被拒
+  ok  自然语言自述零权重（被当路径拒）
+[t_driver_probe_antiregression]
+  ok  假声明不被 validate 拦下（由 evaluate 探针裁决）
+  ok  声明接线但源码无接线 → INVALID
+  ok  INVALID 原因点明「契约声明接线但源码无接线」
+  ok  假声明时 wired_into_driver 如实为 false
+  ok  假声明时无效原因带 driver_probe 明细
+  ok  假声明时 driver_wired_declared=True 被保留
+  ok  空目录 _driver_probe(wb) 为未接线
+  ok  声明未接线但源码真接线 → 不谎报 false
+  ok  真接线时 verdict 仍 VALID
+  ok  真接线时 note 点明「源码已接线但契约声明滞后」
+  ok  真接线时 note 写明已进入真实 DAG 驱动
+  ok  真接线时 driver_wired_declared=False 被保留
+  ok  真接线时 driver_probe.markers 全为真
+[t_real_repo_valid]
+  ok  生产 enums 含 team_protocol
+  ok  生产契约结构合法
+  ok  生产契约 verdict=VALID
+  ok  生产契约 5 不变量全真
+  ok  生产契约 S 级最小角色集
+  ok  生产 evaluate 接线状态与源码探针一致
+  ok  生产驱动已真接线 wired_into_driver=True
+  ok  生产 note 写明已进入真实 DAG 驱动
+  ok  生产 driver_probe 明细可机读
+test_team_protocol: PASS (62/62)
+[exit=0]
+
+===== test  test_plan_drive =====
+[t_happy_path]
+  ok  合规 plan dry 返回 0
+  ok  输出含 PLAN_DRIVE PASS
+  ok  输出含 waves=2
+  ok  输出含 tasks=3
+  ok  输出含 ran: 行
+  ok  输出逐 wave 打印任务 ran: T-A / T-C
+  ok  输出含软依赖标记 soft=
+  ok  输出标明 dry 未写链
+  ok  team_protocol.audit_plan 真被调用
+  ok  team_protocol.validate_handoff 真被调用
+  ok  输出含 audit_plan ran 行
+  ok  输出含 validate_handoff ran 行
+  ok  驱动源码探针 6 标记全真
+[t_failures]
+  ok  缺 A4 验收 evidence → 非 0
+  ok  缺 A4 输出 PLAN_DRIVE REFUSE
+  ok  缺 A4 findings 真打印 A4
+  ok  plan_audit 缺 A4 覆盖 → 非 0
+  ok  plan_audit 缺 A4 输出未覆盖
+  ok  auditor 等于 producer → 非 0
+  ok  三权未分离被点明
+  ok  plan_audit.result != PASS → 非 0
+  ok  result 不合规被点明
+  ok  依赖成环 → 非 0
+  ok  环被 audit_plan 点明
+  ok  悬空依赖 → 非 0
+  ok  悬空被点明
+  ok  软依赖被硬阻塞 → 非 0
+  ok  重新引入串行栅栏被点明
+  ok  handoff 证据不存在 → 非 0
+  ok  handoff 不合规被点明
+  ok  main 入口仍在（单任务路径未删）
+[t_main_dispatch]
+  ok  main --plan 返回 plan_drive 的返回码
+  ok  main --plan 真分流到 plan_drive
+  ok  main --plan 把 store() 结果传给驱动
+  ok  main --plan 解析 plan_dry=True
+  ok  main --plan 参数带 --plan 路径
+  ok  main --plan 单任务字段保持默认（未破坏）
+[t_dag_units]
+  ok  _plan_dag 合规方案无 errs
+  ok  硬依赖只连 depends_on
+  ok  soft_dependencies 不进主链连边
+  ok  合规 DAG 分 2 wave 且无错
+  ok  wave1 含两个无依赖任务
+  ok  wave2 只含依赖任务
+  ok  _plan_waves 检出环
+  ok  _plan_dag 检出悬空依赖
+  ok  hard_dependencies 亦进主链
+  ok  soft_dependency 目标任务不进硬连边
+  ok  _plan_dag 检出重复 id
+test_plan_drive: PASS (48/48)
+[exit=0]
+
+===== test  test_token_ledger =====
+test_token_ledger: PASS (26/26)
+[exit=0]
+
+===== test  test_response_guard =====
+test_response_guard: PASS (67/67)
+[exit=0]
+
+===== test  test_persona_upgrade =====
+test_persona_upgrade —— E53 人格入核链路
+[1] 路径口径
+  ok   persona 路径用 dirname(WB) 派生
+  ok   没有 os.path.join(WB, "persona")
+[2] 正常路径
+  ok   sign 子命令成功
+  ok   sign 返回 candidate_id
+  ok   提交成功（rc=0）
+  ok   输出 ACCEPT
+  ok   链上有 persona_upgrade
+  ok   payload 有 candidate_id
+  ok   payload file = persona/core.md
+  ok   payload digest 是 sha256
+  ok   actor 是 human:yg
+  ok   payload digest 由文件现算
+[3] 非法请求被拒
+  ok   cid 不存在被拒
+  ok   digest 不符被拒
+  ok   被拒的请求没落链
+[4] lead 无权写
+  ok   lead 写 E53 被拒
+  ok   human:yg 能写 E53
+[5] 生产接线
+  ok   E53 已在 spec
+  ok   E53 actors 只有 human:*
+  ok   E53 必需字段齐全
+  ok   human.can_emit 含 E53
+  ok   members.json 有 persona_upgrade 权限
+
+test_persona_upgrade: PASS (22/22)
+[exit=0]
+
+===== test  test_persona_growth_integrity =====
+test_persona_growth_integrity: PASS (11/11)
+[exit=0]
+
+===== test  test_doc_numbers =====
+doc_numbers: PASS (56/56)
+[exit=0]
+
+===== test  test_brief_persona =====
+NOTE persona 显忆段为空（query='探针目标 src'，召回无命中或未注入）
+WARN persona/core.md 不存在；本轮不注入该段
+NOTE persona 显忆段为空（query='无 core 探针 src'，召回无命中或未注入）
+test_brief_persona: PASS (21 ok, 0 failed)
+[exit=0]
+
+===== test  test_memory_bundle =====
+test_memory_bundle: PASS (33/33)
+[exit=0]
+
+===== test  test_memory_vector =====
+test_memory_vector: PASS (25/25)
+[exit=0]
+
+===== test  test_human_sig =====
+[1] check_human_sig 判定
+  ok   合法签名通过
+  ok   缺 sig_chain 被拒
+  ok   principal 不符被拒
+  ok   sig_chain 缺 nonce 被拒
+  ok   sig_chain 缺 ts_ms 被拒
+  ok   sig_chain 缺 sig 被拒
+  ok   换 payload 后签名失配
+  ok   换 kind 后签名失配
+  ok   换 task 后签名失配
+  ok   换 actor 后 principal 失配
+  ok   缺根密钥时拒绝且说明原因
+  ok   缺根密钥时造签名也抛
+[2] append_event 写入闸门
+  ok   夹具把 T-HS 推到 draft
+  ok   普通事件照常可写
+  ok   无 sig_chain 的人类决定被拒
+  ok   签名搬到另一条 payload 被拒
+  ok   带合法 sig_chain 可写
+  ok   sig_chain 真的落在 meta 里
+  ok   meta 记了 principal/nonce/ts_ms/sig 四件
+  ok   被拒写入不落行
+  ok   链自洽
+[3] 豁免与历史
+  ok   E27 在豁免表里
+  ok   豁免表带理由
+  ok   E27 引导期无需 sig_chain
+  ok   verify_chain 不回溯验签
+  ok   append_event 里有真读者
+[4] 人类决定事件全集
+  ok   human-only 事件非空
+  ok   E32 acceptance_approved 在集合里
+  ok   E53 persona_upgrade 在集合里
+  ok   E55 persona_growth_void 在集合里
+  ok   E56 memory_import 在集合里
+  ok   所有非豁免 human-only 事件都要求 sig_chain
+  ok   被拒后链仍是空的
+[5] 生产写入方契约
+  ok   human_cli.emit 调 signed_human_meta
+  ok   human_cli 写入带 meta=_sig_meta
+  ok   memory_bundle 写 E56 带签名
+  ok   wb_core 提供 signed_human_meta
+  ok   wb_core 提供 check_human_sig
+  ok   判据覆盖了 payload
+  ok   E27 豁免理由写明是自签不构成证据
+test_human_sig: PASS (40/40)
+[exit=0]
+
+===== test  test_job_object_probe =====
+[1] observe_gaps 三态可注入
+  ok   CONNECTED/WROTE → NOT_ISOLATED + gaps_proven
+  ok   None/None → UNTESTED,UNTESTED,False（没测到≠已隔离）
+  ok   BLOCKED/BLOCKED → ISOLATED,ISOLATED,False
+  ok   半个 None（只测到网络）→ 仍 gaps_proven=False
+  ok   空串 → UNTESTED 而非 ISOLATED
+  ok   源码里没有 `!= "CONNECTED"` 旧布尔写法
+[2] capability_impact 诚实边界
+  ok   promotes_to_enforced False
+  ok   os_sandbox_state unchanged
+  ok   os_sandbox_track compensated_absent
+  ok   isolates_process_count True
+  ok   isolates_network False
+  ok   isolates_filesystem False
+  ok   usable_as 写明附加进程遏制
+  ok   not_usable_as 写明不是内核级沙箱
+[3] probe() 实机结论
+  ok   schema/probe 字段在
+  ok   verdict 是已知四值之一
+  ok   impact 不随单次探测翻绿
+  ok   three_evidence 三键齐
+  ok   api_available 有真内容
+  ok   appcontainer 只 EXPORT_ONLY，不谎报可用
+  ok   appcontainer assembly_tested False
+  ok   负控 OK
+  ok   job 内被挡
+  ok   注入组恢复 OK
+  ok   differential_ok
+  ok   breakaway 标为伪信号
+  ok   网络 NOT_ISOLATED
+  ok   文件 NOT_ISOLATED
+  ok   gaps_proven=True
+  ok   loopback 真连通
+  ok   越界写真成功
+  ok   进程遏制成立时仍不涂 enforced
+[4] 登记与 ledger 不动
+  ok   登记 verdict 与 probe 同源
+  ok   登记 impact 与模块一份
+  ok   登记 note 写明不参与 W4 三证
+  ok   ledger 的 os_sandbox 仍 compensated_absent
+  ok   ledger 六项 effective 未被本轮改动
+  ok   ledger 未冒出 native_isolation 作为第七能力
+  ok   登记里 driver_wiring 与源码真值逐字一致
+  ok   登记 note 说明 driver_wiring 不改 W4 判定
+[5] opt-in 接线真值（探的历史快照保留，接线状态按源码算）
+  ok   保留第二十二轮『探，不接』历史快照
+  ok   docstring 明写第二十三轮 opt-in 接线
+  ok   driver_wiring.wired=True
+  ok   默认 contain=False
+  ok   真实 local_process worker contain=True
+  ok   生产只设 KILL_ON_JOB_CLOSE
+  ok   生产不设 ActiveProcessLimit
+  ok   关闭态有显式 off 标记
+  ok   worker_shim 未引入内核 Job 符号
+  ok   不把 os_sandbox 涂成 enforced
+  ok   native_isolation 不参与 W4 台账
+  ok   ledger 的 os_sandbox 仍 compensated_absent
+  ok   platform_ops 确已引入 Job Object 符号（不是声明接线）
+  ok   生产用探针实证的 ExtendedLimitInformation(9)
+  ok   真实 worker 调用含 contain=True
+  ok   worker_shim 未引入内核 Job 符号
+test_job_object_probe: PASS (all cases)
+[exit=0]
+
+===== test  test_spawn_containment =====
+[1] contain=False：显式 off，不碰 Job
+  ok   默认调用仍正常跑完
+  ok   contain=False 也留下显式状态字段
+  ok   mode=off
+  ok   applied=False
+  ok   detail 写明 contain=False，不是空串
+  ok   没有 Job handle
+  ok   close_containment 明确说没 handle
+[2] contain=True：真起子进程验证进程遏制
+  ok   有 _wb_containment 字段
+  ok   detail 非空（不许静默）
+  ok   active_process_limit 生产刻意不设
+  ok   win32 上 applied=True / kill_on_job_close
+  ok   成功时挂 _wb_job_handle
+  ok   close_containment 真的关掉 handle
+  ok   关闭 handle 后子进程被 kill-on-close 终止（<10s）
+[3] 失败注入：底层原语失败必须降级留痕
+  ok   降级不抛异常，业务照跑
+  ok   mode=degraded
+  ok   applied=False
+  ok   detail 带回注入的失败原因
+  ok   失败时不挂 Job handle
+  ok   没有偷偷设 ActiveProcessLimit
+[4] 默认 opt-out / shim 不碰内核 / 源码真值仍 wired
+  ok   driver_wiring.wired=True
+  ok   默认 contain=False
+  ok   真实 worker contain=True
+  ok   不参与 W4 台账
+  ok   os_sandbox 仍 compensated_absent
+  ok   验收命令不自动 opt-in（contain=True 不在 verify_harness）
+  ok   worker_shim 未引入内核 Job 符号
+PASS: driver_wiring 与源码真值一致 (wired=True)
+  ok   job_object_probe --check 门禁通过
+  ok   登记 driver_wiring 与源码真值逐字一致
+  ok   登记仍不涂 enforced
+test_spawn_containment: PASS (all cases)
+[exit=0]
+
+===== test  test_containment_telemetry =====
+[1] 源码真值与空台账
+  ok   空台账 exists=False / total=0
+  ok   空台账不伪装参与 W4
+PASS: containment telemetry 可读/接线真值一致 (total=0 applied=0 degraded=0 bad_lines=0)
+  ok   空台账 check 仍可判定（坏行与源码真值）
+  ok   AST：EXCLUDE 真排除运行态文件
+  ok   AST：spawn_group 有 off 分支且 contain 分支有 record
+  ok   contain=False 显式 off
+  ok   contain=False 不写台账
+  ok   contain=False 不挂 telemetry
+  ok   默认 spawn 仍能跑完
+[2] 真起 contain=True 的运行时留痕
+  ok   Popen 上有 telemetry 结果
+  ok   台账写入成功
+  ok   落且只落一行可解析记录
+  ok   记录与 Popen 状态一致
+  ok   mode 只允许 kill_on_job_close / degraded
+  ok   detail 非空且被限制长度
+  ok   argv0 只留 basename
+  ok   运行台账不参与 W4
+  ok   生产不设 ActiveProcessLimit
+  ok   report applied/degraded 与单行一致
+  ok   接线真值仍 wired
+[3] 失败注入：降级也必须留痕
+  ok   业务不因遏制失败而中断
+  ok   状态显式 degraded
+  ok   降级原因没被吞
+  ok   失败不挂 Job handle
+  ok   降级也写一行可解析记录
+  ok   台账记录 mode/degraded/detail
+  ok   state 上 telemetry 写明 ok
+[4] 坏行、源码真值与 W4 边界
+  ok   手工写一条成功记录
+  ok   坏行被 report 如实记下
+FAIL: containment telemetry 存在坏行：[{'line': 2, 'error': 'JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)', 'text': '{bad json'}]
+  ok   坏行时 check=1
+  ok   W4 台账未冒出 native_isolation 第七能力
+  ok   os_sandbox 仍 compensated_absent
+  ok   运行台账路径未写进 W4 ledger
+  ok   driver_wiring 仍判定 W4 台账不参与
+[5] containment_telemetry 自检
+  ok   空台账 exists=False / total=0
+  ok   空台账不假装参与 W4
+  ok   成功/降级两条都写成
+  ok   report 总数=2 applied=1 degraded=1
+  ok   last 保留降级 detail
+  ok   AST：EXCLUDE 真含运行时台账路径
+  ok   AST：off 分支不记录、contain 分支有 record
+PASS: containment telemetry 可读/接线真值一致 (total=2 applied=1 degraded=1 bad_lines=0)
+  ok   check 正常台账通过
+  ok   坏行被 report 如实记下
+FAIL: containment telemetry 存在坏行：[{'line': 3, 'error': 'JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)', 'text': '{bad json'}]
+  ok   坏行时 check 返 1
+containment_telemetry: PASS (10 checks, 0 failed)
+  ok   containment_telemetry --selftest 逻辑全绿
+test_containment_telemetry: PASS (all cases)
+[exit=0]
+
+===== test  test_appcontainer_probe =====
+  ok   source_truth exclude_ok
+  ok   source_truth has_inspect
+  ok   source_truth has_assemble
+  ok   source_truth has_cleanup
+  ok   source_truth has_check
+  ok   source_truth cleanup_in_finally
+  ok   source_truth create_profile_called
+  ok   source_truth delete_profile_called
+  ok   source_truth dacl_restore_called
+  ok   source_truth w4_participates_false
+  ok   source_truth not_wired_into_spawn_group
+  ok   source_truth matrix_w4_false
+  ok   inspect never assembles
+  ok   inspect makes no w4 claim
+  ok   default matrix w4 false
+  ok   default linux UNTESTED
+  ok   default linux not assembly_tested
+  ok   default macos UNTESTED
+  ok   default macos not assembly_tested
+  ok   production matrix exists
+  ok   production w4_participates false
+  ok   production win32 validated
+  ok   production win32 assembly_tested
+  ok   production win32 residual false
+  ok   production linux stays UNTESTED
+  ok   production macos stays UNTESTED
+PASS: appcontainer matrix/check clean (wired=True, log_rows=2)
+  ok   production gate clean
+PASS: appcontainer matrix/check clean (wired=True, log_rows=0)
+  ok   empty log clean
+PASS: appcontainer matrix/check clean (wired=True, log_rows=1)
+  ok   good assemble row clean
+FAIL: appcontainer runtime log has residual rows: 1
+  ok   residual row red
+FAIL: appcontainer runtime log has bad lines: [{"line": 1, "error": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)", "text": "{bad json"}]
+  ok   bad line red
+  ok   rows captures bad line
+FAIL: latest appcontainer assemble is not clean: PROBE_INCONCLUSIVE
+  ok   fail verdict red
+FAIL: appcontainer matrix w4_participates must be false
+  ok   matrix w4 true red
+FAIL: Windows 真装配未在 matrix 里留证
+  ok   unassembled matrix red on win32
+  ok   regression wires read-only --check
+  ok   regression never runs --assemble
+  ok   demo SKIP_PATHS excludes runtime log
+  ok   demo reset deletes runtime log
+  ok   no appcontainer key in W4 ledger
+  ok   os_sandbox still compensated_absent
+  ok   ledger criterion still dual_track_v1
+PASS: appcontainer matrix/check clean (wired=True, log_rows=0)
+PASS: appcontainer matrix/check clean (wired=True, log_rows=1)
+FAIL: appcontainer runtime log has residual rows: 1
+FAIL: appcontainer runtime log has bad lines: [{"line": 3, "error": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)", "text": "{bad json"}]
+appcontainer_probe: PASS (9 checks, 0 failed)
+  ok   probe selftest green
+test_appcontainer_probe: PASS (0 failed)
+[exit=0]
+
+===== test  test_telemetry_aggregate =====
+  ok   source_truth exclude_containment
+  ok   source_truth exclude_appcontainer
+  ok   source_truth rail_check
+  ok   source_truth rail_test
+  ok   source_truth ledger_unpolluted
+  ok   source_truth os_sandbox_compensated_absent
+  ok   source_truth ledger_criterion_dual_track_v1
+  ok   source_truth w4_participates_false
+  ok   no source_truth exception
+  ok   report produced schema
+  ok   report criterion
+  ok   report top-level W4 false
+  ok   report has both sources
+  ok   report has future list
+  ok   report overall has future_rows
+  ok   report did not rewrite runtime ledgers
+  ok   report did not rewrite W4 ledger
+  ok   report did not create default snapshot
+  ok   window keeps only 60min rows
+  ok   window counts outside rows
+  ok   clean window has no future rows
+  ok   old residual outside window not current red
+  ok   containment applied/degraded counted
+  ok   clean window verdict OK
+PASS: telemetry window aggregate clean (window=60min in_window=4 total=6 bad_lines=0 future=0 residuals=0 failed=0 w4=0)
+  ok   clean window check green
+FAIL: telemetry aggregate has W4 participation rows: 1
+  ok   w4 participation red
+FAIL: telemetry aggregate has bad lines: 1
+  ok   bad line red
+FAIL: telemetry aggregate has residual rows: 1
+  ok   in-window residual red
+FAIL: telemetry aggregate has failed assemblies: 1
+  ok   in-window failed assembly red
+  ok   future row counted separately
+  ok   future row not washed as outside history
+  ok   future detail carries delta_ms
+  ok   future row splits per source
+  ok   future row makes verdict red
+FAIL: telemetry aggregate has future-dated rows: 1
+  ok   future row makes check red
+  ok   snapshot file written
+  ok   snapshot criterion
+  ok   snapshot top-level W4 false
+  ok   snapshot embeds report
+  ok   snapshot source hashes match bytes at write time
+  ok   snapshot report_digest has sha256 prefix
+  ok   snapshot has public body digest
+  ok   snapshot has root-key HMAC
+  ok   snapshot has 3-step signature chain
+  ok   snapshot does not rewrite runtime ledgers
+  ok   snapshot does not rewrite W4 ledger
+  ok   snapshot file is outside .workbench
+  ok   verify_snapshot criterion
+  ok   verify_snapshot clean snapshot OK
+  ok   verify_snapshot public body digest matches
+  ok   verify_snapshot root HMAC matches
+  ok   verify_snapshot signature chain matches
+PASS: telemetry window aggregate clean (window=60min in_window=2 total=2 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_VERIFIED)
+  ok   check with snapshot_path green
+  ok   wrong root key invalid
+  ok   missing root key invalid
+  ok   verify_snapshot appended ledger STALE
+NOTE: telemetry evidence snapshot is STALE (ledgers appended); internal seal and source prefixes are valid
+PASS: telemetry window aggregate clean (window=60min in_window=3 total=3 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_STALE)
+  ok   check appended ledger only NOTE
+  ok   verify_snapshot forged report invalid
+  ok   forged report breaks HMAC or signature chain
+FAIL: telemetry evidence snapshot invalid: report_digest does not match embedded report; public body digest does not match snapshot body; signature_chain mismatch; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check forged snapshot red
+  ok   regression wires read-only --check
+  ok   regression wires test
+  ok   regression never wires --assemble
+  ok   regression never wires explicit snapshot
+  ok   regression never wires explicit verify
+  ok   W4 ledger has no aggregate key
+  ok   W4 ledger criterion unchanged
+  ok   os_sandbox still compensated_absent
+  ok   空窗口 exists=False / in_window=0
+  ok   聚合器顶层 W4 分离
+  ok   生产门禁接线 source_truth 成套
+  ok   窗口边界只取 60min 内记录
+  ok   旧残留留在窗口外，不污染当前门禁
+  ok   干净窗口没有 future 行
+  ok   containment applied/degraded 聚合正确
+  ok   干净窗口 verdict=OK
+PASS: telemetry window aggregate clean (window=60min in_window=4 total=6 bad_lines=0 future=0 residuals=0 failed=0 w4=0)
+  ok   干净窗口 check=0
+FAIL: telemetry aggregate has W4 participation rows: 1
+  ok   W4 混入红
+FAIL: telemetry aggregate has bad lines: 1
+  ok   坏行红
+FAIL: telemetry aggregate has residual rows: 1
+  ok   窗口内残留红
+FAIL: telemetry aggregate has failed assemblies: 1
+  ok   窗口内失败装配红
+  ok   未来时间戳单列 future_rows=1
+  ok   未来时间戳不算窗口外历史
+  ok   未来时间戳明细带 delta_ms
+  ok   未来时间戳 verdict 红
+FAIL: telemetry aggregate has future-dated rows: 1
+  ok   未来时间戳 check 红
+  ok   snapshot 写出证据文件
+  ok   snapshot criterion 独立
+  ok   snapshot 带两份源哈希
+  ok   snapshot 不改写源台账
+  ok   snapshot 顶层 W4 分离
+  ok   snapshot report_digest 非空
+  ok   snapshot public body digest 非空
+  ok   snapshot has root-key HMAC
+  ok   snapshot has 3-step signature chain
+  ok   snapshot carries asymmetric envelope when backend ready
+  ok   HMAC is never passed off as asymmetric
+  ok   verify_snapshot 干净快照 OK
+  ok   verify_snapshot asymmetric ok
+  ok   verify_snapshot root HMAC matches
+  ok   verify_snapshot signature chain matches
+PASS: telemetry window aggregate clean (window=60min in_window=2 total=2 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_VERIFIED)
+  ok   check 带 snapshot_path 干净绿
+  ok   wrong root key invalid
+  ok   missing root key invalid
+  ok   verify_snapshot 尾部追加判 STALE
+NOTE: telemetry evidence snapshot is STALE (ledgers appended); internal seal and source prefixes are valid
+PASS: telemetry window aggregate clean (window=60min in_window=3 total=3 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_STALE)
+  ok   check 尾部追加只打印 NOTE 放行
+  ok   verify_snapshot 伪改报告红
+FAIL: telemetry evidence snapshot invalid: report_digest does not match embedded report; public body digest does not match snapshot body; signature_chain mismatch; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check 伪改快照红
+telemetry_aggregate: PASS (40 checks, 0 failed)
+  ok   aggregate selftest green
+test_telemetry_aggregate: PASS (0 failed)
+[exit=0]
+
+===== test  test_platform_runner_probe =====
+  ok   platform source truth all green
+  ok   rail has platform runner check
+  ok   rail has platform runner test
+  ok   workflow has ubuntu runner
+  ok   workflow has macos runner
+  ok   workflow has explicit inspect
+  ok   matrix W4 false
+  ok   matrix nonproof only
+  ok   no kernel namespace wiring
+  ok   report has criterion
+  ok   report W4 false
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+  ok   production check green
+  ok   report/check did not rewrite matrix.json
+  ok   report/check did not rewrite platform-runners.yml
+  ok   report/check did not rewrite ledger.json
+  ok   report/check did not rewrite platform_ops.py
+  ok   ledger has no platform_runner key
+  ok   ledger has no platform_runners key
+  ok   os_sandbox still compensated_absent
+  ok   non-target host is NOT_APPLICABLE
+  ok   inspect W4 false
+  ok   inspect did not create linux evidence
+  ok   ingest accepts honest artifact
+  ok   ingest records sha
+  ok   ingest rejects unsigned artifact
+  ok   ingest rejects foreign-key signature
+  ok   ingest rejects tampered sha
+  ok   ingest rejects proof verdict
+  ok   ingest rejects win32 impersonation
+  ok   ingest rejects w4 participation
+  ok   rail never runs ingest
+  ok   source truth all green
+  ok   report has matrix
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+  ok   check green
+  ok   proof verdict rejected
+FAIL: platform runner probe source truth: matrix_nonproof_only
+  ok   check red on forged PASS
+  ok   w4 participation rejected
+  ok   host inspect NOT_APPLICABLE
+  ok   host wrote no linux.json
+  ok   host wrote no macos.json
+  ok   ingest accepts honest CI artifact
+  ok   ingest writes platform evidence
+  ok   ingest registers evidence sha in matrix
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+  ok   ingested evidence passes local check
+  ok   ingest rejects sha mismatch
+  ok   ingest rejects proof verdict
+  ok   ingest rejects non-runner host
+  ok   ingest rejects w4 participation
+  ok   ingest rejects wrong criterion
+  ok   ingest rejects missing file
+FAIL: host win32 must not carry macos.json evidence without ingest provenance
+  ok   unprovenanced cross-os evidence is red
+  ok   ingest rejects unsigned artifact
+  ok   unsigned rejection names attestation
+  ok   ingest rejects foreign-key signature
+  ok   ingest rejects post-attestation tamper
+  ok   ingest rejects when CI key absent
+  ok   attestation verifies on untouched artifact
+  ok   attestation breaks on body mutation
+  ok   attestation breaks when envelope edited
+platform_runner_probe: PASS (28 checks, 0 failed)
+  ok   platform runner probe selftest green
+test_platform_runner_probe: PASS (0 failed)
+[exit=0]
+
+===== test  test_scheduler_observe =====
+  ok   scheduler source truth all green
+  ok   rail has scheduler observe check
+  ok   rail has scheduler observe test
+  ok   warn-only scheduler status still present
+  ok   rail has no explicit record
+  ok   rail has no explicit snapshot
+  ok   observer never writes sidecar
+  ok   observer W4 false
+  ok   scheduler really runs the observer
+  ok   observer job passes allow_missing
+  ok   config really declares the observer interval
+  ok   maturity ETA observable in source truth
+  ok   window conclusion wired into source truth
+  ok   distribution primary switch is guarded
+  ok   record writes a shard
+  ok   rows read all shards
+  ok   verify walks every shard
+  ok   keep-days retention declared
+  ok   retention really runs inside record
+  ok   missing job is caught
+  ok   commented-out interval is caught
+  ok   missing --allow-missing is caught
+  ok   report has criterion
+  ok   report W4 false
+  ok   report verdict is observational
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=520 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+NOTE: scheduler window covered=44.316/168h ready=False remaining=123.684h ETA=2026-11-18T14:33:29Z basis=point_estimate distribution_primary=False
+  ok   production check is green
+  ok   report/check did not rewrite scheduler.json
+  ok   report/check did not rewrite ledger.json
+  ok   report/check did not rewrite run_all_checks.sh
+  ok   ledger has no scheduler_observe key
+  ok   os_sandbox still compensated_absent
+  ok   report carries distribution stats
+  ok   report states its sample size
+  ok   expected rate is derived not hardcoded
+  ok   maturity states its target
+  ok   maturity never claims unearned readiness
+  ok   immature window names the gap
+  ok   maturity exposes first/last observed time
+  ok   maturity exposes ETA timestamp
+  ok   maturity ETA is not a scheduler promise
+  ok   window conclusion is present
+  ok   unready window does not claim distribution as primary
+  ok   unready window keeps point estimate as headline
+  ok   window conclusion names remaining hours and ETA
+  ok   ready window switches to distribution
+  ok   ready window with thin distribution does not fake a switch
+  ok   trend reports its shards
+  ok   trend reports retention
+  ok   trend exists is not anchored to one filename
+  ok   legacy single file still read
+  ok   legacy rel is part of the trend set
+  ok   legacy rel counted as a trend source
+  ok   record writes into a shard
+  ok   legacy and shard are both read
+  ok   rows are time-ordered across sources
+  ok   record writes point
+  ok   duplicate record is no-op
+  ok   snapshot has HMAC
+  ok   snapshot verify OK
+  ok   snapshot hmac ok
+PASS: scheduler observation clean (points=1 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_VERIFIED w4=false)
+NOTE: scheduler window covered=0.000/168h ready=False remaining=168.000h ETA=1970-01-08T02:46:40Z basis=point_estimate distribution_primary=False
+  ok   check with snapshot green
+  ok   normal tick is STALE
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=1 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+NOTE: scheduler window covered=0.000/168h ready=False remaining=168.000h ETA=1970-01-08T02:46:40Z basis=point_estimate distribution_primary=False
+  ok   check STALE still green
+  ok   forged report invalid
+FAIL: scheduler observation snapshot invalid: report_digest does not match embedded report; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check forged snapshot red
+  ok   source truth all green
+  ok   fresh report OK
+NOTE: scheduler observation snapshot missing; release artifact only
+PASS: scheduler observation clean (points=0 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_MISSING w4=false)
+NOTE: scheduler window covered=0.000/168h ready=False remaining=168.000h ETA=1970-01-08T02:46:40Z basis=point_estimate distribution_primary=False
+  ok   check green
+  ok   record writes point
+  ok   stats reports sample size
+  ok   stats refuses to fake distribution
+  ok   duplicate not appended
+  ok   sidecar unchanged
+  ok   record without sidecar is red by default
+  ok   record allow_missing skips instead of failing
+  ok   allow_missing does not write a shard
+  ok   commented-out config does not count
+  ok   config restored to green
+  ok   snapshot has HMAC
+  ok   snapshot has asymmetric envelope
+  ok   verify OK
+  ok   verify HMAC ok
+  ok   record wrote a shard
+  ok   shard listed
+  ok   rows carry shard tag
+  ok   appended trend STALE
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=2 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+NOTE: scheduler window covered=0.000/168h ready=False remaining=168.000h ETA=1970-01-08T02:46:40Z basis=point_estimate distribution_primary=False
+  ok   check STALE still green
+  ok   new shard after snapshot is STALE not INVALID
+  ok   pruned shard is STALE not INVALID
+  ok   prune drops old shard
+  ok   prune keeps today shard
+  ok   forged report invalid
+FAIL: scheduler observation snapshot invalid: report_digest does not match embedded report; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check forged snapshot red
+  ok   wrong root key invalid
+scheduler_observe: PASS (29 checks, 0 failed)
+  ok   scheduler observer selftest green
+test_scheduler_observe: PASS (0 failed)
+[exit=0]
+
+===== test  test_signature_backend =====
+  ok   status criterion
+  ok   status schema
+  ok   status never claims w4
+  ok   keygen declares ecdsa
+  ok   pubkey blob is 8+32+32
+  ok   pubkey lands in capability_evidence
+  ok   privkey lands in state
+  ok   pubkey file carries no private material
+  ok   seal produced ecdsa
+  ok   signature is 64 bytes
+  ok   envelope never claims w4
+  ok   open_seal verifies
+  ok   tampered body rejected
+  ok   tampered signature rejected
+  ok   rejection names signature
+  ok   foreign pubkey rejected
+  ok   rejection names key
+  ok   missing pubkey cannot verify
+  ok   privkey is excluded from trusted root
+  ok   pubkey is covered by manifest COVER
+  ok   backend source is covered
+  ok   root.manifest never lists privkey
+  ok   production snapshot has signature envelope
+  ok   production snapshot signature algo is ecdsa
+  ok   production snapshot signature verifies against pubkey
+  ok   scheduler snapshot has signature envelope
+  ok   scheduler snapshot signature verifies
+  ok   read-only paths unchanged
+  ok   status criterion
+  ok   status w4 never claimed
+  ok   keygen wrote pubkey
+  ok   keygen wrote privkey in state/
+  ok   keygen declares ecdsa
+  ok   pubkey blob is 8+32+32 bytes
+  ok   seal produced ecdsa
+  ok   signature is 64 bytes
+  ok   seal is deterministic-free (sig present)
+  ok   open_seal verifies
+  ok   tampered body rejected
+  ok   tampered signature rejected
+  ok   rejection names signature
+  ok   foreign pubkey rejected by key_id
+  ok   missing pubkey cannot verify
+  ok   rotation keeps old key in keyring
+  ok   rotation marks old key retired
+  ok   rotation sets new active key
+  ok   rotation active key is not retired
+  ok   old snapshot still verifies after rotation
+  ok   new seal uses active key
+  ok   new seal verifies
+  ok   keyring never claims W4
+signature_backend: PASS (23 checks, 0 failed)
+  ok   signature backend selftest green
+test_signature_backend: PASS (0 failed)
+[exit=0]
+
+===== test  test_gc_defer =====
+[1] is_transient：只认错误码，不认错误消息文本
+  ok   WinError 32 共享冲突 → 延后
+  ok   WinError 5 拒绝访问 → 延后
+  ok   WinError 145 目录非空 → 延后
+  ok   PermissionError → 延后
+  ok   EACCES → 延后
+  ok   EBUSY → 延后
+  ok   ENOTEMPTY → 延后
+  ok   ENOENT → 失败
+  ok   EIO → 失败
+  ok   ValueError → 失败（代码走错了，不是竞争）
+  ok   无码 OSError → 失败
+[2] run()：竞争失败记 deferred，不是 failed
+  ok   deferred 计数为 1
+  ok   failed 计数为 0
+  ok   动作结果是 deferred
+  ok   延后不写 ledger（没做完就不能记已完成）
+  ok   延后不写事件
+  ok   目标文件仍在（延后不删东西）
+[3] run()：非竞争错误仍记 failed
+  ok   failed 计数为 1
+  ok   deferred 计数为 0
+  ok   动作结果是 failed
+[4] 退出码把三种结果分开：0 / 1 / 3
+gc: 0 action(s), 0 idempotent skip(s), 0 failed, 0 deferred
+  ok   全成功 → rc=0
+gc: 1 action(s), 0 idempotent skip(s), 0 failed, 1 deferred
+  GC-1  deferred       p
+  ok   只有延后 → rc=3
+gc: 1 action(s), 0 idempotent skip(s), 1 failed, 0 deferred
+  GC-1  failed         p
+  ok   有失败 → rc=1
+gc: 2 action(s), 0 idempotent skip(s), 1 failed, 1 deferred
+  GC-1  deferred       a
+  GC-1  failed         b
+  ok   失败优先于延后 → rc=1
+[5] 调度器与 gc 的契约：3 必须就是 DEFER_RC
+  ok   scheduler.DEFER_RC == 3（两端同一个数）
+  ok   gc 的 docstring 写明 3=延后
+  ok   gc 不把延后算进 failed
+  ok   调度器把延后从 failed 里排除
+  ok   调度器不推延后的 ok_ms
+
+29/29 passed
+test_gc_defer: PASS (29 checks)
+[exit=0]
+
+===== test  test_from_states =====
+ok   fixture reaches done
+ok   claim on done 被拒
+ok   拒绝信息点明当前态
+ok   拒绝信息点明允许态
+ok   被拒的 claim 不落行
+ok   claim on pending 放行
+ok   无 from_states 的事件不受影响
+ok   生产 spec 无 S023
+ok   fixture 找得到带 from_states 的事件
+ok   S023 抓得到非法状态名
+ok   S023 报告里点了那个名字
+ok   空 from_states 不报 S023
+ok   wb_core 定义了 _from_states_of
+ok   wb_core 在写入口真调用它
+ok   判据读当前态而不是 payload
+ok   spec_lint 有 S023
+
+test_from_states: PASS (16 ok, 0 failed)
+[exit=0]
+
+===== test  test_runner_paths =====
+NOTE archived stale sentinel for T-OK/coder
+ok   等不到 sentinel 判超时
+ok   超时结果不带 sentinel
+ok   超时结果记录 executor
+TIMEOUT T-TO/coder：等待 sentinel 超时，未取得执行体签署
+ok   超时时 finish 返回 4
+ok   超时时不写 result.json
+ok   超时时不写 E07（没交签署就没有终止证据）
+ok   有 sentinel 时不算超时
+ok   有 sentinel 时取出签署
+ok   陈旧签署被归档成 stale 文件
+ok   陈旧签署不被当成新一轮结果
+ok   归档是改名（文件数不变，内容还在）
+ok   并发写不抛异常
+ok   并发写入行数正确
+ok   seq 无重复
+ok   seq 连续
+ok   并发之后链自校验通过
+ok   并发迁移只有一个成功
+ok   失败的那条留下证据
+ok   最终状态等于成功的那条
+ok   迁移之后链仍自校验
+
+test_runner_paths: PASS (20 ok, 0 failed)
+[exit=0]
+
+===== test  test_ref_subagent =====
+ok   执行体读到了控制面写的 job
+ok   job 有执行体需要的全部字段
+ok   write_scope 已被控制面展开成真实路径
+ok   job 里的 task/role 与请求一致
+ok   执行体交出签署
+ok   签署落在 job 指定的 done_sentinel
+ok   签署含 ok/summary/changed/selfcheck 四件套
+ok   签署 ok 为真
+ok   签署 selfcheck 是真实退出码
+ok   控制面能读到执行体的签署
+ok   声称写越界时拒绝签署
+ok   拒绝信息点名越界文件
+ok   拒绝时没有留下签署
+ok   执行体不真跑 git 命令
+ok   rmtree 不在主流程里（只清理自检临时目录）
+ok   有 handle() 主流程
+ok   handle() 里只写一次盘
+ok   写盘目标是 job 的 done_sentinel
+
+test_ref_subagent: PASS (18 ok, 0 failed)
+[exit=0]
+
+===== test  test_cross_process_lock =====
+ok   夹具到 pending
+ok   byte-range lock primitive is OS level
+ok   恰好一个进程完成了迁移
+ok   另一个进程拿到的是拒绝而不是静默成功
+ok   拒绝理由点明竞争/状态而不是崩溃
+ok   两个进程都真的到了栅栏（不是没跑起来）
+ok   并发之后状态就是那个唯一成功的目标态
+ok   并发之后 rebuild 通过（链没有被写坏）
+ok   链上只落了一行 claimed 迁移
+ok   纯写竞争下两个进程都成功
+ok   两条写入拿到不同 seq
+ok   seq 连续（差恰好 1）
+ok   纯写并发之后 rebuild 通过
+ok   wb_core 用 msvcrt.locking（win32）
+ok   wb_core 用 fcntl.flock（posix）
+ok   锁是 NBLCK/阻塞两种语义之一，不是 sleep 假锁
+ok   锁内二次校验仍在（第三十三轮的修复没被后来的重构冲掉）
+
+test_cross_process_lock: PASS (17 ok, 0 failed)
+[exit=0]
+
+===== test  test_ref_subagent_model_e2e =====
+[1] 真 HTTP 往返：job → urllib → 服务器 → 解析 → 签署
+  ok   model 后端退出码 0
+  ok   签署已落盘
+  ok   签署 backend=model
+  ok   签署带 model_output
+  ok   selfcheck 记 (model)
+  ok   服务器真收到一次请求
+  ok   路径是 chat/completions
+  ok   Content-Type 是 json
+  ok   Authorization 是 Bearer <key>
+  ok   请求带 model 名
+  ok   两条消息（system + user）
+  ok   brief 内容真的进了 user 消息
+  ok   temperature 为 0
+  ok   密钥没有漏进签署
+  ok   写域空列表时越界检查不误伤（changed 为空）
+[2] 失败路径：HTTP 500 与连不上的端口都必须失败且不写签署
+  ok   HTTP 500 时退出码非 0
+  ok   HTTP 500 时不写签署
+  ok   失败信息是 model call failed
+  ok   端口连不上时退出码非 0
+  ok   端口连不上时不写签署
+[3] 缺端点/缺密钥：不降级成 mock（第三十三轮边界仍在）
+  ok   缺端点时退出码非 0
+  ok   缺端点时报 ENDPOINT_ENV 名
+  ok   缺端点时不写签署
+  ok   缺密钥时退出码非 0
+  ok   缺密钥时报 KEY_ENV 名
+[4] model 后端也不能绕过写域：changed 越界就拒签
+  ok   越界改动拒签
+  ok   拒签理由点名 write_scope
+  ok   拒签时不写签署
+[5] 源码真值：真用 urllib、真读两个环境变量、绝不把密钥写进签署
+  ok   用 urllib.request
+  ok   读端点环境变量名
+  ok   读密钥环境变量名
+  ok   Authorization 头由密钥拼出
+  ok   handle 里没有把 key 放进 sentinel
+
+test_ref_subagent_model_e2e: PASS (all cases)
+[exit=0]
+
+===== test  test_state_sentinel =====
+[1] 消费者读到的哨兵与 spec 一致
+  ok   spec 里有 sentinel.no_state
+  ok   wb_core.no_state_sentinel() 等于 spec
+  ok   _state_key(None) 就是哨兵
+  ok   _state_key('draft') 原样返回
+  ok   哨兵不出现在 states 列表里（它不是状态名）
+[2] 改 spec，消费者跟着变
+  ok   wb_core 读到了改后的值
+  ok   _state_key(None) 跟着变
+  ok   恢复后回到原值
+  ok   恢复后字节完全一致（恢复≠还原的防回归）
+[3] 缺 sentinel 段时拒绝静默回落
+  ok   缺段时抛异常
+  ok   异常类型是 SpecViolation
+  ok   异常信息点名 states.json
+  ok   恢复后仍可读
+  ok   恢复后字节完全一致（第二处）
+[4] 源码里没有第三份副本
+  ok   哨兵值非空（否则下面的搜索无意义）
+  ok   除了 gen_spec.py 没有别的文件硬写哨兵
+  ok   gen_spec.py 里有且只有一处字面量
+  ok   gen_spec.py 用常量承载它
+  ok   事件表引用常量而不是字面量
+[5] 端到端：E02 写得进去，lint 不报 S023
+  ok   E02 在无状态任务上可写
+  ok   E02 落了链
+  ok   E02 本身不推状态（建状态由 T01 承接）
+  ok   T01 之后任务状态是 draft
+  ok   无状态任务上 claim 仍被拒（哨兵不是万能通行证）
+  ok   同一无状态任务上 draft_created 放行（哨兵让它合法）
+
+test_state_sentinel: PASS (0 failed)
+[exit=0]
+
+===== test  test_lock_timeout_and_contention =====
+[1] 外部占锁时，等待方在预算内放弃
+  ok   占锁线程起来了
+  ok   拿不到锁时抛异常
+  ok   异常类型是 LockTimeout
+  ok   在预算之内放弃（没在无限等）
+  ok   异常信息里有实际用时与尝试次数
+  ok   放锁后可以正常写入
+  ok   超时不落行（后续 seq 从 1 开始）
+[2] 超时归「环境问题」，不归「请求错误」
+  ok   LockTimeout 不是 SpecViolation
+  ok   LockBusy 是 LockTimeout 的子类
+  ok   is_retryable(LockTimeout) 为真
+  ok   is_retryable(LockBusy) 为真
+  ok   is_retryable(SpecViolation) 为假
+  ok   is_retryable(ChainTampered) 为假
+  ok   is_retryable(LeaseConflict) 为假
+  ok   is_retryable 对无关异常返回假
+  ok   退避有上限常量 BACKOFF_MAX
+  ok   锁有默认超时（不会无限等）
+  ok   POSIX 分支用非阻塞 flock
+  ok   锁不再是无退避的 500Hz 空转
+[3] 5 个真进程抢锁：每一个都在预算内返回，seq 无空洞
+  ok   5 个进程全部在时限内返回（没人饿死）
+  ok   整体耗时远小于硬超时（说明退避有效）
+  ok   至少有一个成功（否则测的是锁死不是竞争）
+  ok   未成功的都是明确拒绝，不是崩溃
+  ok   未成功的拒绝理由要么是锁超时要么是业务判据
+  ok   成功的写入拿到互不相同的 seq
+  ok   seq 从 base+1 起连续无空洞
+  ok   并发之后链能重放（不抛 ChainTampered）
+  ok   重放行数等于链上真实行数
+  ok   任务终态仍是 pending（plan 事件不改状态）
+  ok   链上行数等于 夹具行 + 成功数
+
+test_lock_timeout_and_contention: PASS (0 failed)
+[exit=0]
+
+===== test  test_boss_seat =====
+WARN persona/conduct.md 不存在；本轮不注入该段
+WARN persona/conduct.md 不存在；本轮不注入该段
+ok  brief 里有行为契约段
+ok  契约排在神魂之后
+ok  契约排在角色卡之前
+ok  契约正文真的进来了
+ok  称呼 BOSS 的规矩仍在神魂里
+ok  lead 的 brief 有契约
+ok  coder 的 brief 没有契约（它不对 BOSS 说话）
+ok  coder 仍带神魂
+ok  契约文件缺失时返回空串（不编造）
+ok  契约文件缺失时 brief 仍能生成（不阻断派发）
+ok  已合入任务是 MERGED
+ok  结论段非空
+ok  依据条数 >= 4（转正/派活/改动/验收/合入）
+ok  链上来的每条依据都带 seq 或 commit
+ok  溯源条目存在且点名 criterion 便于复核
+ok  溯源条目不冒充本任务专属（必须自称全仓）
+ok  落点带短哈希
+ok  风险段永不为空
+ok  不存在的任务给 NOT_STARTED
+ok  不存在时也给出风险说明
+ok  人读形态含 § 结论
+ok  人读形态含 § 依据
+ok  人读形态含 § 风险
+ok  人读形态含 § 下一步
+ok  渲染不写链
+ok  sha256 前缀保留
+ok  sha256 被截短
+ok  空白不进报告
+ok  git sha 截 7 位
+ok  lead 有 seat 块
+ok  seat.title 是主理人
+ok  seat 指向 conduct
+ok  seat.soul 指向的文件真在（persona/core.md）
+ok  seat.conduct 指向的文件真在（persona/conduct.md）
+ok  seat.report 指向的文件真在（.workbench/scripts/boss_report.py）
+ok  主理人不是新角色位（roles 里没有第六个）
+ok  seat 没有抬高并发上限
+ok  非 verifier 的 slots 合计仍为 6（lead1+arch1+coder3+companion1）
+ok  seat 有 can_emit 镜像
+ok  镜像是逐字相等（顺序也算）
+ok  镜像不是独立随手写的短表
+ok  E26/E29 仍在镜像里（授权未使用 ≠ 声明大于权限）
+ok  seat 指向 triage
+ok  triage 文件真在
+ok  E01 在 spec 里授权给 lead
+ok  E02 在 spec 里授权给 lead
+ok  E03 在 spec 里授权给 lead
+ok  E04 在 spec 里授权给 lead
+ok  E05 在 spec 里授权给 lead
+ok  E07 在 spec 里授权给 lead
+ok  E08 在 spec 里授权给 lead
+ok  E09 在 spec 里授权给 lead
+ok  E12 在 spec 里授权给 lead
+ok  E17 在 spec 里授权给 lead
+ok  E26 在 spec 里授权给 lead
+ok  E29 在 spec 里授权给 lead
+ok  E44 在 spec 里授权给 lead
+ok  K11 真读 seat.can_emit
+ok  K11 真与 lead.can_emit 对账
+ok  K11 查 triage 指向
+ok  K11 把四个指向都查存在
+ok  渲染层用 _rows 读链
+ok  渲染层不写事件（无 append_event）
+ok  风险段有兜底
+ok  未知字段写未取值而不是 0
+ok  run_task 真调 boss_report
+ok  run_task 汇报前有分隔线（与搭建者日志分开）
+ok  --no-report 开关存在
+ok  渲染失败不吞（打印而不是静默）
+ok  persona_loader 有 conduct 段
+ok  contract 按角色过滤
+ok  conduct 排在 core 之后
+
+test_boss_seat: PASS (72 ok, 0 failed)
+[exit=0]
+
+===== test  test_boss_report_revert =====
+test_boss_report_revert:
+  ok   渲染层读了 merge_reverted
+  ok   回滚判据在合入判据之前
+  ok   驱动器有 _merge_reverted
+  ok   驱动器分开了「预演可合」与「已在主干」
+  ok   预演不再自称「已在主干」
+  ok   只有 E15 时判为 MERGED
+  ok   只有 E15 时不冒出回滚证据
+  ok   只有 E15 时落点是正常合入形状
+  ok   只有 E15 时风险段不提撤回
+  ok   E15+E16 时判为 REVERTED 而不是 MERGED
+  ok   REVERTED 有徽章（不许渲染成问号）
+  ok   风险段点名了 E16
+  ok   风险段不许说「无已知风险」
+  ok   风险段说清「主干上没有这份改动」
+  ok   落点能看出曾合入、已撤回
+  ok   落点不是干净的成功形状
+  ok   证据里有「合完又被撤回」这一条
+  ok   下一步指向 E16 的 reason
+  ok   人读形态第一行不是「成了」
+  ok   人读形态包含三段
+  ok   重试合并成功之后判为 MERGED（E16 在其中但更早）
+  ok   重试成功后落点回到正常形状
+  ok   有 E15 无 E16 → 不算撤回
+  ok   E16 在 E15 之后 → 算撤回
+  ok   再合一次成功 → 又不算撤回了
+  ok   别的任务不受影响
+  ok   五个结局的退出码两两不同
+  ok   「能合」不是 0（0 是「做完了」）
+  ok   「合了又撤」不是 0（0 会被脚本读成成功）
+  ok   「已在主干」不是 0（它是另一个结局，不是同一个结局）
+test_boss_report_revert: PASS (30 ok, 0 failed)
+[exit=0]
+
+===== test  test_lock_fairness =====
+[F1] aging 让长等待者的退避上限下降
+  ok   刚到时上限等于 BACKOFF_MAX
+  ok   等一半时上限下降
+  ok   等到最后上限等于 BACKOFF_MAX*AGING_FLOOR
+  ok   上限随 age 单调不增
+  ok   源码真值：cap 由 age 调制
+  ok   源码真值：delay 被 cap 封顶
+  ok   源码真值：age 由已等时长与预算之比给出
+[F2] 6 个真进程同时抢一把锁，没人被饿死
+  ok   全部进程都正常退出（没有僵尸/无限期无响应）
+  ok   没有产生超时行（超时会抛 LockTimeout，不落行）
+  ok   seq 稠密无空洞
+  ok   并发之后链自校验通过（rebuild 不抛 ChainTampered）
+  ok   rebuild 的行数与磁盘一致
+  ok   有竞争时等待样本被记录
+  ok   持锁样本被记录
+  ok   样本无坏行
+  ok   等待样本的 waited_ms 都 >= 0
+  ok   等待 p99 落在预算之内（没有贴到 30000 的默认值）
+[F3] 没人竞争时不写等待样本（否则 p99 恒为 0，校准失去意义）
+  ok   空闲 5 次写入：等待样本为 0
+  ok   空闲 5 次写入：持锁样本为 5
+  ok   持锁时长非负
+  ok   WB_LOCK_TELEMETRY=0 时不再写台账
+  ok   关闭时目录不存在
+test_lock_fairness: PASS (0 failed)
+[exit=0]
+
+===== test  test_lock_telemetry =====
+[1] p99 是独立算得出来的，不是抄工具的
+  ok   nearest-rank p99 of 1..100
+  ok   nearest-rank p50 of 1..100
+  ok   空集返回 None
+  ok   单元素 p99 就是它自己
+  ok   不插值：结果一定来自输入集
+[2] 样本不足时不输出推荐值
+  ok   3 个样本 -> INSUFFICIENT
+  ok   INSUFFICIENT 时没有推荐值
+  ok   INSUFFICIENT 原因里点名门槛
+NOTE: lock 校准尚未有依据（持锁样本 3，门槛 200）；当前 timeout_ms_default=30000 仍是无依据的值。没量到 ≠ 合格。
+  ok   样本不足的 check 退 0（没量到 ≠ 不合格）
+  ok   攒够样本 -> CALIBRATED
+  ok   p99 = 198（nearest-rank of 1..200）
+  ok   推荐值 = p99*factor 夹到区间
+[3] 唯一的不等式真的能失效
+  ok   timeout=1ms < p99 时 current_is_enough=False
+FAIL: timeout_ms_default=1 小于 p99(hold_ms)=198 —— 等待方会在持锁方干完之前放弃，那是必然的假失败，不是超时
+  ok   check 判红
+PASS: lock 预算有依据 (holds=200 p99=198ms waits=0 p99_wait=Nonems declared=30000 proposed=3960)
+  ok   30000ms 覆盖 p99 时 check 退 0
+[4] 超时样本不进等待分布（否则 p99 收敛到超时值本身）
+  ok   只统计 got=true 的等待样本
+  ok   等待 p99 = 14 而不是 30000
+  ok   report 单独给出超时次数
+  ok   report 的 max_waited_ms 来自成功样本
+  ok   坏行数 0
+[5] 坏行判红，且不会被「样本够」吃掉
+FAIL: lock telemetry 有 1 条坏行（写入方的问题，不是样本量的问题）:
+  ok   坏行让 check 退 1
+  ok   rep 里 bad_lines 计数为 1
+[6] 声明 → 代码：改一处忘一处会被抓
+  ok   生产常量逐条对齐
+  ok   检查条数 >= 15
+  ok   改 BACKOFF_MAX 被判红
+  ok   POSIX 改回阻塞 flock 被判红
+  ok   去掉 aging 被判红（cap 公式不在了）
+[7] 代码 → 行为：真起子进程测「不配合的进程」
+  ok   持锁成功
+  ok   探针有结论（mandatory/advisory 之一）
+  ok   观测与表里同平台声明一致
+  ok   语义写错时行为侧不符
+  ok   verdict BROKEN
+  ok   问题里点名「行为与声明不符」
+[8] 生产仓两向都绿
+NOTE: 行为探针 platform=win32 observed=mandatory declared=mandatory probe='DENIED PermissionError 13'
+PASS: lock_semantics 两向真值一致 (checks=23, platform=win32, semantics=mandatory)
+  ok   lock_truth --check 退出码 0
+PASS: lock 预算有依据 (holds=480 p99=93ms waits=1 p99_wait=32ms declared=30000 proposed=2000)
+  ok   lock_calibrate --check 退出码 0
+  ok   sign_manifest.EXCLUDE 含锁台账目录
+test_lock_telemetry: PASS (0 failed)
+[exit=0]
+
+===== test  test_run_task_verbose =====
+[1] 源码真值：开关、两个出口、接线点
+  ok   模块级开关是单元素列表（main 改它，别的模块不会拿到旧副本）
+  ok   argparse 真有 --verbose
+  ok   main 里真拨开关
+  ok   log 定义存在
+  ok   warn 定义存在
+  ok   sh 的命令回显受开关约束
+  ok   log 受开关约束
+  ok   warn 无条件打印（不是另一个 log）
+[2] 真行为：默认静默、开开关才出、warn 恒出
+  ok   默认 log 不打
+  ok   默认 warn 仍然打
+  ok   开了开关 log 才打
+[3] main() 真的按 --verbose / --dry 拨开关
+  ok   无 --verbose 时开关保持关
+  ok   --verbose 把开关拨开
+  ok   --dry 自动开过程行（预演就是要看见会做什么）
+[4] 结论出口不能被一起静默
+  ok   PLAN_DRIVE PASS 仍是无条件 print
+  ok   plan_drive 的 ran: 行仍是无条件 print
+  ok   DAG 行仍是无条件 print
+  ok   boss_report 的分隔线仍在
+  ok   boss_report 正文仍是无条件 print
+  ok   状态推进行走 log
+  ok   MERGED 过程行走 log
+  ok   main 的任务状态行走 log
+  ok   没有裸 print 的 REFUSE 过程行
+[5] 驱动器里「等你动手」的提示走 warn，不走 log
+  ok   验收未转正的 ⏸ 走 warn
+  ok   闸门要签名的 ⏸ 走 warn
+  ok   合了又撤的 🔴 走 warn
+  ok   签名器坏掉的 REFUSE 走 warn（两处都改了）
+  ok   推进 12 步未收敛的 REFUSE 走 warn
+
+28/28 passed
+test_run_task_verbose: PASS (28 ok, 0 failed)
+[exit=0]
+
+===== test  test_can_emit_audit =====
+生产 can_emit_audit 零失败                                      ok  got=[]
+NOTE 写明是 K12                                               ok  got='NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定'
+NOTE 写明 actors=19                                          ok  got='NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定'
+NOTE 写明授权未使用不判红                                            ok  got='NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定'
+NOTE 的 declared 与三张表长度和一致                                  ok  got='NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定'
+重复项被 K12 抓住                                                ok  got=[{'check': 'K12', 'detail': "roles.coder.can_emit 有重复项 ['E09'] —— 重复不改变权限却会让『列表长度』这类判据失真"}]
+重复项失败带角色名                                                  ok  got=[{'check': 'K12', 'detail': "roles.coder.can_emit 有重复项 ['E09'] —— 重复不改变权限却会让『列表长度』这类判据失真"}]
+非列表被 K12 抓住                                                ok  got=[{'check': 'K12', 'detail': "roles.architect.can_emit 缺失或不是列表（实测 'str'）"}]
+不存在的事件号被 K12 抓住                                            ok  got=[{'check': 'K12', 'detail': 'roles.lead.can_emit 列了 E99，但 spec/events.schema.json 里没有这个事件号'}]
+探针前提：E53 不给 coder                                          ok  got=['human:*']
+声明大于权限被 K12 抓住                                             ok  got=[{'check': 'K12', 'detail': "roles.coder.can_emit 列了 E53，但 E53 的 actors 是 ['human:*']（声明大于权限）"}]
+清空 architect 的 can_emit 不判红                                ok  got=[]
+E08 *authority* 不误判                                        ok  got=[]
+源码有 def can_emit_audit                                     ok  got=True
+check() 真打印 K12 NOTE                                       ok  got=True
+check() 真把 K12 失败并进结果                                      ok  got=True
+docstring 列了 K12                                           ok  got=True
+K12 不往 agents.json 写副本                                     ok  got=True
+
+test_can_emit_audit: PASS (18/18)
+[exit=0]
+
+===== test  test_control_plane_verbose =====
+test_control_plane_verbose: PASS (0 failed)
+[exit=0]
+
+===== test  test_boss_report_deviations =====
+  ok   boss_report 真读 deviations.json
+  ok   boss_report 有 _load_deviations
+  ok   boss_report 有 _deviation_lines
+  ok   boss_report 有 event->kind 映射（读 spec 不硬编码）
+  ok   boss_report 风险段真消费 dev_lines
+  ok   boss_report 不再硬编码条数/引用常数
+  ok   表读不到是 fail-closed 风险
+  ok   命中条件含 seq<=max_seq
+  ok   干净任务判 MERGED
+  ok   干净任务风险段不提历史偏离
+  ok   干净任务风险段不提边界不可读
+  ok   历史偏离进风险段
+  ok   风险段带引用（来自表）
+  ok   风险段带截止 seq（来自表）
+  ok   风险段写明条数
+  ok   风险段写明不判红也不改写
+  ok   偏离不改变 verdict（它不阻塞）
+  ok   人读形态包含风险段
+  ok   收窄表边界后不再报该偏离
+  ok   改 ref 汇报跟着变
+  ok   改 actor 后不命中
+  ok   表缺失进风险段（不是无风险）
+  ok   表缺失不冒充「无已知风险」
+  ok   criterion 错进风险段
+  ok   字段不全进风险段
+  ok   探针 seq 确实超过截止
+  ok   超截止不进有界放行
+  ok   生产链可复核且表可读
+  ok   生产链命中的条数 = 表里边界内的真实行数
+  ok   命中条数不是凭空数
+test_boss_report_deviations: PASS (30 ok, 0 failed)
+[exit=0]
+
+===== test  test_lead_dispatch =====
+[1] 源码真值：一份常量，四个读者
+  ok   SPAWN_ROLES 含 lead
+  ok   LEASE_ROLES 复用 SPAWN_ROLES（不抄第二份）
+  ok   verifier 不在 SPAWN_ROLES
+  ok   cmd_run exclusive 用 LEASE_ROLES
+  ok   cmd_run wants_spawn 用 SPAWN_ROLES
+  ok   cmd_finish 补 E05 用 SPAWN_ROLES
+  ok   cmd_finish 释放租约用 LEASE_ROLES
+  ok   四处旧字面量已清零
+  ok   finish() 的 allow/deny 仍是 worker 专属（不误套到 lead）
+  ok   run_task --role 收 lead
+  ok   运行时常量含 lead
+  ok   LEASE_ROLES 就是同一个对象
+[2] 真写 E05 + T06（lead 角色，真 pid）
+  ok   铺链后当前态是 claimed
+  ok   E05 真落行
+  ok   E05.role = lead
+  ok   E05.pid 来自参数不是编的
+  ok   E05.pid_observable = True（真进程方向也写）
+  ok   E05.executor 写进链
+  ok   E05 由 system:runner 写
+  ok   T06 迁移真发生
+  ok   当前态推进到 in_progress
+  ok   链自校验通过（没有 ChainTampered）
+  ok   rebuild 认得这个任务
+[3] pid 不许编，pid_observable 两个方向都写
+  ok   pl["pid"] 直接取 int(pid)
+  ok   pid_observable 是 int(pid) > 0（不是只在 <=0 时写）
+  ok   announce_worker docstring 仍声明只能由起进程的一方调用
+[4] run_task --role lead 不被 argparse 拒
+任务 T-LEAD-DRY  当前状态=None  executor=harness_subagent
+  ok   --role lead 不抛 SystemExit(2)
+  ok   drive 真被调用且拿到 role=lead
+  ok   驱动器正常收敛 rc=0
+[5] lead 写域：task scope / role allow / deny 三处各量各的
+  ok   源码真把 task_scope(tid) 赋给 lead 的 scope
+  ok   源码真把 spec.write_scope 赋给 lead 的 allow
+  ok   源码真提取 deny 的 glob（不是 str(dict)）
+  ok   check() 的 deny 走 _globs
+  ok   源码里写明 lead 的两把尺子理由
+  ok   合法 lead 产物过 runner 层三闸门
+  ok   task scope 外仍拒（role allow 不能盖掉任务声明）
+  ok   deny glob 真生效（dict→glob 提取后命中）
+  ok   mid-path ** 在 allow 语义下可匹配
+  ok   同一 mid-path ** 在 scope 语义下必须抛（两把尺子不同）
+test_lead_dispatch: PASS (39 checks, 0 failed)
+[exit=0]
+
+===== test  test_merge_gate_base =====
+  ok   主线真算 merge-base
+  ok   main 调用可观测的 resolve_gate_base
+  ok   main 把 gate_base 传给 gate_of
+  ok   merge_tree_ok 仍用主干 tip 作合并目标
+  ok   两条基线分开有注释说明
+  ok   回退原因进 result 而不是静默 or base
+  ok   回退有默认可见 WARN
+  ok   warn 走 stderr 不污染 --json stdout
+  ok   merge-base 失败时退回主干 tip
+  ok   回退来源标为 tip_fallback
+  ok   回退 detail 带 rc 与 stderr
+  ok   默认可见 WARN 真打到 stderr
+  ok   成功路径 source=merge-base
+  ok   成功路径用 git 给的 sha 而不是 tip
+  ok   主干 tip 两点 diff 造出伪删除
+  ok   merge-base diff 没有删除
+  ok   merge-base diff 只有任务自己加的那个文件
+  ok   merge-base 就是分叉点
+  ok   主干 tip 作基线 → NEVER_WAIVE
+  ok     理由里带 file_delete（伪删除）
+  ok   merge-base 作基线 → AUTO_CORE
+  ok     没有 file_delete 理由
+  ok     单签即可（不是 double_sign）
+  ok   真删文件在 merge-base diff 里也是 D
+  ok   真删文件仍被 NEVER_WAIVE 拦住（没有放宽闸门）
+
+test_merge_gate_base: PASS (all cases)
+[exit=0]
+
+===== test  test_ci_narrow_contract =====
+test_ci_narrow_contract: PASS (all cases)
+[exit=0]
+
+===== test  test_sched_install_verbose =====
+ok   模块级 VERBOSE 开关存在
+ok   log() 受开关约束
+ok   doctor 的明细走 log
+ok   doctor 仍有 RESULT 行（结论不许静默）
+ok   --verbose 参数已接
+ok   --verbose 挂在 doctor 子解析器上（argparse subcommand 语义）
+ok   main 拨开关
+ok   doctor help 写明默认只打 RESULT
+ok   status 的字段行仍是裸 print
+ok   install 的 RESULT 行仍是裸 print
+ok   run_warn 消费的 status 输出未动
+ok   doctor 默认 rc 是 0 或 1（不崩）
+ok   doctor 默认仍有 RESULT
+ok   doctor 默认收掉逐项明细
+ok   doctor --verbose rc 与默认一致
+ok   doctor --verbose 打出 python 行
+ok   doctor --verbose 打出 wb_home 行
+ok   doctor --verbose 打出 root_key 行
+ok   doctor --verbose 也有 RESULT
+ok   status rc 是 0 或 1
+ok   status 仍有 task/registered 字段行
+ok   status 仍有 RESULT/ATTENTION
+test_sched_install_verbose: PASS (22 ok, 0 failed)
+[exit=0]
+
+===== test  test_window_readiness =====
+ok   maturity 有 ETA
+ok   window_conclusion 存在
+ok   distribution 切换有守卫
+ok   check 打 NOTE
+ok   生产窗口未到点 ready=False
+ok   未到点 basis=point_estimate
+ok   未到点 primary=False
+ok   ETA 字段可读
+ok   check rc=0
+ok   NOTE 带窗口字段
+ok   NOTE 此刻报 ready=False
+ok   170h 窗口 ready=True
+ok   ready 时 remaining 钳 0（真值 0，不是 None）
+ok   ready 时 ETA 时间戳是过去
+ok   ready 且样本够时 basis 切 distribution
+ok   ready 时 distribution_is_primary=True
+ok   headline 不再是单点 ticks_per_hour
+ok   reason 说清为何切换
+test_window_readiness: PASS (18 ok, 0 failed)
+[exit=0]
+
+===== test  test_model_readiness =====
+ok   读端点 env 名
+ok   读密钥 env 名
+ok   不降级成 mock
+ok   失败不写 sentinel
+ok   密钥不进签署
+ok   当前 WB_REF_MODEL_ENDPOINT 未设置
+ok   当前 WB_REF_MODEL_KEY 未设置
+ok   执行体入口存在
+ok   e2e 验收入口存在
+ok   缺 env 时退出码非 0
+ok   缺 env 不写 sentinel
+ok   报错点名 ENDPOINT_ENV
+ok   报错不冒充成功
+ok   model e2e 仍全绿
+ok   e2e 覆盖 HTTP 500 失败路径
+ok   e2e 覆盖端口连不上失败路径
+ok   e2e 覆盖缺端点/缺密钥
+ok   e2e 覆盖越界拒签
+test_model_readiness: PASS (18 ok, 0 failed)
+[exit=0]
+
+===== test  test_agent_runner_verbose =====
+ok   开关是单元素列表
+ok   argparse 真有 --verbose
+ok   main 里真拨开关（在 a.fn 之前）
+ok   --verbose 从 argv 里被摘下（子命令后置写法也能用）
+ok   log 受开关约束
+ok   cmd_run 的 spawn/state 回显走 log
+ok   结果行不被收掉（finish 的 OK/REFUSE/TIMEOUT/ABORT）
+ok   prepare 四行操作指引保留（外部执行体靠它）
+ok   status/roles 表头保留
+ok   写域判空的 WARN 不静默
+ok   默认不打过程行
+ok   --verbose 打过程行
+ok   无 --verbose 时开关保持关
+ok   --verbose 把开关拨开
+ok   子命令真的被执行了（不是只解析）
+ok   run_task 有 _vp 透传器
+ok   透传条件是 VERBOSE[0]
+ok   prepare/run/finish 三处都用 _vp
+ok   默认不透传
+ok   --verbose 时追加到末尾（argparse 顶层 flag 可放末尾）
+test_agent_runner_verbose: PASS (20 ok, 0 failed)
+[exit=0]
+
+===== test  test_silent_swallow =====
+ok   生产树 VERDICT CLEAN
+ok   没有未登记的静默处理器
+ok   白名单没有腐烂条目
+ok   覆盖范围本身对得上账（一个 .py 都没扫到也要红）
+ok   三处作用域都真扫了文件
+ok   扫描到的 Exception 处理器足够多（不是空扫描）
+ok   每条白名单都写了理由
+ok   白名单 key 带作用域（全域化后不再允许裸文件名）
+ok   注入的静默处理器被抓到
+ok   只抓静默那一个（打了 print 的不算）
+ok   扫描计数包含两个 Exception 处理器
+ok   作用域标对了
+ok   per_scope 如实记了文件数
+ok   登记后不再报（白名单真在生效）
+ok   登记后 silent_total 仍如实统计（发现 ≠ 判红）
+ok   登记后白名单没有腐烂条目
+ok   「已不再静默」的条目被报为 stale
+ok   「文件不存在」的条目被报为 stale
+ok   stale 存在时 VERDICT 不为 CLEAN
+ok   作用域目录不存在会被报出来
+ok   目录不存在时 VERDICT 不为 CLEAN
+ok   scope_problems 写进了 report
+ok   _Lock 有 NOTE_LOSSES 与 HOLD_LOSSES 两个类属性
+ok   _note 的失败分支递增 NOTE_LOSSES
+ok   持锁样本的失败分支递增 HOLD_LOSSES
+ok   代码里不用 self.X += 1 自增（那会创建实例属性把类属性遮住）
+ok   计数器是类属性（进程级可见，不是实例私有）
+ok   第四十五轮：丢失台账前缀与 atexit 真在写入路径上
+ok   第四十六轮：丢失台账写入进程身份 proc_key/proc_start_ms
+ok   写台账失败时计数加一
+ok   第二次失败计数继续加（丢几条记几条）
+ok   写台账失败不抛（不阻断业务）
+ok   首次丢失打一行 WARN（不是完全无声）
+ok   第二次丢失不再刷屏（只报一次）
+ok   持锁样本写失败也计数
+test_silent_swallow: PASS (35 ok, 0 failed)
+[exit=0]
+
+===== test  test_lock_losses =====
+== 观测丢失必须留痕（proc_key 版） ==
+  ok   log_dir 是个文件（makedirs 必失败）
+  ok   子进程正常退出
+  ok   子进程里计数真的加了（进程级可见）
+  ok   子进程有非空 proc_key（第四十六轮）
+  ok   写不进去时至少对 stderr 说了话
+  ok   真的写出了一个 lock_losses 文件
+  ok   写了 first 与 final 两行
+  ok   final 行带 note_losses>0（写 0 等于没记）
+  ok   final 行带 hold_losses
+  ok   final 行带 pid
+  ok   final 行带 proc_key（第四十六轮）
+  ok   final 行带 proc_start_ms（第四十六轮）
+  ok   first/final 用同一个 proc_key
+  ok   read_losses 读得回来
+  ok   read_losses 的 hold 也读得回来
+  ok   read_losses processes=1
+  ok   read_losses legacy_rows=0（新行都有 proc_key）
+  ok   first/final 按 proc_key 取 max 不相加
+  ok   rows 带 proc_key
+  ok   pid 复用时两个进程按 proc_key 相加
+  ok   pid 复用时 hold 相加
+  ok   pid 复用时 processes=2（不是 1）
+  ok   pid 复用时 pids=1
+  ok   pid 复用时 legacy_rows=0
+  ok   rows 带两个 proc_key
+  ok   同 proc_key 的 first/final 取 max 不相加
+  ok   同 proc_key 后 processes 仍为 2
+  ok   legacy 行不并入 proc_key
+  ok   legacy_rows=1
+  ok   legacy 单独成组（processes=3）
+  ok   零丢失不产生 lock_losses 文件
+  ok   read_losses 对空目录报 0
+NOTE: 有 1 个进程报告过样本写失败（waits 丢 9 条 / holds 丢 0 条）。下面的样本数是**剩下**的，不是全部 —— 结论要按这个折算着看。
+NOTE: lock 校准尚未有依据（持锁样本 0，门槛 200）；当前 timeout_ms_default=30000 仍是无依据的值。没量到 ≠ 合格。
+  ok   有丢失时 check 仍退 0（样本少了不等于判据崩了）
+  ok   report 里带 loss_rows
+  ok   loss_rows 指到那个 pid
+  ok   loss_rows 指到 proc_key
+  ok   recommend.losses 带 processes
+  ok   recommend.losses 带 legacy_rows
+test_lock_losses: PASS (0 failed)
+[exit=0]
+
+===== test  test_lock_provenance =====
+[t_stats_are_identity_blind]
+  ok   7 rows with mixed identities are 7 samples
+  ok   no bad lines
+  ok   provenance counts every hold row, none merged
+  ok   provenance wait count is zero here
+  ok   same proc_key P1 still two samples (no dedup)
+  ok   legacy rows counted honestly
+  ok   unattributed rows counted honestly
+  ok   legacy group is separate from proc_key groups
+  ok   unattributed group exists
+  ok   no identity conflict in clean data
+  ok   recommend holds.count is 7 (unchanged by identities)
+  ok   p99 sees all 7 values (nearest-rank = max here)
+  ok   verdict unchanged (INSUFFICIENT would be wrong at min_samples=1)
+  ok   recommend carries provenance view
+  ok   recommend provenance reports 2 legacy rows
+  ok   report exposes sample_provenance
+  ok   report provenance groups are present
+[t_identity_conflict_is_red]
+NOTE: lock 校准尚未有依据（持锁样本 1，门槛 200）；当前 timeout_ms_default=30000 仍是无依据的值。没量到 ≠ 合格。
+  ok   clean baseline is green
+  ok   same proc_key different pid -> one provenance conflict
+  ok   conflict visible through recommend
+FAIL: lock 进程身份冲突 1 处（同一个 proc_key 绑了不止一套 pid/proc_start_ms；不是样本问题，是台账身份层被污染）:
+  lock_holds-2026-03-01.jsonl:2 P1 proc_key 绑定了不止一套 (pid, proc_start_ms)
+  ok   identity conflict -> check red (not masked by NOTE)
+  ok   after cleanup provenance clean again
+NOTE: lock 校准尚未有依据（持锁样本 1，门槛 200）；当前 timeout_ms_default=30000 仍是无依据的值。没量到 ≠ 合格。
+  ok   after cleanup check green again
+  ok   loss ledger same proc_key / different pid -> conflict
+  ok   loss conflict carried into recommend
+FAIL: lock 进程身份冲突 1 处（同一个 proc_key 绑了不止一套 pid/proc_start_ms；不是样本问题，是台账身份层被污染）:
+  lock_losses-2026-03-01.jsonl:2 L1 proc_key 绑定了不止一套 (pid, proc_start_ms)
+  ok   loss identity conflict -> check red
+NOTE: lock 校准尚未有依据（持锁样本 1，门槛 200）；当前 timeout_ms_default=30000 仍是无依据的值。没量到 ≠ 合格。
+  ok   loss file gone -> green again
+[t_legacy_unattributed_honest]
+  ok   three distinct identity groups (new / legacy / unattributed)
+  ok   new proc_key group holds exactly 1
+  ok   legacy group holds exactly 1, not merged into k:PP
+  ok   unattributed group holds exactly 1
+  ok   legacy_rows counted
+  ok   unattributed_rows counted
+  ok   read_rows still sees 3 independent samples
+  ok   note states the no-dedup invariant
+[t_verdict_unchanged_by_identity]
+PASS: lock 预算有依据 (holds=200 p99=14ms waits=0 p99_wait=Nonems declared=30000 proposed=2000)
+PASS: lock 预算有依据 (holds=200 p99=14ms waits=0 p99_wait=Nonems declared=30000 proposed=2000)
+  ok   verdict identical with and without identity
+  ok   p99 identical with and without identity
+  ok   holds.count identical with and without identity
+  ok   check rc identical with and without identity
+  ok   provenance present but not a second verdict source
+[t_source_truth]
+  ok   wb_core._note sample row carries process_identity
+  ok   wb_core._record_hold sample row carries process_identity
+  ok   _note still writes waited_ms/got (semantics unchanged)
+  ok   _record_hold still writes hold_ms (semantics unchanged)
+  ok   sample rows share the same identity helper as loss rows
+  ok   sample_provenance defined
+  ok   时间窗参数确实存在（半开区间）
+  ok   SAMPLE_PROVENANCE_CRITERION declared once at top
+  ok   _identity / _identity_conflict helpers present
+  ok   read_rows docstring states the non-negotiable per-row rule
+  ok   check reads provenance conflicts
+  ok   check reads loss identity conflicts
+  ok   report exposes sample_provenance
+  ok   read_rows body is identity-blind (no proc_key/dedup/seen)
+test_lock_provenance: PASS (0 failed)
+[exit=0]
+
+===== test  test_joint_acceptance =====
+joint_acceptance: PASS (22 checks, 0 failed)
+test_joint_acceptance: PASS (0 failed)
+[exit=0]
+
+===== test  test_dream_backlog =====
+test_dream_backlog: PASS (0 failed)
+[exit=0]
+
+===== test  test_recall_injection =====
+ok  query 非空
+ok  query 带链上标题
+ok  query 不被任务号里的连字符切坏
+ok  query 带写域（去掉通配符）
+ok  query 不含未展开的占位符
+ok  有 recall_query 函数
+ok  标题优先取链上 draft_created
+ok  分隔符只认破折号变体
+ok  有长度上限
+ok  显忆段真的在正文里
+ok  recall_injected 为真
+ok  显忆段有内容行
+ok  显忆在神魂之后
+ok  显忆在心绪之后
+ok  空 query 不注入显忆
+ok  空 query 正文里没有显忆
+ok  coder 不带行为契约
+ok  coder 不带分诊
+ok  coder 也有神魂
+ok  显忆与人格同时在场
+ok  预算够装时不丢任何段
+ok  没有因预留挤掉静态段
+ok  预留额度非零
+ok  预留不超过总预算三分之一
+ok  预算本身不够时确实丢段
+ok  预算本身不够 ≠ 预留挤掉的
+ok  预算够装但仍丢段
+ok  丢段原因是预留（reserve_starved_static 为真）
+ok  预算来自配置且够大
+ok  预留来自配置
+ok  预留是整数
+ok  截断后仍带段标题
+ok  截断后行数变少
+ok  如实写出还有几条没列
+ok  额度为 0 时整段不进
+ok  build_recall 接受 store
+ok  build_recall 把 store 交给 recall
+ok  build_recall 把 task 也交给 recall
+ok  assemble 家族接受 task
+ok  write_brief 把 tid 当 task 传下去
+ok  write_brief 接受 store
+ok  cmd_prepare 把 Store 传进去
+ok  cmd_run 把 Store 传进去
+ok  丢段有 WARN
+ok  显忆为空有 NOTE
+ok  assemble 仍返回字符串
+ok  assemble 正文含神魂
+test_recall_injection: PASS (0 failed)
+[exit=0]
+
+===== test  test_memory_layers =====
+
+[t_layer_of_rules]
+ok   带任务 + 可读 → working
+ok   带任务 + 不可读 → task
+ok   不带任务 + 可读 + 达标 → longterm
+ok   不带任务 + 可读 + 未达标 → project
+ok   不带任务 + 不可读 → project
+ok   门槛来自 config
+ok   旧名就是新名
+ok   config 里有 repeat_min_count
+ok   schema 声明了 repeat_min_count
+ok   schema 把门槛限在 1..20
+
+[t_store_writes_working]
+ok   有条目真入库
+ok   working 目录里有文件
+ok   task 层没有同名条目
+ok   落盘条目 layer 字段是 working
+
+[t_store_writes_longterm]
+ok   longterm 目录里有文件
+
+[t_threshold_is_respected]
+ok   未达门槛进 project
+ok   未达门槛不进 longterm
+
+[t_recall_sidecar_carries_task]
+ok   recall 接受 task
+ok   sidecar payload 带 task
+ok   append_sidecar 收到 task
+ok   build_recall 透传 task
+ok   assemble_report 接受 task
+ok   write_brief 把 tid 当 task 传下去
+
+[t_source_truth]
+ok   旧的二元分层已消失
+ok   改用 _layer_of
+ok   condense 也算 longterm 门槛
+ok   _layer_of 有 docstring 说清四层理由
+ok   LAYERS 含 working
+ok   LAYERS 含 task
+ok   LAYERS 含 project
+ok   LAYERS 含 longterm
+
+[t_no_history_rewrite]
+ok   dream 不搬历史文件
+ok   记忆层只写不搬（remember 用 _entry_path）
+
+[t_working_capacity]
+ok   配置上限有唯一读取函数
+ok   容量淘汰函数存在
+ok   写入口调用淘汰
+ok   settle 兜底淘汰
+ok   累计计数函数带 wb
+ok   计数无 wb 时读 MEM 本身
+ok   audit 累计容量标记
+ok   永久标记字段
+ok   观察器读累计淘汰
+ok   观察器报 low risk
+ok   观察器读不动按没观测计
+ok   schema 声明了 working_max_entries
+ok   config 里有 working_max_entries
+ok   上限读配置
+ok   缺键回落常量而非无上限
+ok   写 4 条后 working 恒等于上限
+ok   淘汰进 task 层
+ok   被搬条目带永久标记
+ok   被搬条目写了原因
+ok   count 读 MEM（不是反推 WB）
+ok   audit 累计一致
+ok   同内容重放是幂等
+ok   幂等重放不触发淘汰
+ok   settle 不按状态机结算
+ok   settle 容量兜底真搬
+ok   settle 后 working 回到上限
+ok   settle dry_run 不搬层
+ok   观察器报出容量淘汰
+ok   容量风险是 low
+ok   容量风险 count 用累计值
+ok   report verdict 不因它变红
+ok   门禁注释说到第五十九轮
+ok   README 有 17.2w
+
+test_memory_layers: PASS (0 failed)
+[exit=0]
+
+===== test  test_memory_lifecycle =====
+WARN 召回任务号 'T-NOPE' 不在链上（台账记 task_known=false）
+WARN working 层 2 条全部结算不掉（no_task_in_scene=1, state_unreadable=0）：这一层每轮都在空转，检查 scene 格式与链是否配对
+test_memory_lifecycle: PASS (0 failed)
+[exit=0]
+
+===== test  test_memory_ledger_audit =====
+test_memory_ledger_audit: PASS (0 failed)
+[exit=0]
+
+===== test  test_round60 =====
+wrote C:\Users\THH32\AppData\Local\Temp\r60joint-go876rmq\joint.json
+JOINT_BLOCKED  0/3 项就绪，3 项阻塞 —— 现在**不能**宣布整套验收完成
+
+[BLOCKED] 真供应商模型
+    为什么：缺 WB_REF_MODEL_ENDPOINT、WB_REF_MODEL_KEY：执行体会以 `refusing to pretend a model ran` 直接失败，不降级成 mock（这是设计，不是缺陷）
+    怎么解：export WB_REF_MODEL_ENDPOINT=<OpenAI 兼容 .../chat/completions>; export WB_REF_MODEL_KEY=<key>
+    解完跑：python tests/test_ref_subagent_model_e2e.py
+[BLOCKED] GitHub Actions 真跑
+    为什么：git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED
+    怎么解：git remote add origin <url> && git push -u origin master；在仓库 Settings 里设 secret WORKBENCH_CI_KEY；跑完把两个 artifact 拉回来 喂给 platform_runner_probe.py ingest
+    解完跑：python .workbench/scripts/ci_narrow_probe.py --check
+[BLOCKED] 7 天观察窗口
+    为什么：观察跨度 44.316/168 小时，ETA 2026-11-18T14:34:27Z；此时任何「日级结论」都是单点外推
+    怎么解：等。这个不能加速：横轴是真实时间，补数据只会造假
+    解完跑：python .workbench/scripts/scheduler_observe.py --check
+
+就绪与验收是两件事：就绪回答「能不能跑」，验收回答「跑得对不对」。任何一项没就绪时 verdict 最高只有 JOINT_BLOCKED —— 因为「没跑」与「跑过且通过」在输出上必须不同形。就绪但 acceptance 非 True（含 None／没出结论）按 JOINT_PARTIAL 计，绝不并入 JOINT_PASS。
+joint_acceptance: PASS (22 checks, 0 failed)
+test_round60: PASS (0 failed)
+[exit=0]
+
+===== test  test_round61 =====
+test_round61: PASS (0 failed)
+[exit=0]
+
+===== audit audit_static =====
+==============================================================================
+静态审计 audit_static.py v2（跨文件调用统计）
+==============================================================================
+调用方额外扫描：98 个文件（仓根 + tests，只收集名字不审死代码）
+
+file                           LOC  func  flags
+------------------------------------------------------------------------------
+acc_edit.py                    113     2  ok
+agent_runner.py               1195    34  ok
+appcontainer_probe.py         1299    59  SILENT×8 DEAD×3
+bootstrap.py                   193     3  SILENT×1
+boss_report.py                 486    13  DEAD×1
+calibrate_drills.py            124     3  ok
+capability_escape_child.py     116     2  SILENT×1
+capability_gate.py             247     9  ok
+capability_probe_child.py       35     0  ok
+capability_probes.py           653    13  SILENT×1
+ci_narrow_probe.py             427    16  ok
+constitution_check.py          757    10  ok
+containment_telemetry.py       278    13  ok
+contract_registry.py           335    14  ok
+dep_resolver.py                120     5  ok
+diff_sandbox_check.py          286    12  ok
+doc_numbers.py                 297     7  ok
+dream_consolidation.py         938    35  SILENT×3
+emotion_engine.py              411    18  ok
+gate_timer.py                  114     3  ok
+gc_helper.py                   358    10  ok
+gen_spec.py                   1126    16  SILENT×1
+health.py                      140     6  ok
+human_cli.py                   454    13  ok
+job_object_probe.py            692    17  SILENT×5
+joint_acceptance.py            388    10  ok
+lead.py                       1614    41  ok
+lock_calibrate.py              893    21  SILENT×4 DEAD×1
+lock_truth.py                  446    12  SILENT×3
+memory_bundle.py               721    17  SILENT×1
+memory_store.py               1644    51  SILENT×2
+merge_queue.py                 743    26  DEAD×1
+metrics_collector.py           341     7  ok
+mg_gate.py                     293    10  ok
+migrate_vx_to_vy.py            279     8  ok
+persona_loader.py              529    20  ok
+platform_ops.py                795    24  ok
+platform_runner_probe.py       743    23  SILENT×1 DEAD×1
+purpose_store.py               242    13  ok
+sched_install.py               312    12  SILENT×1
+scheduler.py                   538    16  SILENT×2
+scheduler_observe.py          1428    37  SILENT×2 DEAD×1
+secret_scan.py                 360    10  ok
+sign_manifest.py               430    17  ok
+signature_backend.py           692    35  SILENT×2
+silent_swallow_probe.py        291    10  ok
+smoke.py                        72     2  ok
+spec_lint.py                   626    11  SILENT×1
+team_protocol.py               504    15  ok
+telemetry_aggregate.py         957    30  ok
+token_ledger.py                456    16  ok
+verify_harness.py              483    12  SILENT×1
+wb_core.py                    1748    67  SILENT×1 DEAD×2
+
+总行数 29762，文件 53
+
+------------------------------------------------------------------------------
+A. 静默吞异常（except: pass / continue / return None / bare except）
+------------------------------------------------------------------------------
+  appcontainer_probe.py  :199    type=OSError                body=Return      
+      except OSError: ⏎     return None
+  appcontainer_probe.py  :284    type=AttributeError         body=Pass        
+      except AttributeError: ⏎     pass
+  appcontainer_probe.py  :396    type=Exception              body=Return      
+      except Exception: ⏎     return None
+  appcontainer_probe.py  :943    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  appcontainer_probe.py  :1043   type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  appcontainer_probe.py  :434    type=OSError                body=Continue    
+      except OSError: ⏎     continue
+  appcontainer_probe.py  :451    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  appcontainer_probe.py  :440    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  bootstrap.py           :90     type=OSError                body=Continue    
+      except OSError: ⏎     continue
+  capability_escape_child.py :67     type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  capability_probes.py   :470    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  dream_consolidation.py :194    type=(TypeError, ValueError) body=Continue    
+      except (TypeError, ValueError): ⏎     continue
+  dream_consolidation.py :695    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  dream_consolidation.py :716    type=(OSError, ValueError)  body=Continue    
+      except (OSError, ValueError): ⏎     continue
+  gen_spec.py            :366    type=(OSError, ValueError)  body=Return      
+      except (OSError, ValueError): ⏎     return None
+  job_object_probe.py    :347    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  job_object_probe.py    :643    type=(ValueError, OSError)  body=Pass        
+      except (ValueError, OSError): ⏎     pass
+  job_object_probe.py    :259    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  job_object_probe.py    :420    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  job_object_probe.py    :265    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  lock_calibrate.py      :257    type=OSError                body=Continue    
+      except OSError: ⏎     continue
+  lock_calibrate.py      :265    type=ValueError             body=Continue    
+      except ValueError: ⏎     continue
+  lock_calibrate.py      :643    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  lock_calibrate.py      :639    type=ValueError             body=Continue    
+      except ValueError: ⏎     continue
+  lock_truth.py          :283    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  lock_truth.py          :111    type=ValueError             body=Return      
+      except ValueError: ⏎     return None
+  lock_truth.py          :265    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  memory_bundle.py       :100    type=(TypeError, ValueError) body=Continue    
+      except (TypeError, ValueError): ⏎     continue
+  memory_store.py        :207    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  memory_store.py        :649    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  platform_runner_probe.py :313    type=(OSError, ValueError)  body=Pass        
+      except (OSError, ValueError): ⏎     pass
+  sched_install.py       :196    type=(OSError, ValueError)  body=Return      
+      except (OSError, ValueError): ⏎     return None
+  scheduler.py           :220    type=(OSError, ValueError)  body=Pass        
+      except (OSError, ValueError): ⏎     pass
+  scheduler.py           :256    type=(ValueError, AttributeError) body=Return      
+      except (ValueError, AttributeError): ⏎     return None
+  scheduler_observe.py   :290    type=OSError                body=Pass        
+      except OSError: ⏎     pass
+  scheduler_observe.py   :1230   type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  signature_backend.py   :368    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  signature_backend.py   :164    type=Exception              body=Pass        
+      except Exception: ⏎     pass
+  spec_lint.py           :546    type=ImportError            body=Pass        
+      except ImportError: ⏎     pass
+  verify_harness.py      :85     type=(OSError, ValueError)  body=Continue    
+      except (OSError, ValueError): ⏎     continue
+  wb_core.py             :360    type=OSError                body=Return      
+      except OSError: ⏎     return None
+  合计 41 处
+
+------------------------------------------------------------------------------
+B. 定义但从未被调用（跨文件后仍无引用）
+------------------------------------------------------------------------------
+  appcontainer_probe.py  _now_iso
+  appcontainer_probe.py  _sha256_file
+  appcontainer_probe.py  do_GET
+  boss_report.py         _first
+  lock_calibrate.py      bench
+  merge_queue.py         dirty_paths
+  platform_runner_probe.py _line_count
+  scheduler_observe.py   shard_rels_for_verify
+  wb_core.py             lost_hold_samples
+  wb_core.py             lost_note_samples
+  合计 10 个
+
+wrote evidence/audit_static.json
+[exit=0]
+
+===== audit audit_drift =====
+==============================================================================
+真相源漂移审计 audit_drift.py
+==============================================================================
+  A wb_core.spec_tables()  ← 运行期从 spec/*.json 读取（曾经的硬编码副本已删）
+  B .workbench/spec/*.json ← gen_spec.py 生成物
+
+  事件 56 / 状态 12 / 迁移 23 / reason_code 29 / actor 19 / 冻结 15
+
+RESULT: NO DRIFT — spec_tables() 与 spec/*.json 逐项一致
+
+  说明：A 段已无独立副本，两个来源是同一份文件的运行期视图与磁盘内容。
+  这次一致说明生成物与加载结果没有分叉；改 spec 后仍须重跑 gen_spec.py。
+
+wrote evidence/audit_drift.json
+[exit=0]
+
+===== audit audit_runtime =====
+==============================================================================
+运行时行为探针 audit_runtime.py
+==============================================================================
+
+  P01   租约被拒后再申请（None 与 int 比较）                                    OK
+  P02   租约过期后可被低 epoch 抢占                                          OK
+  P03   未知事件类型是否被拒                                                 OK
+  P04   缺 required_payload 是否被拒                                    OK
+  P05   FROZEN 态是否真的拦非白名单事件                                        OK
+  P06   rebuild 是否拒绝非法状态名                                          OK
+  P07   rebuild 是否拒绝非法迁移                                           OK
+  P08   主链月份文件名是否硬编码                                               OK
+  P09   跨月文件 seq 连续（当前是否可测）                                        OK
+  P10   对照：中间行篡改被抓                                                 OK
+  P11   对照：末行截断修复后可续写                                              OK
+  P12   ts_ms 是否只能由 store 生成                                       OK
+  P13   冻结白名单是否真来自 spec（集合比对）                                      DEFECT
+        → spec=15 项，实际放行=7 项；差集 spec-only=['E06', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E43'] live-only=[]
+  P14   sidecar 数值字段是否 integer-only                                OK
+  P15   空改动不会被打扮成改动                                                OK
+
+------------------------------------------------------------------------------
+探针 15 条：14 条声称被证实，1 条发现缺陷
+
+  DEFECT P13  冻结白名单是否真来自 spec（集合比对）
+
+wrote evidence/audit_runtime.json
+[exit=0]
+
+===== audit audit_payload =====
+==============================================================================
+payload 必填键核对 audit_payload.py
+==============================================================================
+
+  agent_runner.py        :505    spawn                 payload 非字面量 → 运行期校验
+  agent_runner.py        :514    spawn                 payload 非字面量 → 运行期校验
+  agent_runner.py        :669    kill                  payload 非字面量 → 运行期校验
+  bootstrap.py           :136    capability_check      ok
+  bootstrap.py           :143    root_integrity_fail   ok
+  contract_registry.py   :143    contract              ok
+  contract_registry.py   :213    contract_drift        ok
+  contract_registry.py   :282    constitution_drift    ok
+  dep_resolver.py        :70     dep_cascade           ok
+  dream_consolidation.py :531    persona_growth        ok
+  dream_consolidation.py :660    dream_consolidation   ok
+  dream_consolidation.py :686    dream_fail            ok
+  emotion_engine.py      :202    emotion_update        ok
+  emotion_engine.py      :218    emotion_update        ok
+  gate_timer.py          :77     human_timeout         ok
+  gc_helper.py           :276    wt_reclaim            ok
+  gc_helper.py           :286    task_archive          ok
+  gc_helper.py           :319    gc                    ok
+  health.py              :99     heartbeat_lost        ok
+  health.py              :107    heartbeat_resumed     ok
+  human_cli.py           :360    (动态 kind，无法静态判定)
+  lead.py                :186    constitution_change   ok
+  lead.py                :307    draft_created         ok
+  lead.py                :396    draft_approved        ok
+  lead.py                :440    budget_exceeded       payload 非字面量 → 运行期校验
+  lead.py                :498    plan                  ok
+  lead.py                :565    lease_conflict        ok
+  lead.py                :569    claim                 ok
+  lead.py                :677    verify                ok
+  lead.py                :706    submit                ok
+  lead.py                :877    verify                ok
+  lead.py                :1002   escalate              ok
+  lead.py                :1018   retry                 ok
+  lead.py                :1026   lease_conflict        ok
+  lead.py                :1092   task_archive          ok
+  lead.py                :1135   snapshot              ok
+  lead.py                :1142   snapshot_fail         ok
+  lead.py                :1212   kill                  payload 非字面量 → 运行期校验
+  lead.py                :1289   escalate              ok
+  memory_bundle.py       :331    (动态 kind，无法静态判定)
+  memory_store.py        :307    memory_remember       ok
+  merge_queue.py         :318    escalate              payload 非字面量 → 运行期校验
+  merge_queue.py         :594    verify                ok
+  merge_queue.py         :643    escalate              ok
+  merge_queue.py         :655    merge                 ok
+  merge_queue.py         :678    merge_reverted        ok
+  merge_queue.py         :687    escalate              ok
+  merge_queue.py         :700    escalate              ok
+  metrics_collector.py   :235    snapshot              ok
+  metrics_collector.py   :274    metrics_snapshot      payload 非字面量 → 运行期校验
+  migrate_vx_to_vy.py    :148    migration_rollback    ok
+  migrate_vx_to_vy.py    :198    migration_rollback    ok
+  migrate_vx_to_vy.py    :212    config_change         ok
+  purpose_store.py       :86     purpose_add           缺 ['purpose_id']
+  purpose_store.py       :111    purpose_resolve       缺 ['purpose_id']
+  secret_scan.py         :232    escalate              ok
+  wb_core.py             :1138   log_repair            ok
+  wb_core.py             :1222   state                 payload 非字面量 → 运行期校验
+
+------------------------------------------------------------------------------
+调用点 58 个，静态可见的问题 2 处
+（payload 非字面量的调用点由运行期 SpecViolation 兜底，属预期）
+[exit=0]
+
+===== audit audit_closure =====
+==============================================================================
+声明→执行闭合审计 audit_closure.py
+==============================================================================
+
+  C01   H3  priority=P0 只能由 E21 设定                                     OK
+  C02   H6  draft 自动确认闸门（auto_approve_draft）                           OK
+  C03   H7  attempts 上限 max_attempts                                   OK
+  C04   C.A2 + paths.deny 凭据文件保护                                       OK
+  C05   C.B2 命令白名单                                                     OK
+  C06   C.D1 墙钟预算守卫                                                    OK
+  C07   H5  escalate 前 worker 必须死透                                     OK
+  C08   H4  dep_cascade 跳过 never_spawned 的 kill                        OK
+  C09   I-6 冻结白名单只从 spec 读                                             OK
+  C10   I-1 state 事件唯一写入口                                              OK
+  C11   I-7 per-event actors 声明被执行                                     OK
+
+------------------------------------------------------------------------------
+闭合探针 11 条：11 条闭合，0 条声明悬空
+
+wrote evidence\audit_closure.json
+[exit=0]
+
+===== check gen_spec --check =====
+ok    events.schema.json
+ok    states.json
+ok    enums.json
+ok    config.schema.json
+ok    rules.json
+ok    paths.yaml
+ok    deviations.json
+ok    recall_baseline.json
+ok    config_compat.json
+ok    lock_semantics.json
+ok    changelog.json
+
+RESULT: PASS — 11 file(s) identical
+[exit=0]
+
+===== check spec_lint =====
+RESULT: PASS (0 finding(s))
+[exit=0]
+
+===== check capability_gate =====
+W4 capability gate: MET
+  implementable enforced(with evidence): 4/4 = 10000bp (threshold 8000bp)
+  absent compensation complete: 2/2
+  unmet: none
+[exit=0]
+
+===== check team_protocol =====
+criterion : team_protocol_v1
+verdict   : VALID
+invariants: {'no_self_audit': True, 'no_dangling_declaration': True, 'pass_needs_ran_evidence': True, 'measure_twice': True, 'one_ruler_per_thing': True}  all=True
+roles     : architect, auditor, executor, lead, owner, reviewer, scribe, verifier  (8)
+triage    : {'S': ['lead', 'executor', 'verifier'], 'A': ['lead', 'architect', 'auditor', 'executor', 'verifier'], 'B': ['lead', 'architect', 'auditor', 'executor', 'verifier', 'reviewer']}
+driver    : wired_into_driver=True (declared=True)
+probe     : {'markers': {'plan_drive_def': True, 'audit_plan_call': True, 'validate_handoff_call': True, 'cli_plan_flag': True, 'plan_audit_read': True, 'handoff_read': True}, 'run_task_path': 'D:\\Users\\THH32\\DSH-ZNT\\workbench\\run_task.py'}
+note      : plan/plan_audit/handoff 已进入 run_task.py 的真实 DAG 驱动；wired_into_driver 来自源码探针，不信生成源布尔。
+[exit=0]
+
+===== check constitution_check =====
+NOTE K6 6 条历史行按 R-26 截止 seq 内放行（不改写历史）：E32 seq=7 (R-26), E32 seq=20 (R-26), E32 seq=36 (R-26), E32 seq=65 (R-26), E32 seq=85 (R-26), E32 seq=159 (R-26)
+NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定
+NOTE K13 记忆门槛单一来源：repeat_min_count=3（旧键未写）
+NOTE K13 兼容键退役期限 deprecate_after_ms=1796083200000（还有约 421 小时）；config_key 在配置中未写，schema_key 在 schema 中存在；到期仍留着会判红
+NOTE K14 召回欠账基线 7 条逐条对链一致（cutoff=1794445192745，只登记不抹除；新派活 dispatch_ms 变化会自动使旧登记失效）
+RESULT: PASS (0 failure(s))
+[exit=0]
+
+===== check lead.py check =====
+chain: ok lines=1480
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4
+RESULT: PASS (0 failure(s))
+[exit=0]
+
+===== check platform_ops selftest =====
+ok   atomic_replace
+ok   norm basic
+ok   norm reject /abs/x
+ok   norm reject C:/x
+ok   norm reject ../x
+ok   norm reject a/../../x
+ok   norm inner ..
+ok   pid_alive spawn
+ok   kill_tree
+ok   kill_tree refuses pid reuse
+ok   archive volumes
+ok   archive sha files
+ok   set_readonly
+ok   git_version >= 2.38
+
+9 checks, 0 failed
+[exit=0]
+
+===== check secret_scan selftest =====
+  ok   命中 aws     aws_access_key AKIAIO***
+  ok   命中 gh      github_token ghp_aaaaaaaa***aaaa
+  ok   命中 sk      openai_key sk-bbbbbbbbb***bbbb
+  ok   命中 pem     private_key_block -----BEGIN R*** KEY
+  ok   命中 pw      password_assign password: "h***er2"
+  ok   命中 uri     db_uri_with_creds postgres://u***456@
+  ok   命中 bearer  bearer_literal Authorizatio***cccc
+  ok   命中 jdbc    jdbc_url jdbc:m***
+  ok   不误报 env     'key = os.environ["WORKBENCH_ROOT_KEY"]'
+  ok   不误报 tmpl    'key = "${WORKBENCH_ROOT_KEY}"'
+  ok   不误报 dev     'WORKBENCH_ROOT_KEY="dev-root-key-2026-please'
+  ok   不误报 example 'AKIAEXAMPLE12345678'
+  ok   不误报 docs    '把密钥写进 os.environ，不要硬编码'
+  ok   不误报 short   'password: "abc"'
+  ok   diff 行号     line=11
+
+secret_scan selftest: PASS
+[exit=0]
+
+===== check capability_probes --check =====
+PASS: 18 evidence files real+intact, escapes ledger intact (no hidden escape)
+[exit=0]
+
+===== check job_object_probe --selftest =====
+  ok   impact 不涂 enforced
+  ok   impact 标明不隔离网络
+  ok   impact 标明不隔离文件
+  ok   impact os_sandbox 未变
+  ok   三证键齐
+  ok   差值判据成立
+  ok   负控 OK
+  ok   job 内被挡
+  ok   注入组恢复 OK
+  ok   breakaway 标为伪信号
+  ok   loopback 在 job 内连通（网络未隔离）
+  ok   越界写在 job 内成功（文件未隔离）
+  ok   网络观测=NOT_ISOLATED（不许读成已隔离）
+  ok   文件观测=NOT_ISOLATED（不许读成已隔离）
+  ok   gaps_proven=True 才是不涂 enforced 的实机依据
+job_object_probe selftest: PASS (15 checks, 0 failed)
+[exit=0]
+
+===== check job_object_probe --check =====
+PASS: driver_wiring 与源码真值一致 (wired=True)
+[exit=0]
+
+===== check containment_telemetry --check =====
+PASS: containment telemetry 可读/接线真值一致 (total=142 applied=72 degraded=70 bad_lines=0)
+[exit=0]
+
+===== check appcontainer_probe --check =====
+PASS: appcontainer matrix/check clean (wired=True, log_rows=2)
+[exit=0]
+
+===== check lock_calibrate --check =====
+PASS: lock 预算有依据 (holds=481 p99=93ms waits=1 p99_wait=32ms declared=30000 proposed=2000)
+[exit=0]
+
+===== check silent_swallow_probe =====
+scopes=scripts(53 files/129 handlers/11 silent),root(7 files/10 handlers/1 silent),tests(91 files/34 handlers/4 silent)
+scanned=173 silent_total=16 allowed=16 unallowed=0 stale=0 scope_problems=0
+VERDICT SILENT_SWALLOW_CLEAN
+[exit=0]
+
+===== check lock_truth --check =====
+NOTE: 行为探针 platform=win32 observed=mandatory declared=mandatory probe='DENIED PermissionError 13'
+PASS: lock_semantics 两向真值一致 (checks=23, platform=win32, semantics=mandatory)
+[exit=0]
+
+===== check telemetry_aggregate --check =====
+NOTE: telemetry evidence snapshot is STALE (ledgers appended); internal seal and source prefixes are valid
+PASS: telemetry window aggregate clean (window=1440min in_window=56 total=144 bad_lines=0 future=0 residuals=0 failed=0 w4=0 snapshot=TELEMETRY_SNAPSHOT_STALE)
+[exit=0]
+
+===== check platform_runner_probe --check =====
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+[exit=0]
+
+===== check scheduler_observe --check =====
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=521 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+NOTE: scheduler window covered=44.374/168h ready=False remaining=123.626h ETA=2026-11-18T14:31:52Z basis=point_estimate distribution_primary=False
+[exit=0]
+
+===== check ci_narrow_probe --check =====
+CI narrow probe  (本机等价执行 + workflow 契约 + 诚实登记)
+verdict                 : CI_NARROW_LOCAL_EQUIVALENT_PASS
+platform                : win32
+remote_configured       : False
+actions_ran             : False
+actions_ran_reason      : 本机无 remote / GitHub Actions 从未真跑
+workflow_contract       : PASS (0 findings)
+local_equivalent        : PASS
+  - test_lock_timeout_and_contention.py      rc=0
+  - test_cross_process_lock.py               rc=0
+  - test_state_sentinel.py                   rc=0
+  - test_from_states.py                      rc=0
+local_equivalent_passed : True
+failure_sources         : []
+evidence_written        : False
+[exit=0]
+
+===== check joint_acceptance selftest =====
+joint_acceptance: PASS (22 checks, 0 failed)
+[exit=0]
+
+===== check sched_install_verbose =====
+ok   模块级 VERBOSE 开关存在
+ok   log() 受开关约束
+ok   doctor 的明细走 log
+ok   doctor 仍有 RESULT 行（结论不许静默）
+ok   --verbose 参数已接
+ok   --verbose 挂在 doctor 子解析器上（argparse subcommand 语义）
+ok   main 拨开关
+ok   doctor help 写明默认只打 RESULT
+ok   status 的字段行仍是裸 print
+ok   install 的 RESULT 行仍是裸 print
+ok   run_warn 消费的 status 输出未动
+ok   doctor 默认 rc 是 0 或 1（不崩）
+ok   doctor 默认仍有 RESULT
+ok   doctor 默认收掉逐项明细
+ok   doctor --verbose rc 与默认一致
+ok   doctor --verbose 打出 python 行
+ok   doctor --verbose 打出 wb_home 行
+ok   doctor --verbose 打出 root_key 行
+ok   doctor --verbose 也有 RESULT
+ok   status rc 是 0 或 1
+ok   status 仍有 task/registered 字段行
+ok   status 仍有 RESULT/ATTENTION
+test_sched_install_verbose: PASS (22 ok, 0 failed)
+[exit=0]
+
+===== check signature_backend --selftest =====
+  ok   status criterion
+  ok   status w4 never claimed
+  ok   keygen wrote pubkey
+  ok   keygen wrote privkey in state/
+  ok   keygen declares ecdsa
+  ok   pubkey blob is 8+32+32 bytes
+  ok   seal produced ecdsa
+  ok   signature is 64 bytes
+  ok   seal is deterministic-free (sig present)
+  ok   open_seal verifies
+  ok   tampered body rejected
+  ok   tampered signature rejected
+  ok   rejection names signature
+  ok   foreign pubkey rejected by key_id
+  ok   missing pubkey cannot verify
+  ok   rotation keeps old key in keyring
+  ok   rotation marks old key retired
+  ok   rotation sets new active key
+  ok   rotation active key is not retired
+  ok   old snapshot still verifies after rotation
+  ok   new seal uses active key
+  ok   new seal verifies
+  ok   keyring never claims W4
+signature_backend: PASS (23 checks, 0 failed)
+[exit=0]
+
+===== check ref_subagent --selftest =====
+ok   mock 回路退出码为 0
+ok   签署已落盘
+ok   签署声明 backend=mock
+ok   selfcheck 记下真实退出码
+ok   签署写明由参考执行体产出
+ok   命令失败时退出码非 0
+ok   命令失败时不写签署
+ok   失败原因不是空话
+ok   过期 job 拒绝签署
+ok   空写域不许写
+ok   前缀写域生效
+ok   前缀不误伤同级同名前缀
+ok   反斜杠写域也能比对
+ok   model 后端缺端点时失败
+ok   失败信息点名缺哪个变量
+
+ref_subagent: PASS (15 checks, 0 failed)
+[exit=0]
+
+===== check token_ledger report =====
+{
+  "caveat": "相对账本: 仅记录真实 input_chars/output_chars/turns/context_refs/cache_prefix_id/compressions, 由文件字节数与 stdout 长度计算; 不是供应商精确 token 账单, 不做 token 换算, 不含网络或 LLM API 调用。",
+  "compact": {
+    "compressions": 1,
+    "conclusion": "verdict=comparable;hash_prefix=0ec5c8bcd813cd07;files=4",
+    "context_refs_count": 4,
+    "input_chars": 305,
+    "mode": "compact",
+    "output_chars": 562,
+    "round": 2,
+    "turns": 1
+  },
+  "full": {
+    "compressions": 0,
+    "conclusion": "verdict=comparable;hash_prefix=0ec5c8bcd813cd07;files=4",
+    "context_refs_count": 4,
+    "input_chars": 63904,
+    "mode": "full",
+    "output_chars": 751,
+    "round": 1,
+    "turns": 1
+  },
+  "input_reduction_bp": 9952,
+  "rounds": 2,
+  "same_conclusion": true,
+  "saved_input_chars": 63599,
+  "saved_output_chars": 189
+}
+[exit=0]
+
+===== check doc_numbers =====
+RESULT: PASS — README 里的 7 处声明数字与实际一致
+[exit=0]
+
+===== check memory_bundle verify-real =====
+RESULT: PASS — 现导 6 条，逐条摘要与三要素全部通过（mb-2b539906f9a36df6）
+[exit=0]
+
+===== check scheduler status =====
+task      : DSH-Workbench-Scheduler
+registered: YES
+wrapper   : D:\Users\THH32\DSH-ZNT\workbench\.workbench\state\sched_tick.cmd (present)
+sidecar   : ticks=5182 last_tick=40025ms ago
+freshness : FRESH (stale_after=120000ms, age=40345ms)
+overdue   : none
+RESULT: OK — 有执行点且新鲜
+[exit=0]
+
+===== contract list =====
+no contract registered
+[exit=0]
+
+===== contract drift =====
+no contract registered; nothing to drift-check
+[exit=0]
+
+===== sign_manifest --verify =====
+algo   : hmac-sha256-v1
+uuid   : 175dcd06006595c5e20809e3138ba255
+checked: 119 file(s)
+RESULT: PASS
+[exit=0]
+
+===== coverage =====
+config leaf keys: 87
+no reader: 0
+events live: 53
+events emitted kinds: 53
+MISSING: none
+
+===== e2e demo.sh =====
+overlay: 761 file(s) copied from working tree
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo  (真实仓库未被触碰)
+
+===== 0. reset chain =====
+reset ok
+
+===== 0b. demo baseline（只在演示仓里重置）=====
+demo baseline: calc.py has only add(); tests require sub()
+
+===== 0c. demo 召回欠账基线（演示链专用）=====
+demo recall_baseline: scope=demo_fresh_chain, demo_tasks=['T-0001'], expected_dispatches=1, entries=0
+
+===== 1. resign manifest =====
+wrote .workbench\root.manifest  entries=119  algo=hmac-sha256-v1  uuid=175dcd06006595c5e20809e3138ba255
+digest hmac-sha256:680710910880fb295913f0d0fbbda3f3d31bf67291b2b4649c92bf34b59846b8
+
+===== 2. bootstrap =====
+manifest     : PASS (mode=full, 119 files)
+uuid         : PASS
+git          : PASS (actual=2.56.0, min=2.38)
+chain        : ok
+capabilities : os_sandbox=absent, network_deny=enforced, credential_deny=enforced, path_isolation=enforced, token_metering=absent, external_alert=enforced
+RESULT: PASS  events=['E42']
+exit=0
+
+===== 3. init member =====
+
+===== 4. new task =====
+
+===== 5. approve（Lead 备料）=====
+T-0001 备料完成: E03=5 E08=6 digest=sha256:fd8700ba352f2aff8d2625672e76a5a549837a7497e8e8e47761d517f8e649b5
+  待人工转正：human_cli.py --op acceptance_approve --args '{"task":"T-0001"}'（digest 由签名器从文件读，不手填）
+
+===== 5b. acceptance 人工转正（E32 by human:yg，§6.2）=====
+ACCEPT acceptance_approve as human:yg
+  event {'kind': 'acceptance_approved', 'seq': 7}
+
+===== 6. dispatch =====
+
+===== 7. claim =====
+
+===== 8. agent_runner 派发 coder =====
+WARN executor override: coder.executor 'harness_subagent' → 'local_process' (this run only)
+WARN entrypoint override: coder.entrypoint → 'C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo/tests/wb_demo_sub.py' (this run only)
+NOTE persona 显忆段为空（query='给 calc 加 sub 函数 给 calc 加 sub 函数，并让 tests/test_calc.py 通过 src/calc.py tests/test_'，召回无命中或未注入）
+prepare: worktree=C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo/.workbench\wt\T-0001 base=ce9fec0 brief=C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo/.workbench\tasks\T-0001\brief.md
+OK T-0001/coder：changed=1 ['src/calc.py']
+
+===== 9. verify =====
+T-0001 VERIFY PASS → done (E10=16 E08=17, 1 cmds)
+
+===== 9a. human single sign（AUTO_CORE 灰区）=====
+ACCEPT human_approve as human:yg
+  event {'kind': 'human_approve', 'seq': 18}
+
+===== 9b. merge queue =====
+  MERGED   T-0001  tree=e7646ea2f486
+master HEAD: 779e615 merge: T-0001
+calc.py on master has sub()? 1
+
+===== 10. status =====
+TASK       STATE        LAST_SEQ
+T-0001     done         17
+
+1 task(s), 19 chain line(s)
+
+===== 11. checks =====
+chain: ok lines=19
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4
+RESULT: PASS (0 failure(s))
+RESULT: PASS (0 finding(s))
+NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定
+NOTE K13 记忆门槛单一来源：repeat_min_count=3（旧键未写）
+NOTE K13 兼容键退役期限 deprecate_after_ms=1796083200000（还有约 421 小时）；config_key 在配置中未写，schema_key 在 schema 中存在；到期仍留着会判红
+NOTE K14 演示链基线双条件成立：entries=0，链上派活 1 个全部落在 demo_tasks=['T-0001'] 内（expected_dispatches=1）；生产 (task, dispatch_ms) 登记表不适用于这条全新链，这不是「没有尺子」
+RESULT: PASS (0 failure(s))
+
+===== 12. event chain =====
+  1  capability_check     system:bootstrap          
+  2  constitution_change  human:yg                  
+  3  draft_created        lead                      T-0001
+  4  state                lead               T01    draft
+  5  draft_approved       lead                      T-0001
+  6  state                lead               T02    pending
+  7  acceptance_approved  human:yg                  T-0001
+  8  plan                 lead                      
+  9  claim                lead                      T-0001
+ 10  state                lead               T05    claimed
+ 11  spawn                system:runner             T-0001
+ 12  state                system:runner      T06    in_progress
+ 13  kill                 system:runner             T-0001
+ 14  submit               lead                      T-0001
+ 15  state                lead               T07    submitted
+ 16  verify               system:verifier           pass
+ 17  state                system:verifier    T08    done
+ 18  human_approve        human:yg                  T-0001
+ 19  merge                system:merge_queue        T-0001
+total 19 line(s)
+
+===== 13. 对账（不信输出，只信树枝）=====
+reconcile: master 上的 calc.py 确有 sub() (grep -c = 1)
+
+===== DEMO OK: 全部步骤通过 =====
+
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo （未删除；如不需要可手动清理）
+[exit=0]
+
+===== SUMMARY =====
+passed: 110
+failed: 0
+RESULT: ALL PASS
+  open_seal verifies
+  ok   tampered body rejected
+  ok   tampered signature rejected
+  ok   rejection names signature
+  ok   foreign pubkey rejected by key_id
+  ok   missing pubkey cannot verify
+  ok   rotation keeps old key in keyring
+  ok   rotation marks old key retired
+  ok   rotation sets new active key
+  ok   rotation active key is not retired
+  ok   old snapshot still verifies after rotation
+  ok   new seal uses active key
+  ok   new seal verifies
+  ok   keyring never claims W4
+signature_backend: PASS (23 checks, 0 failed)
+[exit=0]
+
+===== check ref_subagent --selftest =====
+ok   mock 回路退出码为 0
+ok   签署已落盘
+ok   签署声明 backend=mock
+ok   selfcheck 记下真实退出码
+ok   签署写明由参考执行体产出
+ok   命令失败时退出码非 0
+ok   命令失败时不写签署
+ok   失败原因不是空话
+ok   过期 job 拒绝签署
+ok   空写域不许写
+ok   前缀写域生效
+ok   前缀不误伤同级同名前缀
+ok   反斜杠写域也能比对
+ok   model 后端缺端点时失败
+ok   失败信息点名缺哪个变量
+
+ref_subagent: PASS (15 checks, 0 failed)
+[exit=0]
+
+===== check token_ledger report =====
+{
+  "caveat": "相对账本: 仅记录真实 input_chars/output_chars/turns/context_refs/cache_prefix_id/compressions, 由文件字节数与 stdout 长度计算; 不是供应商精确 token 账单, 不做 token 换算, 不含网络或 LLM API 调用。",
+  "compact": {
+    "compressions": 1,
+    "conclusion": "verdict=comparable;hash_prefix=0ec5c8bcd813cd07;files=4",
+    "context_refs_count": 4,
+    "input_chars": 305,
+    "mode": "compact",
+    "output_chars": 562,
+    "round": 2,
+    "turns": 1
+  },
+  "full": {
+    "compressions": 0,
+    "conclusion": "verdict=comparable;hash_prefix=0ec5c8bcd813cd07;files=4",
+    "context_refs_count": 4,
+    "input_chars": 63904,
+    "mode": "full",
+    "output_chars": 751,
+    "round": 1,
+    "turns": 1
+  },
+  "input_reduction_bp": 9952,
+  "rounds": 2,
+  "same_conclusion": true,
+  "saved_input_chars": 63599,
+  "saved_output_chars": 189
+}
+[exit=0]
+
+===== check doc_numbers =====
+RESULT: PASS — README 里的 7 处声明数字与实际一致
+[exit=0]
+
+===== check memory_bundle verify-real =====
+RESULT: PASS — 现导 6 条，逐条摘要与三要素全部通过（mb-2b539906f9a36df6）
+[exit=0]
+
+===== check scheduler status =====
+task      : DSH-Workbench-Scheduler
+registered: YES
+wrapper   : D:\Users\THH32\DSH-ZNT\workbench\.workbench\state\sched_tick.cmd (present)
+sidecar   : ticks=5182 last_tick=40025ms ago
+freshness : FRESH (stale_after=120000ms, age=40345ms)
+overdue   : none
+RESULT: OK — 有执行点且新鲜
+[exit=0]
+
+===== contract list =====
+no contract registered
+[exit=0]
+
+===== contract drift =====
+no contract registered; nothing to drift-check
+[exit=0]
+
+===== sign_manifest --verify =====
+algo   : hmac-sha256-v1
+uuid   : 175dcd06006595c5e20809e3138ba255
+checked: 119 file(s)
+RESULT: PASS
+[exit=0]
+
+===== coverage =====
+config leaf keys: 87
+no reader: 0
+events live: 53
+events emitted kinds: 53
+MISSING: none
+
+===== e2e demo.sh =====
+overlay: 761 file(s) copied from working tree
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo  (真实仓库未被触碰)
+
+===== 0. reset chain =====
+reset ok
+
+===== 0b. demo baseline（只在演示仓里重置）=====
+demo baseline: calc.py has only add(); tests require sub()
+
+===== 0c. demo 召回欠账基线（演示链专用）=====
+demo recall_baseline: scope=demo_fresh_chain, demo_tasks=['T-0001'], expected_dispatches=1, entries=0
+
+===== 1. resign manifest =====
+wrote .workbench\root.manifest  entries=119  algo=hmac-sha256-v1  uuid=175dcd06006595c5e20809e3138ba255
+digest hmac-sha256:680710910880fb295913f0d0fbbda3f3d31bf67291b2b4649c92bf34b59846b8
+
+===== 2. bootstrap =====
+manifest     : PASS (mode=full, 119 files)
+uuid         : PASS
+git          : PASS (actual=2.56.0, min=2.38)
+chain        : ok
+capabilities : os_sandbox=absent, network_deny=enforced, credential_deny=enforced, path_isolation=enforced, token_metering=absent, external_alert=enforced
+RESULT: PASS  events=['E42']
+exit=0
+
+===== 3. init member =====
+
+===== 4. new task =====
+
+===== 5. approve（Lead 备料）=====
+T-0001 备料完成: E03=5 E08=6 digest=sha256:fd8700ba352f2aff8d2625672e76a5a549837a7497e8e8e47761d517f8e649b5
+  待人工转正：human_cli.py --op acceptance_approve --args '{"task":"T-0001"}'（digest 由签名器从文件读，不手填）
+
+===== 5b. acceptance 人工转正（E32 by human:yg，§6.2）=====
+ACCEPT acceptance_approve as human:yg
+  event {'kind': 'acceptance_approved', 'seq': 7}
+
+===== 6. dispatch =====
+
+===== 7. claim =====
+
+===== 8. agent_runner 派发 coder =====
+WARN executor override: coder.executor 'harness_subagent' → 'local_process' (this run only)
+WARN entrypoint override: coder.entrypoint → 'C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo/tests/wb_demo_sub.py' (this run only)
+NOTE persona 显忆段为空（query='给 calc 加 sub 函数 给 calc 加 sub 函数，并让 tests/test_calc.py 通过 src/calc.py tests/test_'，召回无命中或未注入）
+prepare: worktree=C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo/.workbench\wt\T-0001 base=ce9fec0 brief=C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo/.workbench\tasks\T-0001\brief.md
+OK T-0001/coder：changed=1 ['src/calc.py']
+
+===== 9. verify =====
+T-0001 VERIFY PASS → done (E10=16 E08=17, 1 cmds)
+
+===== 9a. human single sign（AUTO_CORE 灰区）=====
+ACCEPT human_approve as human:yg
+  event {'kind': 'human_approve', 'seq': 18}
+
+===== 9b. merge queue =====
+  MERGED   T-0001  tree=e7646ea2f486
+master HEAD: 779e615 merge: T-0001
+calc.py on master has sub()? 1
+
+===== 10. status =====
+TASK       STATE        LAST_SEQ
+T-0001     done         17
+
+1 task(s), 19 chain line(s)
+
+===== 11. checks =====
+chain: ok lines=19
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4
+RESULT: PASS (0 failure(s))
+RESULT: PASS (0 finding(s))
+NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定
+NOTE K13 记忆门槛单一来源：repeat_min_count=3（旧键未写）
+NOTE K13 兼容键退役期限 deprecate_after_ms=1796083200000（还有约 421 小时）；config_key 在配置中未写，schema_key 在 schema 中存在；到期仍留着会判红
+NOTE K14 演示链基线双条件成立：entries=0，链上派活 1 个全部落在 demo_tasks=['T-0001'] 内（expected_dispatches=1）；生产 (task, dispatch_ms) 登记表不适用于这条全新链，这不是「没有尺子」
+RESULT: PASS (0 failure(s))
+
+===== 12. event chain =====
+  1  capability_check     system:bootstrap          
+  2  constitution_change  human:yg                  
+  3  draft_created        lead                      T-0001
+  4  state                lead               T01    draft
+  5  draft_approved       lead                      T-0001
+  6  state                lead               T02    pending
+  7  acceptance_approved  human:yg                  T-0001
+  8  plan                 lead                      
+  9  claim                lead                      T-0001
+ 10  state                lead               T05    claimed
+ 11  spawn                system:runner             T-0001
+ 12  state                system:runner      T06    in_progress
+ 13  kill                 system:runner             T-0001
+ 14  submit               lead                      T-0001
+ 15  state                lead               T07    submitted
+ 16  verify               system:verifier           pass
+ 17  state                system:verifier    T08    done
+ 18  human_approve        human:yg                  T-0001
+ 19  merge                system:merge_queue        T-0001
+total 19 line(s)
+
+===== 13. 对账（不信输出，只信树枝）=====
+reconcile: master 上的 calc.py 确有 sub() (grep -c = 1)
+
+===== DEMO OK: 全部步骤通过 =====
+
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.IgT1rbzCyv/wb-demo （未删除；如不需要可手动清理）
+[exit=0]
+
+===== SUMMARY =====
+passed: 110
+failed: 0
+RESULT: ALL PASS

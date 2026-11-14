@@ -1,0 +1,10 @@
+{
+  "capability": "external_alert",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport secret_scan\nos.environ.pop('W4_WEBHOOK',None)\nr=secret_scan._send_webhook({'url_env':'W4_WEBHOOK'},{'kind':'probe'})\nprint('NO_URL',r)\nassert r and r[0].get('skipped')\nprint('OK absent url_env reported as skipped, not faked success')",
+  "evidence_sha256": "57c05570920ae8da77516e85477abfe6e9b34f8e3ec7ca77116ccd9f71097d25",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "NO_URL [{'channel': 'webhook', 'skipped': 'env W4_WEBHOOK not set'}]\r\nOK absent url_env reported as skipped, not faked success\r\n"
+}

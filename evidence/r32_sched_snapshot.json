@@ -1,0 +1,41 @@
+{
+  "criterion": "scheduler_observation_snapshot_v1",
+  "generated_at_ms": 1794414359415,
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\scheduler_observation_snapshot.json",
+  "report_digest": "sha256:90d08641317ae83893fe8db8d5cff9572c1e7ed17eb0b4b9939f68094aad4942",
+  "snapshot_hmac": "hmac-sha256:1cf05bf7ac7a0b16cb0a526109468d4e082dc5807211b6ae09c4e57f4b291718",
+  "source_hashes": {
+    "evidence/scheduler_trend.jsonl": {
+      "bytes": 4676,
+      "exists": true,
+      "lines": 17,
+      "mtime_ms": 1794412540684,
+      "path": "evidence/scheduler_trend.jsonl",
+      "sha256": "5c2fafa8848521087aba973661c765339702435fe9744756e7c166f0a9bea701"
+    },
+    "evidence/trend/scheduler_trend-20261111.jsonl": {
+      "bytes": 275,
+      "exists": true,
+      "lines": 1,
+      "mtime_ms": 1794414340528,
+      "path": "evidence/trend/scheduler_trend-20261111.jsonl",
+      "sha256": "de3152955d1e9105bd26c9d302505a9876914fedd08b4985739768283e416adb"
+    },
+    "evidence/trend/scheduler_trend-20261112.jsonl": {
+      "bytes": 2750,
+      "exists": true,
+      "lines": 10,
+      "mtime_ms": 1794414340528,
+      "path": "evidence/trend/scheduler_trend-20261112.jsonl",
+      "sha256": "c06a8fbb2d0fafdaadda1170e19df4fe1d9e23c7e313aca38158fc8f386bf8fe"
+    },
+    "state/scheduler.json": {
+      "bytes": 1094,
+      "exists": true,
+      "lines": 57,
+      "mtime_ms": 1794414301960,
+      "path": "state/scheduler.json",
+      "sha256": "9e5b47ba7a275a04c4d009c2d3e9a224ad9863f44bc85ec934aa18c2840890fd"
+    }
+  }
+}

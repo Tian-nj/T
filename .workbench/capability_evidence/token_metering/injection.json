@@ -1,0 +1,10 @@
+{
+  "capability": "token_metering",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport wb_core; cfg=wb_core.yaml_parse_file(os.path.join(os.path.dirname(os.environ['WB_SCRIPTS']),'config.yaml'))\nh=cfg['global_config']['task_hard_timeout_min']\nprint('HARD_TIMEOUT_MIN',h)\nassert h>0\nprint('OK hard timeout compensation present')",
+  "evidence_sha256": "512fa2937fb2598688d015c2de201f16bfb1ab54e1f4a673f013ab5a4efc28fe",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "HARD_TIMEOUT_MIN 60\r\nOK hard timeout compensation present\r\n"
+}

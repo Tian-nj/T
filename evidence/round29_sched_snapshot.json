@@ -1,0 +1,25 @@
+{
+  "criterion": "scheduler_observation_snapshot_v1",
+  "generated_at_ms": 1794407688066,
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\scheduler_observation_snapshot.json",
+  "report_digest": "sha256:b67df4583ed79452180d43cf7d203fe156af89e611eefe3b142f906643266fa8",
+  "snapshot_hmac": "hmac-sha256:f2f4abb556c9daec833d831ee62fd49e9435fbc846e1e11e81364f50e3432a33",
+  "source_hashes": {
+    "evidence/scheduler_trend.jsonl": {
+      "bytes": 550,
+      "exists": true,
+      "lines": 2,
+      "mtime_ms": 1794407687832,
+      "path": "evidence/scheduler_trend.jsonl",
+      "sha256": "6ee533a6961fa478dce4727bb88660af4f021747b018447454351f7a76f71a7e"
+    },
+    "state/scheduler.json": {
+      "bytes": 932,
+      "exists": true,
+      "lines": 49,
+      "mtime_ms": 1794407643500,
+      "path": "state/scheduler.json",
+      "sha256": "5bc2801ac6589f085a3b5a898c3027b9e2fc6afcce773e119bb229fdb5ae5cd1"
+    }
+  }
+}

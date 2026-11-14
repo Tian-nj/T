@@ -1,0 +1,10 @@
+{
+  "capability": "os_sandbox",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport json\nsch=json.load(open(os.path.join(os.path.dirname(os.environ['WB_SCRIPTS']),'spec','config.schema.json'),encoding='utf-8'))\nxs=[x for x in sch.get('cross_checks',[]) if x.get('id')=='X3' and x.get('bindings')]\nprint('COMPENSATION_REGISTERED',bool(xs))\nprint('OK compensation registered + lint-evaluated (isolation still none)' if xs else 'BYPASS_OK no compensation registered')",
+  "evidence_sha256": "a6378098c0827fd2455c5d8f1c0f91bd61a4b290249f3d0eecbced5c98b7fd70",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "COMPENSATION_REGISTERED True\r\nOK compensation registered + lint-evaluated (isolation still none)\r\n"
+}

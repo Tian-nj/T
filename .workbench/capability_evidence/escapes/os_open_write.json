@@ -1,0 +1,12 @@
+{
+  "escape": "os_open_write",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "blocked_good",
+  "mode": "os_open_write",
+  "note": "os.open + os.write 绕过 builtins.open",
+  "rc": 1,
+  "reached": false,
+  "stderr_tail": "\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 60, in _deny_path\r\n    raise PermissionError(\r\nPermissionError: WB_ISOLATE path_isolation: write outside scope denied 'C:\\\\Users\\\\THH32\\\\AppData\\\\Local\\\\Temp\\\\cap-esc-4qd9r9fd\\\\outside\\\\via-os-open.txt'",
+  "stdout_tail": "",
+  "verdict": "blocked"
+}

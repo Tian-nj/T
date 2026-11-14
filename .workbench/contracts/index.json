@@ -1,0 +1,11 @@
+{
+  "contracts": {
+    "c-api-v1": {
+      "digest": "sha256:1cafb7ab21db634a0e35a6edfafc98eb7c521c4c4d1308fb07a37559a79a5c1c",
+      "path": "contracts/api-v1.md",
+      "seq": 21,
+      "ts_ms": 1794232832665
+    }
+  },
+  "schema": 1
+}

@@ -1,0 +1,67 @@
+  ok   platform source truth all green
+  ok   rail has platform runner check
+  ok   rail has platform runner test
+  ok   workflow has ubuntu runner
+  ok   workflow has macos runner
+  ok   workflow has explicit inspect
+  ok   matrix W4 false
+  ok   matrix nonproof only
+  ok   no kernel namespace wiring
+  ok   report has criterion
+  ok   report W4 false
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+  ok   production check green
+  ok   report/check did not rewrite matrix.json
+  ok   report/check did not rewrite platform-runners.yml
+  ok   report/check did not rewrite ledger.json
+  ok   report/check did not rewrite platform_ops.py
+  ok   ledger has no platform_runner key
+  ok   ledger has no platform_runners key
+  ok   os_sandbox still compensated_absent
+  ok   non-target host is NOT_APPLICABLE
+  ok   inspect W4 false
+  ok   inspect did not create linux evidence
+  ok   ingest accepts honest artifact
+  ok   ingest records sha
+  ok   ingest rejects unsigned artifact
+  ok   ingest rejects foreign-key signature
+  ok   ingest rejects tampered sha
+  ok   ingest rejects proof verdict
+  ok   ingest rejects win32 impersonation
+  ok   ingest rejects w4 participation
+  ok   rail never runs ingest
+  ok   source truth all green
+  ok   report has matrix
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+  ok   check green
+  ok   proof verdict rejected
+FAIL: platform runner probe source truth: matrix_nonproof_only
+  ok   check red on forged PASS
+  ok   w4 participation rejected
+  ok   host inspect NOT_APPLICABLE
+  ok   host wrote no linux.json
+  ok   host wrote no macos.json
+  ok   ingest accepts honest CI artifact
+  ok   ingest writes platform evidence
+  ok   ingest registers evidence sha in matrix
+PASS: platform runner matrix honest (workflow=True+True linux/macos=UNTESTED/INSPECTED_NOT_VALIDATED w4=false)
+  ok   ingested evidence passes local check
+  ok   ingest rejects sha mismatch
+  ok   ingest rejects proof verdict
+  ok   ingest rejects non-runner host
+  ok   ingest rejects w4 participation
+  ok   ingest rejects wrong criterion
+  ok   ingest rejects missing file
+FAIL: host win32 must not carry macos.json evidence without ingest provenance
+  ok   unprovenanced cross-os evidence is red
+  ok   ingest rejects unsigned artifact
+  ok   unsigned rejection names attestation
+  ok   ingest rejects foreign-key signature
+  ok   ingest rejects post-attestation tamper
+  ok   ingest rejects when CI key absent
+  ok   attestation verifies on untouched artifact
+  ok   attestation breaks on body mutation
+  ok   attestation breaks when envelope edited
+platform_runner_probe: PASS (28 checks, 0 failed)
+  ok   platform runner probe selftest green
+test_platform_runner_probe: PASS (0 failed)

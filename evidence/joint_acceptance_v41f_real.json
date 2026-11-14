@@ -1,0 +1,105 @@
+{
+  "credential": {
+    "endpoint": "<set len=41>",
+    "endpoint_kind": "external_endpoint",
+    "is_placeholder": false,
+    "key": "<set len=35>",
+    "loaded": true,
+    "model": "deepseek-flash",
+    "reason": "",
+    "source": "default(.git/info/model_credentials.json)"
+  },
+  "criterion": "joint_acceptance_fixture_v1",
+  "endpoint_kind": "external_endpoint",
+  "env": {
+    "WB_REF_MODEL_ENDPOINT": "<set len=41>",
+    "WB_REF_MODEL_KEY": "<set len=35>"
+  },
+  "generated_at_ms": 1794624923641,
+  "honest_boundary": {
+    "real_vendor_verified": true,
+    "real_vendor_verified_means": "非占位符 ∧ 端点非回环 ∧ 模型回路真成功，三者同时成立",
+    "runner_rc_means": "这次真跑完成（≠ 验收通过）",
+    "still_blocked": [
+      "actions",
+      "window"
+    ],
+    "verdict_means": "联合验收在当前三项输入下的真实结论"
+  },
+  "joint_headline": "1/3 项就绪，2 项阻塞 —— 现在**不能**宣布整套验收完成",
+  "joint_items": [
+    {
+      "id": "model",
+      "provider_kind": "external_endpoint",
+      "ready": true,
+      "why": null
+    },
+    {
+      "id": "actions",
+      "provider_kind": null,
+      "ready": false,
+      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+    },
+    {
+      "id": "window",
+      "provider_kind": null,
+      "ready": false,
+      "why": "观察跨度 60.357/168 小时，ETA 2026-11-18T14:33:57Z；此时任何「日级结论」都是单点外推"
+    }
+  ],
+  "joint_verdict": "JOINT_BLOCKED",
+  "mode": "credential_file",
+  "model_roundtrip": {
+    "backend": "model",
+    "doc_summary": "参考执行体 model 回路：deepseek-flash 返回 140 字",
+    "elapsed_ms": 2287,
+    "has_model_output": true,
+    "key_not_in_sentinel": true,
+    "model_name": "deepseek-flash",
+    "rc": 0,
+    "selfcheck_cmd": "(model)",
+    "sentinel_backend": "model",
+    "signed": true
+  },
+  "note": "凭据非占位符、端点非回环、模型回路真成功：本次真端点往返已跑通。仍不等于 Actions 真跑 / 168h 窗口到点。",
+  "outcome": "RAN",
+  "readiness": {
+    "all_ready": false,
+    "blocked_count": 2,
+    "criterion": "joint_acceptance_v1",
+    "items": [
+      {
+        "id": "model",
+        "missing": [],
+        "provider_kind": "external_endpoint",
+        "ready": true,
+        "title": "真供应商模型",
+        "why": null
+      },
+      {
+        "id": "actions",
+        "missing": [],
+        "provider_kind": null,
+        "ready": false,
+        "title": "GitHub Actions 真跑",
+        "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+      },
+      {
+        "id": "window",
+        "missing": [],
+        "provider_kind": null,
+        "ready": false,
+        "title": "7 天观察窗口",
+        "why": "观察跨度 60.357/168 小时，ETA 2026-11-18T14:33:53Z；此时任何「日级结论」都是单点外推"
+      }
+    ],
+    "mode": "readiness",
+    "ready_count": 1,
+    "schema": 1
+  },
+  "requested_model": "deepseek-flash",
+  "schema": 1,
+  "server_request_count": 0,
+  "server_requests": [],
+  "vendor_status": "real_endpoint_ok"
+}

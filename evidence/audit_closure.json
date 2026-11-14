@@ -1,0 +1,72 @@
+{
+ "closed": 11,
+ "open": 0,
+ "results": [
+  {
+   "id": "C01",
+   "title": "H3  priority=P0 只能由 E21 设定",
+   "ok": true,
+   "detail": "task-new --priority P0 → rc=6 已拒绝"
+  },
+  {
+   "id": "C02",
+   "title": "H6  draft 自动确认闸门（auto_approve_draft）",
+   "ok": true,
+   "detail": "auto_approve_draft=False，task-approve T-0003 → rc=1 no acceptance.draft.yaml for T-0003"
+  },
+  {
+   "id": "C03",
+   "title": "H7  attempts 上限 max_attempts",
+   "ok": true,
+   "detail": "max_attempts 在运行代码中的引用：D:/Users/THH32/DSH/02-projects/znz-workbench/workbench/tests/test_round4_entrypoints.py:171:        # 上限：把 max_attempts 临时改成 0，造一条 rejected 再看是否 escalate\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/tests/test_round4_entrypoints.py:171:        # 上限：把 max_attempts 临时改成 0，造一条 rejected 再看是否 escalate\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:980:    `max_attempts=3` 从来没拦住过任何东西，因为 attempts 永远是 0。\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:985:      3. 超过 max_attempts 就拒绝，并写 escalate 让人接手\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:995:    cap = int(cfg()[\"global_config\"][\"max_attempts\"])\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:1004:                         \"detail\": \"attempts=%d > max_attempts=%d\" % (prev, cap)},\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:1476:    max_attempts = int(cfg()[\"global_config\"][\"max_attempts\"])\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:1484:        if n > max_attempts:\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/wt/T-R40/.workbench/scripts/lead.py:1485:            fails.append((\"H7\", \"%s attempts=%d > max_attempts=%d\" % (tid, n, max_attempts)))\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:980:    `max_attempts=3` 从来没拦住过任何东西，因为 attempts 永远是 0。\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:985:      3. 超过 max_attempts 就拒绝，并写 escalate 让人接手\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:995:    cap = int(cfg()[\"global_config\"][\"max_attempts\"])\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:1004:                         \"detail\": \"attempts=%d > max_attempts=%d\" % (prev, cap)},\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:1476:    max_attempts = int(cfg()[\"global_config\"][\"max_attempts\"])\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:1484:        if n > max_attempts:\nD:/Users/THH32/DSH/02-projects/znz-workbench/workbench/.workbench/scripts/lead.py:1485:            fails.append((\"H7\", \"%s attempts=%d > max_attempts=%d\" % (tid, n, max_attempts)))"
+  },
+  {
+   "id": "C04",
+   "title": "C.A2 + paths.deny 凭据文件保护",
+   "ok": true,
+   "detail": "deny 11 条 / deny_abs 5 条；应为 DENY 却放行=无；应为 PASS 却拒绝=无"
+  },
+  {
+   "id": "C05",
+   "title": "C.B2 命令白名单",
+   "ok": true,
+   "detail": "C.B2 声明 1 条；validate_acceptance 抓到 A1(python -c)=True A2(git push)=True"
+  },
+  {
+   "id": "C06",
+   "title": "C.D1 墙钟预算守卫",
+   "ok": true,
+   "detail": "lead.py check 输出里是否含 C.D1 判定：True"
+  },
+  {
+   "id": "C07",
+   "title": "H5  escalate 前 worker 必须死透",
+   "ok": true,
+   "detail": "lead.py 中 escalated 上下文 4 段，其中含 pid_alive/kill_tree 的 1 段"
+  },
+  {
+   "id": "C08",
+   "title": "H4  dep_cascade 跳过 never_spawned 的 kill",
+   "ok": true,
+   "detail": "dep_resolver 含 never_spawned/skipped_reason=True；对不存在任务 rc=0"
+  },
+  {
+   "id": "C09",
+   "title": "I-6 冻结白名单只从 spec 读",
+   "ok": true,
+   "detail": "wb_core 中是否仍有第二份 FROZEN_WHITELIST 常量=False（spec 为唯一源=True）"
+  },
+  {
+   "id": "C10",
+   "title": "I-1 state 事件唯一写入口",
+   "ok": true,
+   "detail": "唯一写入点 .workbench/scripts/wb_core.py:1316"
+  },
+  {
+   "id": "C11",
+   "title": "I-7 per-event actors 声明被执行",
+   "ok": true,
+   "detail": "越权被拒且不落行；合法放行 seq=2；52 条 live 事件均有 actors 声明"
+  }
+ ]
+}

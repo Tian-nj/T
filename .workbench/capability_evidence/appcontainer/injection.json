@@ -1,0 +1,47 @@
+{
+  "bad_extended_process": {
+    "exit_code": 0,
+    "ok": true,
+    "timed_out": false,
+    "token": {
+      "appcontainer_sid": "",
+      "appcontainer_sid_pointer": false,
+      "is_appcontainer": false,
+      "ok": true
+    },
+    "wait_rc": 0
+  },
+  "bad_extended_token": {
+    "appcontainer_sid": "",
+    "appcontainer_sid_pointer": false,
+    "is_appcontainer": false,
+    "ok": true
+  },
+  "bad_extended_token_contains_appcontainer_sid": false,
+  "bad_extended_token_is_appcontainer": false,
+  "bad_extended_user_tail": "\n                                                       \n========= =============================================\nthh\\thh32 S-1-5-21-363696550-3432195481-3475113504-1001\n",
+  "ok": true,
+  "plain_process": {
+    "exit_code": 0,
+    "ok": true,
+    "timed_out": false,
+    "token": {
+      "appcontainer_sid": "",
+      "appcontainer_sid_pointer": false,
+      "is_appcontainer": false,
+      "ok": true
+    },
+    "wait_rc": 0
+  },
+  "plain_token": {
+    "appcontainer_sid": "",
+    "appcontainer_sid_pointer": false,
+    "is_appcontainer": false,
+    "ok": true
+  },
+  "plain_token_contains_appcontainer_sid": false,
+  "plain_token_is_appcontainer": false,
+  "plain_user_tail": "\n                                                       \n========= =============================================\nthh\\thh32 S-1-5-21-363696550-3432195481-3475113504-1001\n",
+  "reason": "缺 EXTENDED_STARTUPINFO_PRESENT 或空 attribute list 必须不再产生 AppContainer token。",
+  "verdict": "INJECTION_DETECTED"
+}

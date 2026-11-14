@@ -1,0 +1,63 @@
+{
+  "appcontainer_assembly_tested": false,
+  "appcontainer_verdict": "EXPORT_ONLY_NOT_VALIDATED",
+  "capability_impact": {
+    "isolates_filesystem": false,
+    "isolates_network": false,
+    "isolates_process_count": true,
+    "not_usable_as": "网络隔离 / 文件系统隔离 / 内核级沙箱",
+    "os_sandbox_state": "unchanged",
+    "os_sandbox_track": "compensated_absent",
+    "promotes_to_enforced": false,
+    "reason": "Job Object 是进程分组 + 资源限额，不是安全边界；网络与文件系统未隔离的实机证据见 isolation_gaps。据 §9.3 补偿控制矩阵，os_sandbox 保持 absent，安全主张仍标 unproven。",
+    "usable_as": "附加进程遏制原语：进程数上限 + kill-on-close（更强的 kill-tree）"
+  },
+  "driver_wiring": {
+    "active_process_limit_in_production": false,
+    "computed_by": "ast + source_sha256 + ledger",
+    "default_contain": false,
+    "default_contain_false": true,
+    "kill_on_job_close_only": true,
+    "ledger_os_sandbox_track": "compensated_absent",
+    "note": "第二十三轮 opt-in 接线的源码真值。只接进程遏制 / kill-tree，不把 os_sandbox 涂成 enforced；本字段仍不参与 W4 三证判定。",
+    "off_marker_present": true,
+    "promotes_to_enforced": false,
+    "real_worker_contain": true,
+    "real_worker_contain_true": true,
+    "schema": 1,
+    "source_sha256": {
+      "capability_evidence/ledger.json": "sha256:5b3698b1db161e40dcf7b8ac139088b8731f9d2def85e7aa4634d13dd5a83c3e",
+      "scripts/agent_runner.py": "sha256:fd44455711144d40ac4a9ff0576764aeba623983a60a7de6c94490de1bd9a1c6",
+      "scripts/job_object_probe.py": "sha256:c7d480fa868c3c0c8edb1fbc16c692fafe4b1797e0a515467f426f328081d45b",
+      "scripts/platform_ops.py": "sha256:fc8cdce284edb24733a9aef63084cce524c5d50848d4dd7c58e798a7ab571c9a",
+      "scripts/worker_shim/sitecustomize.py": "sha256:29d2580e52a9ab76876d0642b4ee77997483c926173bc625b5d2280db0d1a54d"
+    },
+    "w4_ledger_participates": false,
+    "wired": true,
+    "worker_shim_no_kernel_job": true
+  },
+  "generated_at": "2026-11-13T07:24:58.261605+08:00",
+  "isolation_gaps": {
+    "filesystem_isolation_observed": "NOT_ISOLATED",
+    "gaps_proven": true,
+    "loopback_connect_in_job": "CONNECTED",
+    "network_isolation_observed": "NOT_ISOLATED",
+    "note": "在 Job 内真连 127.0.0.1 + 真写 worktree 之外文件。两者成功不是缺陷，是**实机依据**：证明 Job Object 不能当网络/文件隔离，因此不能把 os_sandbox 涂成 enforced。UNTESTED 时不算证据，也不许读成『已隔离』。",
+    "outside_write_in_job": "WROTE"
+  },
+  "note": "探针结论的静态登记。os_sandbox 保持 absent / compensated_absent；本文件不参与 W4 三证判定，capability_evidence/ledger.json 六项 effective 未改动。driver_wiring 记录第二十三轮 opt-in 接线的源码真值，仍不改变 W4 判定。",
+  "platform": "win32",
+  "probe": "native_isolation/v1",
+  "process_containment": {
+    "breakaway_is_pseudo_signal": true,
+    "control_normal_spawn": "OK",
+    "differential_ok": true,
+    "injection_normal_spawn": "OK",
+    "job_normal_spawn": "BLOCKED:winerror=1816",
+    "signal": "负控 OK / job 内 BLOCKED(ActiveProcessLimit) / 拿掉 limit 后 OK 三者齐，才认进程遏制成立；breakaway 单独不算证据。"
+  },
+  "reason": "进程数/kill 遏制成立；网络与文件未隔离（见 isolation_gaps）",
+  "schema": 1,
+  "verdict": "JOB_OBJECT_PROCESS_CONTAINMENT_ONLY",
+  "windows_version": "sys.getwindowsversion(major=10, minor=0, build=26200, platform=2, service_pack='')"
+}

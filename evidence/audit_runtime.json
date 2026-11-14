@@ -1,0 +1,92 @@
+[
+ {
+  "id": "P01",
+  "title": "租约被拒后再申请（None 与 int 比较）",
+  "as_designed": true,
+  "detail": "第二次拒绝=False，第三次=True（期望 False / True）"
+ },
+ {
+  "id": "P02",
+  "title": "租约过期后可被低 epoch 抢占",
+  "as_designed": true,
+  "detail": "过期后低 epoch 抢占返回 True（期望 True＝过期可抢占）"
+ },
+ {
+  "id": "P03",
+  "title": "未知事件类型是否被拒",
+  "as_designed": true,
+  "detail": "正确拒绝：SpecViolation: unknown event kind 'totally_made_up_event' (not in spec/events.schema.json)"
+ },
+ {
+  "id": "P04",
+  "title": "缺 required_payload 是否被拒",
+  "as_designed": true,
+  "detail": "正确拒绝：SpecViolation: E10 verify on task T1: current state is None, but this event is only allowed from ['submitted'] (spec/events.schema.json E10.from_states)"
+ },
+ {
+  "id": "P05",
+  "title": "FROZEN 态是否真的拦非白名单事件",
+  "as_designed": true,
+  "detail": "正确拒绝：SpecViolation: frozen: E09 submit is not writable_in_frozen"
+ },
+ {
+  "id": "P06",
+  "title": "rebuild 是否拒绝非法状态名",
+  "as_designed": true,
+  "detail": "rebuild 拒绝了非法状态：state T1: illegal target state 'not_a_real_state' at seq 1"
+ },
+ {
+  "id": "P07",
+  "title": "rebuild 是否拒绝非法迁移",
+  "as_designed": true,
+  "detail": "rebuild 拒绝了非法迁移：state T1: transition None→'archived' is not in T01-T22 (seq 1)"
+ },
+ {
+  "id": "P08",
+  "title": "主链月份文件名是否硬编码",
+  "as_designed": true,
+  "detail": "代码里出现写死的月度链文件名 []（期望由 ts 派生）"
+ },
+ {
+  "id": "P09",
+  "title": "跨月文件 seq 连续（当前是否可测）",
+  "as_designed": true,
+  "detail": "chain_files=['2026-11.jsonl']，verify='ok'（当前只有一个文件，跨月拼接未被真正测到）"
+ },
+ {
+  "id": "P10",
+  "title": "对照：中间行篡改被抓",
+  "as_designed": true,
+  "detail": "C:\\Users\\THH32\\AppData\\Local\\Temp\\probe_s_yaxlz_\\events\\2026-11.jsonl: hash mismatch at line 2"
+ },
+ {
+  "id": "P11",
+  "title": "对照：末行截断修复后可续写",
+  "as_designed": true,
+  "detail": "repair='repaired' lines=3 → 续写后 'ok'"
+ },
+ {
+  "id": "P12",
+  "title": "ts_ms 是否只能由 store 生成",
+  "as_designed": true,
+  "detail": "meta.ts_ms=None 与顶层 ts_ms=1794625734848 并存（期望：meta 里不许有 ts_ms）"
+ },
+ {
+  "id": "P13",
+  "title": "冻结白名单是否真来自 spec（集合比对）",
+  "as_designed": false,
+  "detail": "spec=14 项，实际放行=6 项；差集 spec-only=['E06', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E43'] live-only=[]"
+ },
+ {
+  "id": "P14",
+  "title": "sidecar 数值字段是否 integer-only",
+  "as_designed": true,
+  "detail": "float 字段：无"
+ },
+ {
+  "id": "P15",
+  "title": "空改动不会被打扮成改动",
+  "as_designed": true,
+  "detail": "check(空改动) → ok=True violations=0 人造文件名=无 入参被改写=False"
+ }
+]

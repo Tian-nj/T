@@ -1,0 +1,705 @@
+{
+ "acc_edit.py": {
+  "loc": 113,
+  "funcs": 2,
+  "silent": [],
+  "dead": []
+ },
+ "agent_runner.py": {
+  "loc": 1195,
+  "funcs": 34,
+  "silent": [],
+  "dead": []
+ },
+ "appcontainer_probe.py": {
+  "loc": 1287,
+  "funcs": 56,
+  "silent": [
+   {
+    "line": 272,
+    "bare": false,
+    "type": "AttributeError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except AttributeError:\n    pass"
+   },
+   {
+    "line": 384,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Return"
+    ],
+    "src": "except Exception:\n    return None"
+   },
+   {
+    "line": 931,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 1031,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 422,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Continue"
+    ],
+    "src": "except OSError:\n    continue"
+   },
+   {
+    "line": 439,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   },
+   {
+    "line": 428,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "bootstrap.py": {
+  "loc": 193,
+  "funcs": 3,
+  "silent": [
+   {
+    "line": 90,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Continue"
+    ],
+    "src": "except OSError:\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "boss_report.py": {
+  "loc": 569,
+  "funcs": 14,
+  "silent": [],
+  "dead": []
+ },
+ "calibrate_drills.py": {
+  "loc": 124,
+  "funcs": 3,
+  "silent": [],
+  "dead": []
+ },
+ "capability_escape_child.py": {
+  "loc": 116,
+  "funcs": 2,
+  "silent": [
+   {
+    "line": 67,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "capability_gate.py": {
+  "loc": 247,
+  "funcs": 9,
+  "silent": [],
+  "dead": []
+ },
+ "capability_probe_child.py": {
+  "loc": 35,
+  "funcs": 0,
+  "silent": [],
+  "dead": []
+ },
+ "capability_probes.py": {
+  "loc": 653,
+  "funcs": 13,
+  "silent": [
+   {
+    "line": 470,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "ci_narrow_probe.py": {
+  "loc": 441,
+  "funcs": 16,
+  "silent": [],
+  "dead": []
+ },
+ "constitution_check.py": {
+  "loc": 777,
+  "funcs": 11,
+  "silent": [],
+  "dead": []
+ },
+ "containment_telemetry.py": {
+  "loc": 278,
+  "funcs": 13,
+  "silent": [],
+  "dead": []
+ },
+ "contract_registry.py": {
+  "loc": 335,
+  "funcs": 14,
+  "silent": [],
+  "dead": []
+ },
+ "demo_baseline_gen.py": {
+  "loc": 73,
+  "funcs": 3,
+  "silent": [],
+  "dead": []
+ },
+ "dep_resolver.py": {
+  "loc": 120,
+  "funcs": 5,
+  "silent": [],
+  "dead": []
+ },
+ "diff_sandbox_check.py": {
+  "loc": 286,
+  "funcs": 12,
+  "silent": [],
+  "dead": []
+ },
+ "doc_numbers.py": {
+  "loc": 413,
+  "funcs": 10,
+  "silent": [],
+  "dead": []
+ },
+ "dream_consolidation.py": {
+  "loc": 1050,
+  "funcs": 39,
+  "silent": [
+   {
+    "line": 212,
+    "bare": false,
+    "type": "(TypeError, ValueError)",
+    "body": [
+     "Continue"
+    ],
+    "src": "except (TypeError, ValueError):\n    continue"
+   },
+   {
+    "line": 781,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 802,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Continue"
+    ],
+    "src": "except (OSError, ValueError):\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "emotion_engine.py": {
+  "loc": 411,
+  "funcs": 18,
+  "silent": [],
+  "dead": []
+ },
+ "gate_timer.py": {
+  "loc": 114,
+  "funcs": 3,
+  "silent": [],
+  "dead": []
+ },
+ "gc_helper.py": {
+  "loc": 358,
+  "funcs": 10,
+  "silent": [],
+  "dead": []
+ },
+ "gen_spec.py": {
+  "loc": 1150,
+  "funcs": 16,
+  "silent": [
+   {
+    "line": 372,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Return"
+    ],
+    "src": "except (OSError, ValueError):\n    return None"
+   }
+  ],
+  "dead": []
+ },
+ "health.py": {
+  "loc": 169,
+  "funcs": 7,
+  "silent": [],
+  "dead": []
+ },
+ "human_cli.py": {
+  "loc": 454,
+  "funcs": 13,
+  "silent": [],
+  "dead": []
+ },
+ "job_object_probe.py": {
+  "loc": 692,
+  "funcs": 17,
+  "silent": [
+   {
+    "line": 347,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 643,
+    "bare": false,
+    "type": "(ValueError, OSError)",
+    "body": [
+     "Pass"
+    ],
+    "src": "except (ValueError, OSError):\n    pass"
+   },
+   {
+    "line": 259,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 420,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 265,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "joint_acceptance.py": {
+  "loc": 519,
+  "funcs": 13,
+  "silent": [],
+  "dead": []
+ },
+ "lead.py": {
+  "loc": 1614,
+  "funcs": 41,
+  "silent": [],
+  "dead": []
+ },
+ "lock_calibrate.py": {
+  "loc": 908,
+  "funcs": 21,
+  "silent": [
+   {
+    "line": 257,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Continue"
+    ],
+    "src": "except OSError:\n    continue"
+   },
+   {
+    "line": 265,
+    "bare": false,
+    "type": "ValueError",
+    "body": [
+     "Continue"
+    ],
+    "src": "except ValueError:\n    continue"
+   },
+   {
+    "line": 643,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   },
+   {
+    "line": 639,
+    "bare": false,
+    "type": "ValueError",
+    "body": [
+     "Continue"
+    ],
+    "src": "except ValueError:\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "lock_truth.py": {
+  "loc": 446,
+  "funcs": 12,
+  "silent": [
+   {
+    "line": 283,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   },
+   {
+    "line": 111,
+    "bare": false,
+    "type": "ValueError",
+    "body": [
+     "Return"
+    ],
+    "src": "except ValueError:\n    return None"
+   },
+   {
+    "line": 265,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "memory_bundle.py": {
+  "loc": 721,
+  "funcs": 17,
+  "silent": [
+   {
+    "line": 100,
+    "bare": false,
+    "type": "(TypeError, ValueError)",
+    "body": [
+     "Continue"
+    ],
+    "src": "except (TypeError, ValueError):\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "memory_store.py": {
+  "loc": 1764,
+  "funcs": 52,
+  "silent": [
+   {
+    "line": 207,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   },
+   {
+    "line": 649,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "merge_queue.py": {
+  "loc": 756,
+  "funcs": 26,
+  "silent": [],
+  "dead": []
+ },
+ "metrics_collector.py": {
+  "loc": 368,
+  "funcs": 7,
+  "silent": [],
+  "dead": []
+ },
+ "mg_gate.py": {
+  "loc": 293,
+  "funcs": 10,
+  "silent": [],
+  "dead": []
+ },
+ "migrate_vx_to_vy.py": {
+  "loc": 279,
+  "funcs": 8,
+  "silent": [],
+  "dead": []
+ },
+ "persona_loader.py": {
+  "loc": 529,
+  "funcs": 20,
+  "silent": [],
+  "dead": []
+ },
+ "platform_ops.py": {
+  "loc": 795,
+  "funcs": 24,
+  "silent": [],
+  "dead": []
+ },
+ "platform_runner_probe.py": {
+  "loc": 736,
+  "funcs": 22,
+  "silent": [
+   {
+    "line": 306,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Pass"
+    ],
+    "src": "except (OSError, ValueError):\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "purpose_store.py": {
+  "loc": 242,
+  "funcs": 13,
+  "silent": [],
+  "dead": []
+ },
+ "sched_install.py": {
+  "loc": 339,
+  "funcs": 13,
+  "silent": [
+   {
+    "line": 196,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Return"
+    ],
+    "src": "except (OSError, ValueError):\n    return None"
+   }
+  ],
+  "dead": []
+ },
+ "scheduler.py": {
+  "loc": 538,
+  "funcs": 16,
+  "silent": [
+   {
+    "line": 220,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Pass"
+    ],
+    "src": "except (OSError, ValueError):\n    pass"
+   },
+   {
+    "line": 256,
+    "bare": false,
+    "type": "(ValueError, AttributeError)",
+    "body": [
+     "Return"
+    ],
+    "src": "except (ValueError, AttributeError):\n    return None"
+   }
+  ],
+  "dead": []
+ },
+ "scheduler_observe.py": {
+  "loc": 1423,
+  "funcs": 36,
+  "silent": [
+   {
+    "line": 281,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except OSError:\n    pass"
+   },
+   {
+    "line": 1225,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "secret_scan.py": {
+  "loc": 360,
+  "funcs": 10,
+  "silent": [],
+  "dead": []
+ },
+ "sign_manifest.py": {
+  "loc": 430,
+  "funcs": 17,
+  "silent": [],
+  "dead": []
+ },
+ "signature_backend.py": {
+  "loc": 692,
+  "funcs": 35,
+  "silent": [
+   {
+    "line": 368,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   },
+   {
+    "line": 164,
+    "bare": false,
+    "type": "Exception",
+    "body": [
+     "Pass"
+    ],
+    "src": "except Exception:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "silent_swallow_probe.py": {
+  "loc": 291,
+  "funcs": 10,
+  "silent": [],
+  "dead": []
+ },
+ "smoke.py": {
+  "loc": 72,
+  "funcs": 2,
+  "silent": [],
+  "dead": []
+ },
+ "spec_lint.py": {
+  "loc": 626,
+  "funcs": 11,
+  "silent": [
+   {
+    "line": 546,
+    "bare": false,
+    "type": "ImportError",
+    "body": [
+     "Pass"
+    ],
+    "src": "except ImportError:\n    pass"
+   }
+  ],
+  "dead": []
+ },
+ "team_protocol.py": {
+  "loc": 504,
+  "funcs": 15,
+  "silent": [],
+  "dead": []
+ },
+ "telemetry_aggregate.py": {
+  "loc": 957,
+  "funcs": 30,
+  "silent": [],
+  "dead": []
+ },
+ "token_ledger.py": {
+  "loc": 456,
+  "funcs": 16,
+  "silent": [],
+  "dead": []
+ },
+ "verify_harness.py": {
+  "loc": 483,
+  "funcs": 12,
+  "silent": [
+   {
+    "line": 85,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Continue"
+    ],
+    "src": "except (OSError, ValueError):\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "wb_core.py": {
+  "loc": 1842,
+  "funcs": 68,
+  "silent": [
+   {
+    "line": 360,
+    "bare": false,
+    "type": "OSError",
+    "body": [
+     "Return"
+    ],
+    "src": "except OSError:\n    return None"
+   }
+  ],
+  "dead": []
+ }
+}

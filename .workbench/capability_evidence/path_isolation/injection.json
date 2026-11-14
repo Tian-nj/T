@@ -1,0 +1,10 @@
+{
+  "capability": "path_isolation",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport diff_sandbox_check as d\nr=d.check(['src/'],['../outside/escape.py'],['src/**'],[],[])\nprint('ESCAPE_REJECTED',not r['ok'])\nassert r['ok'] is False\nprint('OK out-of-scope change rejected at submit-time check')",
+  "evidence_sha256": "86b0619561844be89cd3ca6bf2643f8aea3758b4b13f836f762597011480b1c3",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "ESCAPE_REJECTED True\r\nOK out-of-scope change rejected at submit-time check\r\n"
+}

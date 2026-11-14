@@ -1,0 +1,57 @@
+任务 T-0008  当前状态='claimed'  executor=harness_subagent
+
+──── 状态='claimed' → 下一步=prepare（agent_runner prepare：建 worktree + brief + job）
+  → 已有执行体签署 T-0008.coder.json，跳过 prepare 直接收尾（finish）
+
+$ python.exe agent_runner.py finish --task T-0008 --role coder --submit
+  spawn  E05=165 pid=0 (external executor: harness_subagent) —— 无可观测本地进程
+  state  E08=166 claimed→in_progress (T06)
+  OK T-0008/coder：changed=1 ['src/capability_audit.py']
+     summary: 实现 capability_audit 口径漂移审计器，8 组验收全绿
+     selfcheck: python tests/test_capability_audit.py → exit=0
+  T-0008 submitted: E09=168 E08=169 scope_ok changed=1 patch=sha256:25ab38231292 commit=8be222b3
+
+──── 状态='submitted' → 下一步=verify（task-verify：跑验收命令，写 E10）
+
+$ python.exe lead.py task-verify --task T-0008 --worktree T-0008
+  T-0008 VERIFY PASS → done (E10=170 E08=171, 1 cmds)
+
+──── 状态='done' → 下一步=merge（merge_queue：过闸门 → 合入）
+
+$ python.exe merge_queue.py --dry-run
+  merge_queue → master (dry_run=True)
+    SKIP     T-0004  — already merged
+    SKIP     T-0005  — already merged
+    SKIP     T-0006  — already merged
+    SKIP     T-0007  — already merged
+    WAIT     T-0008  AUTO_CORE     single_sign files 1<=5, net 89<=200, 全部在 allowed_paths
+  merged 0 / rejected 0 / gated 1 / skipped 4
+
+  ⚠ --sign-as yg：本次由操作者显式授权自动签名，闸门的人工确认环节被跳过。这一行会留在输出里作为凭据。
+
+$ python.exe human_cli.py --sub sign --principal yg --op human_approve --args {"task": "T-0008"}
+  {
+    "principal": "yg",
+    "op": "human_approve",
+    "args": {
+      "task": "T-0008"
+    },
+    "nonce": "e7ff35eb",
+    "ts_ms": 1794255249402,
+    "sig": "b0fbad02a86133e13a30a875ca43edbf94315cad54e7e55c1341d3b406cca0c4"
+  }
+
+$ python.exe human_cli.py --principal yg --op human_approve --args {"task": "T-0008"} --nonce e7ff35eb --ts_ms 1794255249402 --sig b0fbad02a86133e13a30a875ca43edbf94315cad54e7e55c1341d3b406cca0c4
+  ACCEPT human_approve as human:yg
+    event {'kind': 'human_approve', 'seq': 172}
+
+$ python.exe merge_queue.py
+  merge_queue → master (dry_run=False)
+    MERGED   T-0008  tree=386d7bceaf48
+    SKIP     T-0004  — already merged
+    SKIP     T-0005  — already merged
+    SKIP     T-0006  — already merged
+    SKIP     T-0007  — already merged
+  merged 1 / rejected 0 / gated 0 / skipped 4
+
+✅ T-0008 MERGED

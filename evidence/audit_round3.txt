@@ -1,0 +1,35 @@
+# 智能工作台 深度自检 第 3 轮：声明→执行闭合审计
+# 生成 2026-11-09 21:02:47
+
+########## 五件审计 ##########
+--- audit_static.py ---
+  合计 0 处
+--- audit_drift.py ---
+RESULT: NO DRIFT — 两份表当前逐项一致
+--- audit_runtime.py ---
+运行时行为探针 audit_runtime.py
+探针 15 条：15 条声称被证实，0 条发现缺陷
+--- audit_payload.py ---
+调用点 26 个，静态可见的问题 0 处
+（payload 非字面量的调用点由运行期 SpecViolation 兜底，属预期）
+--- audit_closure.py ---
+声明→执行闭合审计 audit_closure.py
+闭合探针 10 条：10 条闭合，0 条声明悬空
+
+########## 反向验证：四条真实违规路径（真实 CLI / 真实退出码）##########
+REFUSE T-P0: priority=P0 只能由 E21 human_approve 设定（H3）。先按 P2/P1 建任务，需要提级请走 human_cli approve --priority P0。
+  exit=0
+REFUSE T-0001 escalate: H5 —— 有过 spawn 但没有 E07 kill 记录，无法证明 worker 已死透。
+  exit=0
+
+########## 十项检查 ##########
+chain: ok lines=15
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN
+RESULT: PASS (0 failure(s))
+RESULT: PASS (0 finding(s))
+RESULT: PASS (0 failure(s))
+RESULT: PASS — 7 file(s) identical
+checked: 39 file(s)
+RESULT: PASS
+SMOKE: PASS
+PASS: 冲突被预演捕捉（merge-tree rc!=0），预演后工作区干净，真合失败停在冲突态

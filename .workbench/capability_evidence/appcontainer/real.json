@@ -1,0 +1,53 @@
+{
+  "capabilities": [
+    {
+      "name": "internetClient",
+      "seen_in_token": false,
+      "sid": "S-1-15-3-1"
+    }
+  ],
+  "child": {
+    "exit_code": 0,
+    "ok": true,
+    "timed_out": false,
+    "token": {
+      "appcontainer_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+      "appcontainer_sid_pointer": true,
+      "is_appcontainer": true,
+      "ok": true
+    },
+    "wait_rc": 0
+  },
+  "copied_bins": {
+    "cmd.exe": true,
+    "curl.exe": true,
+    "powershell.exe": true,
+    "whoami.exe": true
+  },
+  "create_hr": "0x00000000",
+  "derive_hr": "0x00000000",
+  "derived_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+  "fixture_write_ok": true,
+  "loopback_connected": false,
+  "loopback_untested": false,
+  "ok": true,
+  "outside_copy": false,
+  "outside_write": false,
+  "profile_folder": null,
+  "profile_name": "WbAppContainerProbe-30c06157386c-1794380899758",
+  "profile_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+  "ps_groups_tail": "S-1-1-0\nS-1-5-21-363696550-3432195481-3475113504-1005\nS-1-5-32-545\nS-1-5-4\nS-1-2-1\nS-1-5-11\nS-1-5-15\nS-1-11-96-3623454863-58364-18864-2661722203-1597581903-2054061335-1198853887-2726447692-1215272590-3039799707\nS-1-5-113\nS-1-2-0\nS-1-5-64-36\n",
+  "ps_user_tail": "S-1-5-21-363696550-3432195481-3475113504-1001\n",
+  "token_api": {
+    "appcontainer_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+    "appcontainer_sid_pointer": true,
+    "is_appcontainer": true,
+    "ok": true
+  },
+  "token_appcontainer_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+  "token_is_appcontainer": true,
+  "token_sid_seen": true,
+  "token_tail": "\n                                                                                                                                                              \n==========================================  ============================================================================================================= ====\nMandatory Label\\Low Mandatory Level         S-1-16-4096                                                                                                       \nEveryone                                    S-1-1-0                                                                                                       , , \nNT AUTHORITY\\�����ʻ��͹���Ա���Ա         S-1-5-114                                                                                                         \nTHH\\Sieme...<clip>",
+  "user_tail": "\n                                                       \n========= =============================================\nthh\\thh32 S-1-5-21-363696550-3432195481-3475113504-1001\n",
+  "verdict": "APPCONTAINER_TOKEN_REAL"
+}

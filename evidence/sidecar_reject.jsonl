@@ -1,0 +1,5 @@
+{"channel": "reject", "payload": {"code": "POLICY_DENIED", "detail": "principal/nonce/sig required", "op": "human_override", "principal": "yg"}, "task": null, "ts_ms": 1794227434741}
+{"channel": "reject", "payload": {"code": "POLICY_DENIED", "detail": "bad signature", "op": "human_override", "principal": "yg"}, "task": null, "ts_ms": 1794227434885}
+{"channel": "reject", "payload": {"code": "POLICY_DENIED", "detail": "op 'human_override' cannot move to 'done' (allowed ['pending', 'cancelled', 'blocked', 'in_progress'])", "op": "human_override", "principal": "yg"}, "task": null, "ts_ms": 1794227457327}
+{"channel": "reject", "payload": {"code": "POLICY_DENIED", "detail": "ts_ms outside +/-300s window (94227469494 ms off)", "op": "human_override", "principal": "yg"}, "task": null, "ts_ms": 1794227469494}
+{"channel": "reject", "payload": {"code": "POLICY_DENIED", "detail": "authority: human:yg may not run T03 (pending→blocked); allowed ['system:dep_resolver', 'lead']", "op": "human_override", "principal": "yg"}, "task": null, "ts_ms": 1794227482344}

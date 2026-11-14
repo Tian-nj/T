@@ -1,0 +1,10 @@
+{
+  "capability": "path_isolation",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport diff_sandbox_check as d\nr=d.check(['src/'],['src/ok.py'],['src/**'],[],[])\nprint('IN_SCOPE',r['ok'])\nassert r['ok'] is True\nprint('OK in-scope change accepted')",
+  "evidence_sha256": "ed1f7fa165f409ea22f2c6383aeb923e0b12b19b1bf00f3169618ec6df6fb3d1",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "IN_SCOPE True\r\nOK in-scope change accepted\r\n"
+}

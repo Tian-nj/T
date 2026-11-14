@@ -1,0 +1,112 @@
+{
+  "bypass": {
+    "bypass_reached": false,
+    "curl_output": "curl: (28) Connection timed out after 2017 milliseconds\n",
+    "loopback_capability_context": [
+      "internetClient"
+    ],
+    "loopback_connected": false,
+    "loopback_untested": false,
+    "ok": true,
+    "outside_copy": false,
+    "outside_write": false,
+    "reason": "越界写/复制成功或坏扩展启动仍带 AppContainer SID 即为绕过；loopback 在 internetClient 上下文下单独观察，不冒充 W4 通过。",
+    "verdict": "BYPASS_BLOCKED"
+  },
+  "capabilities_requested": [
+    "internetClient"
+  ],
+  "capabilities_used": [
+    "internetClient"
+  ],
+  "cleanup": {
+    "dacl_restore": {
+      "detail": "DACL restored",
+      "ok": true
+    },
+    "delete_hr": "0x00000000",
+    "derive_after_delete_hr": "0x00000000",
+    "derive_after_delete_sid": "S-1-15-2-4064212549-2937869699-3843247271-2257501865-1714038747-126801621-3862044365",
+    "fixture_removed": true,
+    "probe_root": "C:\\Users\\THH32\\AppData\\Local\\Temp\\wb-appcontainer-86m3_nqs",
+    "profile_exists_error": null,
+    "profile_folder": null,
+    "profile_folder_left": false,
+    "profile_mapping_exists_after_delete": false,
+    "profile_name": "WbAppContainerProbe-835419f8fb1a-1794379375041",
+    "residual": false
+  },
+  "evidence": [
+    "capability_evidence/appcontainer/real.json",
+    "capability_evidence/appcontainer/injection.json",
+    "capability_evidence/appcontainer/bypass.json",
+    "capability_evidence/appcontainer/cleanup.json"
+  ],
+  "injection": {
+    "bad_extended_process": {
+      "exit_code": 0,
+      "ok": true,
+      "timed_out": false,
+      "wait_rc": 0
+    },
+    "bad_extended_token_contains_appcontainer_sid": false,
+    "bad_extended_user_tail": "\n                                                       \n========= =============================================\nthh\\thh32 S-1-5-21-363696550-3432195481-3475113504-1001\n",
+    "ok": true,
+    "plain_process": {
+      "exit_code": 0,
+      "ok": true,
+      "timed_out": false,
+      "wait_rc": 0
+    },
+    "plain_token_contains_appcontainer_sid": false,
+    "plain_user_tail": "\n                                                       \n========= =============================================\nthh\\thh32 S-1-5-21-363696550-3432195481-3475113504-1001\n",
+    "reason": "缺 EXTENDED_STARTUPINFO_PRESENT 或空 attribute list 必须不再产生 AppContainer token。",
+    "verdict": "INJECTION_DETECTED"
+  },
+  "ok": false,
+  "profile_name": "WbAppContainerProbe-835419f8fb1a-1794379375041",
+  "real": {
+    "capabilities": [
+      {
+        "name": "internetClient",
+        "seen_in_token": false,
+        "sid": "S-1-15-3-1"
+      }
+    ],
+    "child": {
+      "exit_code": 0,
+      "ok": true,
+      "timed_out": false,
+      "wait_rc": 0
+    },
+    "copied_bins": {
+      "cmd.exe": true,
+      "curl.exe": true,
+      "powershell.exe": true,
+      "whoami.exe": true
+    },
+    "create_hr": "0x00000000",
+    "derive_hr": "0x00000000",
+    "derived_sid": "S-1-15-2-4064212549-2937869699-3843247271-2257501865-1714038747-126801621-3862044365",
+    "fixture_write_ok": true,
+    "loopback_connected": false,
+    "loopback_untested": false,
+    "ok": false,
+    "outside_copy": false,
+    "outside_write": false,
+    "profile_folder": null,
+    "profile_name": "WbAppContainerProbe-835419f8fb1a-1794379375041",
+    "profile_sid": "S-1-15-2-4064212549-2937869699-3843247271-2257501865-1714038747-126801621-3862044365",
+    "ps_groups_tail": "S-1-1-0\nS-1-5-21-363696550-3432195481-3475113504-1005\nS-1-5-32-545\nS-1-5-4\nS-1-2-1\nS-1-5-11\nS-1-5-15\nS-1-11-96-3623454863-58364-18864-2661722203-1597581903-2054061335-1198853887-2726447692-1215272590-3039799707\nS-1-5-113\nS-1-2-0\nS-1-5-64-36\n",
+    "ps_user_tail": "S-1-5-21-363696550-3432195481-3475113504-1001\n",
+    "token_sid_seen": false,
+    "token_tail": "\n                                                                                                                                                              \n==========================================  ============================================================================================================= ====\nMandatory Label\\Low Mandatory Level         S-1-16-4096                                                                                                       \nEveryone                                    S-1-1-0                                                                                                       , , \nNT AUTHORITY\\�����ʻ��͹���Ա���Ա         S-1-5-114                                                                                                         \nTHH\\Sieme...<clip>",
+    "user_tail": "\n                                                       \n========= =============================================\nthh\\thh32 S-1-5-21-363696550-3432195481-3475113504-1001\n",
+    "verdict": "APPCONTAINER_TOKEN_UNPROVEN"
+  },
+  "unresolved_gaps": [
+    "real/injection 未成套：real.ok=False injection.ok=True"
+  ],
+  "verdict": "PROBE_INCONCLUSIVE",
+  "w4_participates": false
+}

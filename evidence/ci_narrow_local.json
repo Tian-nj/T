@@ -1,0 +1,53 @@
+{
+  "schema": "ci_narrow_local/v1",
+  "generated_at": "2026-11-12T15:35:31.878329+08:00",
+  "platform": "win32",
+  "root": "D:\\Users\\THH32\\DSH-ZNT\\workbench",
+  "remote_configured": false,
+  "remote_lines": "",
+  "actions_ran": false,
+  "actions_ran_reason": "本机无 remote / GitHub Actions 从未真跑",
+  "workflow_contract": {
+    "files": [
+      ".github/workflows/posix-lock.yml",
+      ".github/workflows/platform-runners.yml"
+    ],
+    "findings": [],
+    "passed": true
+  },
+  "local_equivalent": {
+    "cwd": "D:\\Users\\THH32\\DSH-ZNT\\workbench",
+    "python": "C:\\Users\\THH32\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\python.exe",
+    "tests": [
+      {
+        "name": "test_lock_timeout_and_contention.py",
+        "rc": 0,
+        "stdout_tail": "  ok   并发之后链能重放（不抛 ChainTampered）\n  ok   重放行数等于链上真实行数\n  ok   任务终态仍是 pending（plan 事件不改状态）\n  ok   链上行数等于 夹具行 + 成功数\n\ntest_lock_timeout_and_contention: PASS (0 failed)",
+        "stderr_tail": ""
+      },
+      {
+        "name": "test_cross_process_lock.py",
+        "rc": 0,
+        "stdout_tail": "ok   wb_core 用 msvcrt.locking（win32）\nok   wb_core 用 fcntl.flock（posix）\nok   锁是 NBLCK/阻塞两种语义之一，不是 sleep 假锁\nok   锁内二次校验仍在（第三十三轮的修复没被后来的重构冲掉）\n\ntest_cross_process_lock: PASS (17 ok, 0 failed)",
+        "stderr_tail": ""
+      },
+      {
+        "name": "test_state_sentinel.py",
+        "rc": 0,
+        "stdout_tail": "  ok   E02 本身不推状态（建状态由 T01 承接）\n  ok   T01 之后任务状态是 draft\n  ok   无状态任务上 claim 仍被拒（哨兵不是万能通行证）\n  ok   同一无状态任务上 draft_created 放行（哨兵让它合法）\n\ntest_state_sentinel: PASS (0 failed)",
+        "stderr_tail": ""
+      },
+      {
+        "name": "test_from_states.py",
+        "rc": 0,
+        "stdout_tail": "ok   wb_core 定义了 _from_states_of\nok   wb_core 在写入口真调用它\nok   判据读当前态而不是 payload\nok   spec_lint 有 S023\n\ntest_from_states: PASS (16 ok, 0 failed)",
+        "stderr_tail": ""
+      }
+    ],
+    "all_rc_zero": true
+  },
+  "local_equivalent_passed": true,
+  "failure_sources": [],
+  "verdict": "CI_NARROW_LOCAL_EQUIVALENT_PASS",
+  "evidence_written": true
+}

@@ -1,0 +1,10 @@
+{
+  "capability": "network_deny",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport capability_probes as cp\ncp._isolated_bypass('net')",
+  "evidence_sha256": "6532bfcaf6a94c8f69b32f8c81ba83d8c25fa59b338cdfe2b8d97da0145e73e0",
+  "exit_code": 0,
+  "marker": "BYPASS_BLOCKED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "CHILD_RC 1\r\nCHILD_STDOUT_TAIL \r\nCHILD_STDERR_TAIL er_shim\\sitecustomize.py\", line 80, in connect\r\r\n    _deny_net(address)\r\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 56, in _deny_net\r\r\n    raise PermissionError(\r\r\nPermissionError: WB_ISOLATE network_deny: outbound connect denied ('198.51.100.9', 80)\r\nBYPASS_BLOCKED net enforced in isolated worker (WB_ISOLATE network_deny)\r\n"
+}

@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "checks": [
+    {
+      "id": "C.A1",
+      "kind": "invariant",
+      "expr": "not (task_state_done and not verify_pass_seen)",
+      "bindings": {
+        "task_state_done": "runtime:chain.rebuild(task).state == 'done'",
+        "verify_pass_seen": "runtime:chain.exists(verify{result:pass})"
+      },
+      "on_violation": "p0_freeze",
+      "desc": "done 必须先见过 verify(pass) 或 escalate_resolve（H1）"
+    },
+    {
+      "id": "C.A2",
+      "kind": "path_deny",
+      "patterns": [
+        ".git/config",
+        "**/.env",
+        "**/*.pem",
+        "**/id_rsa",
+        "**/id_ed25519",
+        ".workbench/root.manifest",
+        ".workbench/state/members.json"
+      ],
+      "subjects": [
+        "coder",
+        "architect"
+      ],
+      "on_violation": "p1_escalate",
+      "desc": "worker 不得触碰可信根与凭据"
+    },
+    {
+      "id": "C.B1",
+      "kind": "transition_guard",
+      "from": [
+        "submitted"
+      ],
+      "to": [
+        "done"
+      ],
+      "requires": "exists(verify_log) and verify_log.exit_code == 0",
+      "bindings": {
+        "verify_log": "runtime:.workbench/tasks/<task>/verify.log"
+      },
+      "on_violation": "p0_freeze",
+      "desc": "T08 的前置条件"
+    },
+    {
+      "id": "C.B2",
+      "kind": "cmd_policy",
+      "allow": [
+        {
+          "bin": "git",
+          "subcommands": [
+            "status",
+            "diff",
+            "add",
+            "commit",
+            "rev-parse",
+            "log"
+          ],
+          "deny_flags": [
+            "--force",
+            "-f",
+            "--no-verify"
+          ],
+          "scope": "*"
+        },
+        {
+          "bin": "python",
+          "subcommands": [],
+          "deny_flags": [
+            "-c"
+          ],
+          "scope": "verify_harness_only"
+        },
+        {
+          "bin": "python",
+          "subcommands": [],
+          "deny_flags": [],
+          "scope": "*"
+        }
+      ],
+      "deny_bare_interpreters": true,
+      "on_violation": "p1_escalate",
+      "desc": "命令白名单；python -c 仅在 verify harness 内允许"
+    },
+    {
+      "id": "C.C1",
+      "kind": "hash_guard",
+      "baseline": "root.manifest",
+      "verify_before": [
+        "merge",
+        "escalate_resolve",
+        "manifest_change",
+        "human_*"
+      ],
+      "on_violation": "p0_freeze",
+      "desc": "关键动作前重验 manifest（§11.3 三级）"
+    },
+    {
+      "id": "C.D1",
+      "kind": "budget_guard",
+      "expr": "task_wall_clock_min <= single_task_wall_clock_min",
+      "bindings": {
+        "task_wall_clock_min": "runtime:chain(task).wall_clock_min",
+        "single_task_wall_clock_min": "cfg:global_config.single_task_budget.wall_clock_min"
+      },
+      "on_violation": "p1_escalate",
+      "desc": "单任务墙钟预算守卫"
+    }
+  ],
+  "counts": {
+    "checks": 6
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "api": {
+    "advapi32": {
+      "ConvertSidToStringSidW": true,
+      "ConvertStringSidToSidW": true,
+      "GetNamedSecurityInfoW": true,
+      "GetTokenInformation": true,
+      "OpenProcessToken": true,
+      "SetEntriesInAclW": true,
+      "SetNamedSecurityInfoW": true
+    },
+    "kernel32": {
+      "CloseHandle": true,
+      "CreateProcessW": true,
+      "DeleteProcThreadAttributeList": true,
+      "GetExitCodeProcess": true,
+      "InitializeProcThreadAttributeList": true,
+      "UpdateProcThreadAttribute": true,
+      "WaitForSingleObject": true
+    },
+    "kernelbase": {
+      "DeriveCapabilitySidsFromName": true
+    },
+    "ready": true,
+    "registry": {
+      "profile_key": "HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\AppContainer\\Mappings"
+    },
+    "userenv": {
+      "CreateAppContainerProfile": true,
+      "DeleteAppContainerProfile": true,
+      "DeriveAppContainerSidFromAppContainerName": true,
+      "GetAppContainerFolderPath": true
+    }
+  },
+  "assembly_tested": false,
+  "capability_sids": {
+    "appointments": "S-1-15-3-11",
+    "contacts": "S-1-15-3-12",
+    "documentsLibrary": "S-1-15-3-7",
+    "enterpriseAuthentication": "S-1-15-3-8",
+    "internetClient": "S-1-15-3-1",
+    "internetClientServer": "S-1-15-3-2",
+    "musicLibrary": "S-1-15-3-6",
+    "picturesLibrary": "S-1-15-3-4",
+    "privateNetworkClientServer": "S-1-15-3-3",
+    "removableStorage": "S-1-15-3-10",
+    "sharedUserCertificates": "S-1-15-3-9",
+    "videosLibrary": "S-1-15-3-5"
+  },
+  "note": "只查导出符号，不创建 profile；真装配必须显式 --assemble --confirm-token ASSEMBLE。",
+  "platform": "win32",
+  "verdict": "APPCONTAINER_EXPORT_INSPECT_ONLY",
+  "windows_version": "sys.getwindowsversion(major=10, minor=0, build=26200, platform=2, service_pack='')"
+}

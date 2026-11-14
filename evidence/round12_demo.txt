@@ -1,0 +1,114 @@
+overlay: 163 file(s) copied from working tree
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.IL9nM7TMC2/wb-demo  (真实仓库未被触碰)
+
+===== 0. reset chain =====
+reset ok
+
+===== 0b. demo baseline（只在演示仓里重置）=====
+demo baseline: calc.py has only add(); tests require sub()
+
+===== 1. resign manifest =====
+wrote .workbench\root.manifest  entries=47  algo=hmac-sha256-v1  uuid=175dcd06006595c5e20809e3138ba255
+digest hmac-sha256:ab9c71842fac7ef87849a423b6b52d6fbfe6e193e5ab44feb9d72b2ec3086e17
+
+===== 2. bootstrap =====
+manifest     : PASS (mode=full, 47 files)
+uuid         : PASS
+git          : PASS (actual=2.56.0, min=2.38)
+chain        : ok
+capabilities : os_sandbox=absent, network_deny=designed, credential_deny=designed, path_isolation=designed, token_metering=absent, external_alert=verified
+RESULT: PASS  events=['E42']
+exit=0
+
+===== 3. init member =====
+member 'yg' written (role=owner, 10 perms)
+note: state/members.json 在 manifest 覆盖范围内，需重签 sign_manifest.py
+
+===== 4. new task =====
+T-0001 created: E02 seq=3, E08 seq=4 state=draft
+acceptance.draft.yaml digest=sha256:fd8700ba352f2aff8d2625672e76a5a549837a7497e8e8e47761d517f8e649b5
+template digest=sha256:38d8ea6a4c3b8b21757f7546929cd77fcd0ad3fee003b6468ef51c505fc01a59
+
+===== 5. approve（Lead 备料）=====
+NOTE T-0001: auto_approve_draft=false，需人工确认（H6）
+T-0001 备料完成: E03=5 E08=6 digest=sha256:fd8700ba352f2aff8d2625672e76a5a549837a7497e8e8e47761d517f8e649b5
+  待人工转正：human_cli.py --op acceptance_approve --args '{"task":"T-0001"}'（digest 由签名器从文件读，不手填）
+
+===== 5b. acceptance 人工转正（E32 by human:yg，§6.2）=====
+ACCEPT acceptance_approve as human:yg
+  event {'kind': 'acceptance_approved', 'seq': 7}
+
+===== 6. dispatch =====
+window = 3 (batch_max_parallel)
+  PICK   T-0001  P2  down=0  scope=['src/calc.py', 'tests/test_calc.py']
+chosen 1 / candidates 1  plan=PL-1794266034284
+budget: today=2026-11-10 used=0.0/600 min (hard_timeout=60 min/task)
+
+===== 7. claim =====
+T-0001 claimed: E04=9 E08=10 epoch=1794266034397
+  next: agent_runner.py run --task T-0001 --role coder  (它会写 E05 spawn)
+
+===== 8. agent_runner 派发 coder =====
+WARN executor override: coder.executor 'harness_subagent' → 'local_process' (this run only)
+WARN entrypoint override: coder.entrypoint → 'C:/Users/THH32/AppData/Local/Temp/tmp.IL9nM7TMC2/wb-demo/tests/wb_demo_sub.py' (this run only)
+prepare: worktree=C:/Users/THH32/AppData/Local/Temp/tmp.IL9nM7TMC2/wb-demo/.workbench\wt\T-0001 base=a88e445 brief=C:/Users/THH32/AppData/Local/Temp/tmp.IL9nM7TMC2/wb-demo/.workbench\tasks\T-0001\brief.md
+spawn  E05=11 pid=6492 creation=-
+state  E08=12 claimed→in_progress (T06)
+OK T-0001/coder：changed=1 ['src/calc.py']
+T-0001 submitted: E09=14 E08=15 scope_ok changed=1 patch=sha256:1e8709f519c8 commit=b91aeb88
+
+===== 9. verify =====
+T-0001 VERIFY PASS → done (E10=16 E08=17, 1 cmds)
+
+===== 9a. human single sign（AUTO_CORE 灰区）=====
+ACCEPT human_approve as human:yg
+  event {'kind': 'human_approve', 'seq': 18}
+
+===== 9b. merge queue =====
+merge_queue → master (dry_run=False)
+  MERGED   T-0001  tree=91a04d6db807
+merged 1 / rejected 0 / gated 0 / skipped 0
+master HEAD: 4b3b2a6 merge: T-0001
+calc.py on master has sub()? 1
+
+===== 10. status =====
+TASK       STATE        LAST_SEQ
+T-0001     done         17
+
+1 task(s), 19 chain line(s)
+
+===== 11. checks =====
+chain: ok lines=19
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4
+RESULT: PASS (0 failure(s))
+RESULT: PASS (0 finding(s))
+RESULT: PASS (0 failure(s))
+
+===== 12. event chain =====
+  1  capability_check     system:bootstrap          
+  2  constitution_change  human:yg                  
+  3  draft_created        lead                      T-0001
+  4  state                lead               T01    draft
+  5  draft_approved       lead                      T-0001
+  6  state                lead               T02    pending
+  7  acceptance_approved  human:yg                  T-0001
+  8  plan                 lead                      
+  9  claim                lead                      T-0001
+ 10  state                lead               T05    claimed
+ 11  spawn                system:runner             T-0001
+ 12  state                system:runner      T06    in_progress
+ 13  kill                 system:runner             T-0001
+ 14  submit               lead                      T-0001
+ 15  state                lead               T07    submitted
+ 16  verify               system:verifier           pass
+ 17  state                system:verifier    T08    done
+ 18  human_approve        human:yg                  T-0001
+ 19  merge                system:merge_queue        T-0001
+total 19 line(s)
+
+===== 13. 对账（不信输出，只信树枝）=====
+reconcile: master 上的 calc.py 确有 sub() (grep -c = 1)
+
+===== DEMO OK: 全部步骤通过 =====
+
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.IL9nM7TMC2/wb-demo （未删除；如不需要可手动清理）

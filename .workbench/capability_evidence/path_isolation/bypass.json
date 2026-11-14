@@ -1,0 +1,10 @@
+{
+  "capability": "path_isolation",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport capability_probes as cp\ncp._isolated_bypass('path')",
+  "evidence_sha256": "8fb39a3fb5dfa265827fb9f234bdd2ebe64837fdab09dffaed7fe69882fb14fe",
+  "exit_code": 0,
+  "marker": "BYPASS_BLOCKED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "CHILD_RC 1\r\nCHILD_STDOUT_TAIL \r\nCHILD_STDERR_TAIL ile)\r\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 60, in _deny_path\r\r\n    raise PermissionError(\r\r\nPermissionError: WB_ISOLATE path_isolation: write outside scope denied 'C:\\\\Users\\\\THH32\\\\AppData\\\\Local\\\\Temp\\\\cap-iso-tg5a0z7m\\\\outside\\\\outside.txt'\r\nBYPASS_BLOCKED path enforced in isolated worker (WB_ISOLATE path_isolation)\r\n"
+}

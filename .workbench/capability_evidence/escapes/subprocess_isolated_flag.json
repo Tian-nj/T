@@ -1,0 +1,12 @@
+{
+  "escape": "subprocess_isolated_flag",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "blocked_good",
+  "mode": "subprocess_isolated_flag",
+  "note": "用 -I / -E / -S 起子进程：PYTHONPATH 被忽略 → shim 不装",
+  "rc": 1,
+  "reached": false,
+  "stderr_tail": " ^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 214, in _gpopen_init\r\n    raise PermissionError(\r\nPermissionError: WB_ISOLATE: python subprocess with ['-I'] refused (would disable sitecustomize and drop the isolation shim)",
+  "stdout_tail": "",
+  "verdict": "blocked"
+}

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "entries": [
+    {
+      "version": "3.2",
+      "config_version": 5,
+      "events_schema_version": 4,
+      "ts_ms": 1762000000000,
+      "changes": [
+        "P0-01 链哈希并发断链 → §5.6 单写者 + sidecar + epoch 栅栏",
+        "P0-02 迁移双载体 → §5.7 单载体，E08 为唯一载体",
+        "P0-03 verify/verify_fail 重叠 → E11 退役，合并进 E10.result",
+        "P0-04 heartbeat 事件缺失 → 心跳不进主链，写 state/hb/<task>.json",
+        "P0-05 hash_guard 自耗租约 → §11.3 三级校验",
+        "P0-06 Ed25519 无 stdlib 实现 → §2.3 两段式（HMAC Stage-1 / Ed25519 Stage-2）",
+        "P0-07 能力四态只约束声明 → §9.3 补偿控制矩阵 + 安全论证依赖表",
+        "P1-01..P1-19 全部落地",
+        "P2-01..P2-15 全部落地（P1-09 跳号说明见附录 I.4）",
+        "新增 E43/E44/E45，事件总数 45（43 活动 + 2 退役）",
+        "新增 T20/T21/T22，迁移总数 22",
+        "新增 system:health actor，actor 总数 16"
+      ]
+    }
+  ]
+}

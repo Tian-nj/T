@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "criterion": "config_compat_v1",
+  "note": "兼容键退役登记表。兼容读取是迁移期的桥，不是永久的第二把尺子；过了 deprecate_after_ms 仍留着旧键，K13 判红。期限由 gen_spec.py 单一生成，改它要重跑生成器并重签 manifest。",
+  "deprecations": [
+    {
+      "kind": "config_key",
+      "key": "memory.longterm_min_count",
+      "superseded_by": "memory.repeat_min_count",
+      "deprecate_after_ms": 1796083200000,
+      "why": "第五十二轮合并门槛时，repeat_min_count 与 longterm_min_count 两条出路各写一个 3，第四十八轮那种「差一分」正是同款错误。新键已接通两年内所有调用点，旧键只剩兼容读取；到期删除避免读者读错其中一个。"
+    },
+    {
+      "kind": "schema_key",
+      "key": "memory.longterm_min_count",
+      "superseded_by": "memory.repeat_min_count",
+      "deprecate_after_ms": 1796083200000,
+      "why": "spec/config.schema.json 的 keys.memory.children 仍把 longterm_min_count 声明成合法整数键（min 1 max 20）。 config.yaml 里删掉旧键不等于它退役：schema 还给它 留着身份，谁写回去都不会被 spec_invalid L004 拦下。 兼容期过后这条声明要一起删，否则两把尺子永远并存。"
+    }
+  ],
+  "counts": {
+    "deprecations": 2
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "dacl_restore": {
+    "detail": "DACL restored",
+    "ok": true
+  },
+  "delete_hr": "0x00000000",
+  "derive_after_delete_hr": "0x00000000",
+  "derive_after_delete_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+  "fixture_removed": true,
+  "probe_root": "C:\\Users\\THH32\\AppData\\Local\\Temp\\wb-appcontainer-8xxlebxx",
+  "profile_exists_error": null,
+  "profile_folder": null,
+  "profile_folder_left": false,
+  "profile_mapping_exists_after_delete": false,
+  "profile_name": "WbAppContainerProbe-30c06157386c-1794380899758",
+  "residual": false
+}

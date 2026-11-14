@@ -1,0 +1,191 @@
+# config.yaml — 运行配置（v3.2 附录 D，config_version 5）
+# 键集合封闭：出现本文件与 spec/config.schema.json 都没有的键 = spec_invalid（L004）。
+# project_uuid 由 scripts/sign_manifest.py 首次生成时写入，并与 root.manifest.uuid 恒等。
+
+config_version: 5
+doc_version: "3.2"
+events_schema_version: 4
+project_uuid: "175dcd06006595c5e20809e3138ba255"
+
+platform:
+  os: auto
+  case_sensitive_paths: auto
+  min_git_version: "2.38"
+
+global_config:
+  batch_max_parallel: 3
+  lease_ttl_sec: 30
+  lease_heartbeat_sec: 10
+  task_hard_timeout_min: 60
+  verify_timeout_sec: 900
+  task_archive_day: 7
+  wt_ttl_hours: 48
+  human_gate_sla_min: 240
+  max_attempts: 3
+  auto_approve_draft: false
+  kill_grace_sec: 5
+  single_task_budget:
+    wall_clock_min: 45
+  daily_budget:
+    wall_clock_min: 600
+    accounting: sum_of_task_wall_clock
+
+mg:
+  max_file_count: 5
+  max_net_line_count: 200
+  gray_batch_max: 10
+  allowed_paths: ["src/**", "tests/**", "docs/**"]
+  generated_paths: ["src/generated/**", "dist/**", "**/*.lock"]
+  smoke_cmd: "{py} .workbench/scripts/smoke.py"
+  never_waive: [contracts, db_migration, dependencies, cicd, file_delete, git_force, release, env_vars, high_risk_script, credentials, permissions, manifest_change]
+
+notify:
+  channels:
+    - {kind: file, path: .workbench/state/alerts.jsonl, min_level: p1}
+  watch_dog:
+    heartbeat_sec: 300
+    max_miss: 2
+
+metrics:
+  collector_sec: 300
+  window_days: 7
+  snapshot_interval_min: 15
+  snapshot_retention_day: 90
+
+security:
+  manifest_verify:
+    mode: boot_tick_critical
+    tick_sec: 60
+  secret_scan:
+    enabled: true
+    surface: [patch_added_lines, events_added_lines, progress_md, handoff_md, result_json, verify_log]
+  path_policy:
+    spec: spec/paths.yaml
+
+# 角色 → agent 分配表的落点（v3.2 之外的本机扩展，见 roles/agents.json）
+agents:
+  registry: .workbench/roles/agents.json
+  default_pool: local
+
+# 四个定时器脚本的执行点（scheduler.py）。
+# 在 scheduler.py 出现之前，这段配置并不存在，而那四个脚本的 main()
+# 只被人手工敲过 —— 于是"闸门 240 分钟超时"和"worker 死了要报"
+# 这两条规则都写在代码里、跑在文档里、从没跑在机器上。
+scheduler:
+  tick_sec: 30
+  stale_factor: 4
+  jobs:
+    health:      {enabled: true, interval_sec: 60}
+    gate_timer:  {enabled: true, interval_sec: 60}
+    metrics:     {enabled: true, interval_sec: 300}
+    gc:          {enabled: true, interval_sec: 3600}
+    # dream：唯一按「每天一次」跑的 job。run_time 是本地时刻 HH:MM，
+    # 不是 interval —— 用 interval 会让"整理哪一天"取决于它什么时候被唤醒。
+    dream:       {enabled: true, interval_sec: 86400, run_time: "04:00"}
+    # observe（第三十一轮候选 3）：长期自运转观察。它每 300 秒追加一个趋势点，
+    # 不是因为调度器需要被观察得这么密，而是因为 7 天窗口要「自己长出来」就必须
+    # 由机器在无人值守时持续记录 —— 之前 trend 只有 3~5 个点，全靠人手工敲
+    # record，于是 maturity 永远是 0.3h / ready=false。
+    # 300s 而不是 30s：一个点就是一行 JSONL，30s 会给 7 天攒 20 万行，
+    # 而趋势要回答的是「小时级/天级是否稳定」，分钟级噪声只会让 p95 变胖。
+    observe:     {enabled: true, interval_sec: 300}
+    # decay（第五十一轮）：记忆的降档与衰减。
+    # 它一直有实现（memory_store.decay）也有 selftest，但**没有调度入口** ——
+    # forget_after_days / fuzzy_after_days / 降档 / 归档全部永不发生，
+    # 记忆只增不减。这与第五十轮修的「有函数没人传参」是同一个形状：
+    # 代码在、入口没有，而且不会报错，只会让 everything 一直是「刚记住」。
+    # 3600s 而不是每天一次：衰减按 idle_days 算，跑得勤不会多降档
+    # （一天最多降一档，且 fuzzy_after_days 内不动），但恢复得快。
+    decay:       {enabled: true, interval_sec: 3600}
+    # 结算比衰减快一档：任务状态在链上随时会走到 done，
+    # 而 working 层的意义就是「最近在做什么」，晚一小时搬走不算错，
+    # 但没必要等到一小时 —— 这一步只读状态、只搬文件，很便宜。
+    settle:      {enabled: true, interval_sec: 1800}
+
+digests:
+  contracts_index: "contracts/index.json"
+  acceptance_template: "templates/acceptance.yaml"
+
+# ---------------------------------------------------------------- 识海（W1–W4）
+# 这四段都是「脚本里有默认值、config 覆盖它」的写法。默认值写在代码里，
+# 是为了让缺这段配置时行为可预测；写在这里，是为了让口径能在不改代码的前提下调。
+# 反过来的做法（只有 config、代码里没有兜底）会让缺键变成崩溃，
+# 而缺键在演示仓里太容易出现了。
+persona:
+  # 每轮注入的总字符预算。超了按 SECTION_ORDER 整段丢弃
+  # （core > 行为契约 > 分诊 > 心绪 > 心念 > 显忆 > 隐忆）。
+  # 第三十九轮从 3200 提到 4000：加了「分诊」段却没提预算，结果是
+  # core(1612)+契约(1049)+分诊(929)=3590 > 3200，分诊整段被丢掉 ——
+  # 测试全绿、brief 里没有这一段。「声明了但够不着」和「没声明」一样。
+  #
+  # 第五十轮从 4000 提到 4600：接了召回之后，lead 的静态四段 3676
+  # 加上显忆 330 需要 ~4010，4000 差十几字符，而截断是整段进或整段不进，
+  # 于是「召回到了但没进 brief」。这次不是拍新的数，是按实测段落长度重估：
+  # 3676(静态) + 600(显忆预留) + ~320(余量给心绪之外的段增长)。
+  inject_max_chars: 4600
+  # 显忆段单独预留的额度。不预留的话它排在 SECTION_ORDER 倒数第二，
+  # 恒定的四段先把预算吃满，每轮变化的记忆永远垫底被丢 ——
+  # 那等于这个系统只记得自己是谁、不记得做过什么。
+  # 预留上限是总预算的 1/3（防止记忆把人格挤没，那是同一个错误的镜像）。
+  recall_reserve_chars: 600
+
+memory:
+  recall_top_n: 8
+  # 第五十九轮：working 层（「最近在做什么」）的硬上限。
+  # 第五十一轮给了写入者、第五十二轮给了状态机出口，但两者都不封顶 ——
+  # 长任务连着派、状态机迟迟不进 done 时，working/ 会无界增长。而 recall()
+  # 是**全层遍历**再按 top_n 截断：陈旧 working 条目会把真正相关的
+  # task/project/longterm 挤出候选，于是「记得越多、想得越不准」。
+  # 24 = 3 × recall_top_n，留三倍缓冲又不放任增长。
+  # 超限不是丢弃：最久未召回的条目搬进 task 层并在文件里留
+  # capacity_evicted_* 痕（层是生命周期位置，不是价值判断，见 §17.2w）。
+  working_max_entries: 24
+  # 记住多久之后开始变模糊：太短会让"昨天刚说的"也变模糊，
+  # 太长则模糊档永远不出现，那这套档级就只是装饰。
+  fuzzy_after_days: 7
+  # 超过这个天数且重要性 < 50 且与 BOSS 无关 → 归档（内容不删）。
+  forget_after_days: 60
+  # 「反复出现」的最小重复次数 —— 全仓唯一权威源（第五十二轮）。
+  # 它同时决定两件事，所以只能有一个数：
+  #   · 跨任务规律够不够格进 longterm 层；
+  #   · 够不够格被提成成长候选（growth_candidates）。
+  # 第五十一轮之前这两处各写一个 3，第四十八轮那次「差一分」正是同款错误
+  # 的另一面：两条判据各说各话，一边算达标另一边算不达标。
+  # 旧名 longterm_min_count 仍被兼容读取（优先级低于本键）。
+  repeat_min_count: 3
+  # 向量召回：与关键词各出一路候选再融合。
+  # dims 是 hashing-embedding 的输出维度（不依赖外部模型，见 memory_store.embed）；
+  # keyword_weight_bp 是融合时关键词一路的权重（万分比）——
+  # 工程对话里 `E53` `T-0008` `digest` 这类标识符只有关键词能精确命中，
+  # 所以关键词一路默认略高于向量（5500 : 4500）。
+  vector:
+    enabled: true
+    dims: 512
+    keyword_weight_bp: 5500
+    # 向量路的入场门槛（万分比余弦）。实测分布：
+    #   完全无关 0.000–0.105 / 同一件事换词 0.058 / 近义改写 0.237 / 标识符 0.397
+    # 门槛取 0.12：把"无关"挡在外面，又不像 0.20 那样连"近义改写"一起误杀。
+    # 这是**字面近似**的投影，不是语义模型 —— 近义词映射不上是已知代价。
+    min_cos_bp: 1200
+  importance:
+    event: 70
+    fact: 42
+    preference: 42
+    promise: 42
+    lesson: 50
+
+emotion:
+  base: 70
+  floor: 0
+  decay_half_hours: 12
+  affect_reset_minutes: 90
+
+dream:
+  # 少于这么多条实质事件就不跑：没有素材硬写一篇日记是编。
+  min_events: 3
+  window_hours: 24
+  max_growth_candidates: 3
+  # 第四十八轮：每天只点一次，某天素材不足或机器停过，那天就永久空着。
+  # 补账把最近 backlog_days 天里没真整理成的日子逐个跑一遍。
+  # 0 = 不补（关掉的理由只有一个：链很长时读全链会变慢）。
+  backlog_days: 3

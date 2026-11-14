@@ -1,0 +1,90 @@
+{
+  "criterion": "lock_sample_provenance_v1",
+  "groups": {
+    "k:6a0a5ea5bae74fae811ec71d427792f5-1794502862479": {
+      "hold_samples": 1,
+      "identity": [
+        27764,
+        "6a0a5ea5bae74fae811ec71d427792f5-1794502862479",
+        1794502862479
+      ],
+      "key": "k:6a0a5ea5bae74fae811ec71d427792f5-1794502862479",
+      "legacy": false,
+      "pid": 27764,
+      "proc_key": "6a0a5ea5bae74fae811ec71d427792f5-1794502862479",
+      "proc_start_ms": 1794502862479,
+      "unattributed": false,
+      "wait_samples": 0
+    },
+    "k:753098d1d2bf41e5bea4b554bad867f0-1794502561659": {
+      "hold_samples": 2,
+      "identity": [
+        23724,
+        "753098d1d2bf41e5bea4b554bad867f0-1794502561659",
+        1794502561659
+      ],
+      "key": "k:753098d1d2bf41e5bea4b554bad867f0-1794502561659",
+      "legacy": false,
+      "pid": 23724,
+      "proc_key": "753098d1d2bf41e5bea4b554bad867f0-1794502561659",
+      "proc_start_ms": 1794502561659,
+      "unattributed": false,
+      "wait_samples": 0
+    },
+    "k:af65368dee22462bbe39173e445c9783-1794503222333": {
+      "hold_samples": 1,
+      "identity": [
+        27580,
+        "af65368dee22462bbe39173e445c9783-1794503222333",
+        1794503222333
+      ],
+      "key": "k:af65368dee22462bbe39173e445c9783-1794503222333",
+      "legacy": false,
+      "pid": 27580,
+      "proc_key": "af65368dee22462bbe39173e445c9783-1794503222333",
+      "proc_start_ms": 1794503222333,
+      "unattributed": false,
+      "wait_samples": 0
+    },
+    "k:b0b34517bbd249c780afa959af2a7f6b-1794502499049": {
+      "hold_samples": 7,
+      "identity": [
+        9988,
+        "b0b34517bbd249c780afa959af2a7f6b-1794502499049",
+        1794502499049
+      ],
+      "key": "k:b0b34517bbd249c780afa959af2a7f6b-1794502499049",
+      "legacy": false,
+      "pid": 9988,
+      "proc_key": "b0b34517bbd249c780afa959af2a7f6b-1794502499049",
+      "proc_start_ms": 1794502499049,
+      "unattributed": false,
+      "wait_samples": 0
+    },
+    "k:ba7cb5175df9488c98d7f7f52e46c041-1794502204293": {
+      "hold_samples": 1,
+      "identity": [
+        20252,
+        "ba7cb5175df9488c98d7f7f52e46c041-1794502204293",
+        1794502204293
+      ],
+      "key": "k:ba7cb5175df9488c98d7f7f52e46c041-1794502204293",
+      "legacy": false,
+      "pid": 20252,
+      "proc_key": "ba7cb5175df9488c98d7f7f52e46c041-1794502204293",
+      "proc_start_ms": 1794502204293,
+      "unattributed": false,
+      "wait_samples": 0
+    }
+  },
+  "hold_samples": 12,
+  "identity_conflicts": [],
+  "legacy_rows": 0,
+  "note": "只作溯源；p99 由 read_rows() 逐行计算，本视图不合并任何样本。pid 复用不影响分布，按进程去重才会让 p99 静默变小。",
+  "process_count": 5,
+  "since_ms": 1794502000000,
+  "unattributed_rows": 0,
+  "until_ms": null,
+  "untimed_rows": 0,
+  "wait_samples": 0
+}

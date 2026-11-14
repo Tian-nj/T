@@ -1,0 +1,2 @@
+{"level": "B", "missing": [], "ran": ["gen_spec.py --check（仅当动生成源）", "run_all_checks.sh", "sign_manifest.py --init", "sign_manifest.py --verify", "spec_lint.py", "targeted_test"], "required": ["gen_spec.py --check（仅当动生成源）", "sign_manifest.py --init", "sign_manifest.py --verify", "spec_lint.py", "targeted_test", "run_all_checks.sh"], "ts_ms": 1794318375962, "verdict": "OK"}
+{"gen_spec_required": false, "level": "A", "missing": [], "ran": ["py_compile", "targeted_test"], "required": ["py_compile", "targeted_test"], "ts_ms": 1794320342402, "verdict": "OK"}

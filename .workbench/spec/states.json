@@ -1,0 +1,328 @@
+{
+  "schema": 1,
+  "states": [
+    "draft",
+    "pending",
+    "blocked",
+    "claimed",
+    "in_progress",
+    "submitted",
+    "done",
+    "rejected",
+    "escalated",
+    "pending_human",
+    "cancelled",
+    "archived"
+  ],
+  "model": {
+    "carrier": "E08",
+    "carrier_rule": "每条 state 迁移恰好由一条 E08 承接；业务事件不带 from/to，用 meta.state_ref 指向因果 E08 的 seq",
+    "initial": "draft",
+    "terminal": [
+      "done",
+      "cancelled",
+      "archived"
+    ]
+  },
+  "transitions": [
+    {
+      "id": "T01",
+      "from": null,
+      "to": "draft",
+      "authority": [
+        "system:bootstrap",
+        "human:*",
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "任务建立"
+    },
+    {
+      "id": "T02",
+      "from": "draft",
+      "to": "pending",
+      "authority": [
+        "lead",
+        "human:*"
+      ],
+      "carrier": "state",
+      "note": "草案转正"
+    },
+    {
+      "id": "T03",
+      "from": "pending",
+      "to": "blocked",
+      "authority": [
+        "system:dep_resolver",
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "依赖未就绪"
+    },
+    {
+      "id": "T04",
+      "from": "blocked",
+      "to": "pending",
+      "authority": [
+        "system:dep_resolver",
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "依赖就绪"
+    },
+    {
+      "id": "T05",
+      "from": "pending",
+      "to": "claimed",
+      "authority": [
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "领取"
+    },
+    {
+      "id": "T06",
+      "from": "claimed",
+      "to": "in_progress",
+      "authority": [
+        "lead",
+        "system:verifier",
+        "system:runner"
+      ],
+      "carrier": "state",
+      "note": "启动"
+    },
+    {
+      "id": "T07",
+      "from": "in_progress",
+      "to": "submitted",
+      "authority": [
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "提交"
+    },
+    {
+      "id": "T08",
+      "from": "submitted",
+      "to": "done",
+      "authority": [
+        "system:verifier"
+      ],
+      "carrier": "state",
+      "note": "验收通过（H1）"
+    },
+    {
+      "id": "T09",
+      "from": "submitted",
+      "to": "rejected",
+      "authority": [
+        "system:verifier",
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "验收不通过"
+    },
+    {
+      "id": "T10",
+      "from": "rejected",
+      "to": "claimed",
+      "authority": [
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "返工"
+    },
+    {
+      "id": "T11",
+      "from": "*",
+      "to": "pending_human",
+      "authority": [
+        "lead",
+        "system:gate_timer"
+      ],
+      "carrier": "state",
+      "note": "挂人工闸门"
+    },
+    {
+      "id": "T23",
+      "from": "pending_human",
+      "to": "blocked",
+      "authority": [
+        "system:gate_timer"
+      ],
+      "carrier": "state",
+      "note": "人工闸门超时转阻断（§16.2）"
+    },
+    {
+      "id": "T12",
+      "from": "pending_human",
+      "to": "*",
+      "authority": [
+        "human:*"
+      ],
+      "carrier": "state",
+      "note": "回到 return_state"
+    },
+    {
+      "id": "T13",
+      "from": "pending_human",
+      "to": "cancelled",
+      "authority": [
+        "human:*",
+        "system:gate_timer"
+      ],
+      "carrier": "state",
+      "note": "闸门超时取消"
+    },
+    {
+      "id": "T14",
+      "from": "*",
+      "to": "escalated",
+      "authority": [
+        "lead",
+        "system:verifier",
+        "system:merge_queue"
+      ],
+      "carrier": "state",
+      "note": "升级"
+    },
+    {
+      "id": "T15",
+      "from": "escalated",
+      "to": "done",
+      "authority": [
+        "human:*"
+      ],
+      "carrier": "state",
+      "note": "人工裁定完成（H1 第二支）"
+    },
+    {
+      "id": "T16",
+      "from": "escalated",
+      "to": "pending",
+      "authority": [
+        "human:*"
+      ],
+      "carrier": "state",
+      "note": "人工退回重排"
+    },
+    {
+      "id": "T17",
+      "from": "*",
+      "to": "cancelled",
+      "authority": [
+        "lead",
+        "human:*",
+        "system:dep_resolver"
+      ],
+      "carrier": "state",
+      "note": "取消"
+    },
+    {
+      "id": "T18",
+      "from": "done",
+      "to": "archived",
+      "authority": [
+        "system:gc"
+      ],
+      "carrier": "state",
+      "note": "归档"
+    },
+    {
+      "id": "T19",
+      "from": "escalated",
+      "to": "cancelled",
+      "authority": [
+        "human:*"
+      ],
+      "carrier": "state",
+      "note": "升级后取消"
+    },
+    {
+      "id": "T20",
+      "from": "rejected",
+      "to": "draft",
+      "authority": [
+        "human:*"
+      ],
+      "carrier": "state",
+      "note": "拆任务/改标准需回 draft 重走转正"
+    },
+    {
+      "id": "T21",
+      "from": "submitted",
+      "to": "blocked",
+      "authority": [
+        "system:verifier"
+      ],
+      "carrier": "state",
+      "note": "验收期间依赖被改坏"
+    },
+    {
+      "id": "T22",
+      "from": "blocked",
+      "to": "cancelled",
+      "authority": [
+        "system:dep_resolver",
+        "lead"
+      ],
+      "carrier": "state",
+      "note": "阻断超期取消"
+    }
+  ],
+  "hard_rules": [
+    {
+      "id": "H1",
+      "rule": "done 只能由 E10{result:\"pass\"} 或 E18 escalate_resolve 触发",
+      "invariant": "I-3"
+    },
+    {
+      "id": "H2",
+      "rule": "E23 human_override 目标态白名单 pending/cancelled/blocked/in_progress，禁 done",
+      "invariant": "I-1"
+    },
+    {
+      "id": "H3",
+      "rule": "priority=P0 只能由 E21 human_approve 设定",
+      "invariant": "I-6"
+    },
+    {
+      "id": "H4",
+      "rule": "cancelled 若来自 E19 dep_cascade 且 never_spawned，跳过 kill 并记 meta.skipped_reason",
+      "invariant": "I-1"
+    },
+    {
+      "id": "H5",
+      "rule": "进入 escalated 前必须确认 worker 已死透（E07 完成且 pid_alive=false）",
+      "invariant": "I-3"
+    },
+    {
+      "id": "H6",
+      "rule": "draft 自动确认仅当 auto_approve_draft ∧ priority=P2；W1 强制 auto_approve_draft=false",
+      "invariant": "I-6"
+    },
+    {
+      "id": "H7",
+      "rule": "attempts 存 tasks.json，E12 retry 加 1，上限 max_attempts",
+      "invariant": "I-6"
+    }
+  ],
+  "sentinel": {
+    "no_state": "(none)",
+    "meaning": "任务尚未存在（还没有任何一条 state 迁移落在这条任务上）。与 [] 不同：[] 表示不限制前置态。",
+    "appears_in": "events.schema.json 的 from_states 数组元素位置",
+    "used_by": [
+      "E02"
+    ],
+    "consumers": [
+      "wb_core.append_event",
+      "spec_lint.S023"
+    ]
+  },
+  "counts": {
+    "states": 12,
+    "transitions": 23,
+    "hard_rules": 7
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "capability": "external_alert",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport threading,http.server,secret_scan\nclass H(http.server.BaseHTTPRequestHandler):\n def do_POST(self):\n  n=int(self.headers.get('Content-Length',0));self.rfile.read(n)\n  self.send_response(200);self.end_headers();self.wfile.write(b'ok')\n def log_message(self,*a):pass\nsrv=http.server.HTTPServer(('127.0.0.1',0),H)\nthreading.Thread(target=srv.serve_forever,daemon=True).start()\nos.environ['W4_WEBHOOK']='http://127.0.0.1:%d/alert'%srv.server_port\nr=secret_scan._send_webhook({'url_env':'W4_WEBHOOK'},{'kind':'probe','count':1})\nsrv.shutdown()\nprint('WEBHOOK',r)\nassert any(x.get('status')==200 for x in r)\nprint('OK local webhook received status 200')",
+  "evidence_sha256": "c4ace3fdb4469bbf430eab893c684c4d5b0c9ca85d1dc5105163d36d7da03568",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "WEBHOOK [{'channel': 'webhook', 'status': 200}]\r\nOK local webhook received status 200\r\n"
+}

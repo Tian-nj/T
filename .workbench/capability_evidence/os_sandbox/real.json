@@ -1,0 +1,10 @@
+{
+  "capability": "os_sandbox",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport wb_core; cfg=wb_core.yaml_parse_file(os.path.join(os.path.dirname(os.environ['WB_SCRIPTS']),'config.yaml'))\nv=cfg['global_config']['batch_max_parallel']\nprint('BATCH_MAX_PARALLEL',v)\nassert v<=3\nprint('OK X3 compensation: parallelism capped <= 3')",
+  "evidence_sha256": "8dba06f28378a03d244211f1456de454664d873a55726044f8cc8a565f4a40e6",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "BATCH_MAX_PARALLEL 3\r\nOK X3 compensation: parallelism capped <= 3\r\n"
+}

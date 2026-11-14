@@ -1,0 +1,377 @@
+{
+  "bad": [],
+  "bad_lines": 0,
+  "clamped": null,
+  "criterion": "lock_calibration_v1",
+  "current_covers_proposal": true,
+  "current_is_enough": true,
+  "current_timeout_ms": 30000,
+  "declared": {
+    "backoff_max_ms": 50,
+    "backoff_start_ms": 2,
+    "criterion": "lock_semantics_v1",
+    "ok": true,
+    "timeout_exception": "wb_core.LockTimeout",
+    "timeout_ms_default": 30000
+  },
+  "factor": 20,
+  "holds": {
+    "count": 244,
+    "max": 5421,
+    "min": 0,
+    "p50": 16,
+    "p90": 30,
+    "p99": 155
+  },
+  "loss_rows": [],
+  "losses": {
+    "bad_lines": 0,
+    "hold_losses": 0,
+    "legacy_rows": 0,
+    "note_losses": 0,
+    "pids": 0,
+    "processes": 0
+  },
+  "min_samples": 200,
+  "proposed_timeout_ms": 3100,
+  "provenance": {
+    "criterion": "lock_sample_provenance_v1",
+    "hold_samples": 244,
+    "identity_conflicts": [],
+    "legacy_rows": 234,
+    "loss_identity_conflicts": [],
+    "note": "只作溯源；p99 由 read_rows() 逐行计算，本视图不合并任何样本。pid 复用不影响分布，按进程去重才会让 p99 静默变小。",
+    "process_count": 171,
+    "unattributed_rows": 0,
+    "wait_samples": 1
+  },
+  "sample_provenance": {
+    "criterion": "lock_sample_provenance_v1",
+    "groups": [
+      {
+        "hold_samples": 1,
+        "identity": [
+          16340,
+          null,
+          null
+        ],
+        "key": "legacy:pid:16340",
+        "legacy": true,
+        "pid": 16340,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 2,
+        "identity": [
+          22344,
+          null,
+          null
+        ],
+        "key": "legacy:pid:22344",
+        "legacy": true,
+        "pid": 22344,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          12328,
+          null,
+          null
+        ],
+        "key": "legacy:pid:12328",
+        "legacy": true,
+        "pid": 12328,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          10600,
+          null,
+          null
+        ],
+        "key": "legacy:pid:10600",
+        "legacy": true,
+        "pid": 10600,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 2,
+        "identity": [
+          15616,
+          null,
+          null
+        ],
+        "key": "legacy:pid:15616",
+        "legacy": true,
+        "pid": 15616,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          452,
+          null,
+          null
+        ],
+        "key": "legacy:pid:452",
+        "legacy": true,
+        "pid": 452,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          11920,
+          null,
+          null
+        ],
+        "key": "legacy:pid:11920",
+        "legacy": true,
+        "pid": 11920,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 3,
+        "identity": [
+          20892,
+          null,
+          null
+        ],
+        "key": "legacy:pid:20892",
+        "legacy": true,
+        "pid": 20892,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          16968,
+          null,
+          null
+        ],
+        "key": "legacy:pid:16968",
+        "legacy": true,
+        "pid": 16968,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          14736,
+          null,
+          null
+        ],
+        "key": "legacy:pid:14736",
+        "legacy": true,
+        "pid": 14736,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 2,
+        "identity": [
+          11944,
+          null,
+          null
+        ],
+        "key": "legacy:pid:11944",
+        "legacy": true,
+        "pid": 11944,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          27256,
+          null,
+          null
+        ],
+        "key": "legacy:pid:27256",
+        "legacy": true,
+        "pid": 27256,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          14732,
+          null,
+          null
+        ],
+        "key": "legacy:pid:14732",
+        "legacy": true,
+        "pid": 14732,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 2,
+        "identity": [
+          8632,
+          null,
+          null
+        ],
+        "key": "legacy:pid:8632",
+        "legacy": true,
+        "pid": 8632,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 2,
+        "identity": [
+          20900,
+          null,
+          null
+        ],
+        "key": "legacy:pid:20900",
+        "legacy": true,
+        "pid": 20900,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          16376,
+          null,
+          null
+        ],
+        "key": "legacy:pid:16376",
+        "legacy": true,
+        "pid": 16376,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          26028,
+          null,
+          null
+        ],
+        "key": "legacy:pid:26028",
+        "legacy": true,
+        "pid": 26028,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 2,
+        "identity": [
+          6632,
+          null,
+          null
+        ],
+        "key": "legacy:pid:6632",
+        "legacy": true,
+        "pid": 6632,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          23384,
+          null,
+          null
+        ],
+        "key": "legacy:pid:23384",
+        "legacy": true,
+        "pid": 23384,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      },
+      {
+        "hold_samples": 1,
+        "identity": [
+          26728,
+          null,
+          null
+        ],
+        "key": "legacy:pid:26728",
+        "legacy": true,
+        "pid": 26728,
+        "proc_key": null,
+        "proc_start_ms": null,
+        "unattributed": false,
+        "wait_samples": 0
+      }
+    ],
+    "hold_samples": 244,
+    "identity_conflicts": [],
+    "legacy_rows": 234,
+    "note": "只作溯源；p99 由 read_rows() 逐行计算，本视图不合并任何样本。pid 复用不影响分布，按进程去重才会让 p99 静默变小。",
+    "process_count": 171,
+    "unattributed_rows": 0,
+    "wait_samples": 1
+  },
+  "schema": 1,
+  "starvation": {
+    "max_waited_ms": 32,
+    "note": "aging 只降低长等待者的退避上限，不保证先到先得：这是概率改善，不是公平锁。真正的公平需要票据队列，而队列会引入『队首卡死 = 全员卡死』这种本仓目前没有的故障模式。",
+    "p99_waited_ms": 32,
+    "timeouts": 0,
+    "waits_total": 1
+  },
+  "verdict": "CALIBRATED",
+  "waits": {
+    "count": 1,
+    "max": 32,
+    "min": 32,
+    "p50": 32,
+    "p90": 32,
+    "p99": 32
+  }
+}

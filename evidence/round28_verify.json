@@ -1,0 +1,26 @@
+{
+  "criterion": "telemetry_snapshot_verify_v1",
+  "expected_snapshot_digest": "sha256:d4cef6442fe22a02b5ff4c968eb549a248fa61c742ef4e71b96b229f7c959c69",
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\telemetry_window_snapshot.json",
+  "problems": [],
+  "report_digest": "sha256:4fc16dae44606d1a666bd3f983e9407a1ff0a94594980dda30a5d089ee4fc8c2",
+  "schema": 1,
+  "snapshot_digest": "sha256:d4cef6442fe22a02b5ff4c968eb549a248fa61c742ef4e71b96b229f7c959c69",
+  "snapshot_sha256": "71e77e65706b3e1082f96a52ccc4a871798d7d95a461c0f909353f6a2e3e60f3",
+  "source_hashes": {
+    "state/appcontainer_probe.jsonl": {
+      "current_bytes": 1113,
+      "current_sha256": "7a39fbe6f10dc80c5fade47c6907b11cbbdae88a293355487791436ddc3f04f2",
+      "matches": true,
+      "prefix_bytes": 1113
+    },
+    "state/containment.jsonl": {
+      "current_bytes": 3807,
+      "current_sha256": "a83e3f90271b0c5e68c0c17fe8401a1c4acc3836e17329ae288274b3e81650a9",
+      "matches": true,
+      "prefix_bytes": 3807
+    }
+  },
+  "verdict": "TELEMETRY_SNAPSHOT_VERIFIED",
+  "w4_participates": false
+}

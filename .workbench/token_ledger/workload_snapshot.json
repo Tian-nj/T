@@ -1,0 +1,35 @@
+{
+  "cache_prefix_id": "cpfx-0ec5c8bcd813cd07",
+  "files": [
+    {
+      "bytes": 51773,
+      "chars": 32579,
+      "path": "README.md",
+      "sha256": "94ee824e5d327dd34dd496f6ba900f36c96f6f5aad682af0ecb42174670da894"
+    },
+    {
+      "bytes": 9907,
+      "chars": 9364,
+      "path": ".workbench/spec/enums.json",
+      "sha256": "866dd9dd40d43782b0964e4448d132d5876dacc8c633aa5f9d94edf470521b92"
+    },
+    {
+      "bytes": 2902,
+      "chars": 2793,
+      "path": ".workbench/spec/rules.json",
+      "sha256": "1d856b546a12752cb300362cc3df53ccb9d6b1033880094c1500f99a6c3bf02b"
+    },
+    {
+      "bytes": 20704,
+      "chars": 19168,
+      "path": ".workbench/scripts/capability_probes.py",
+      "sha256": "543d5463ffc4d582a4dbad7b9fb2f9acfa87a1e68bf2644f59b8f36b5143024b"
+    }
+  ],
+  "generated_at": "2026-11-10T12:07:17+00:00",
+  "hash_prefix": "0ec5c8bcd813cd07",
+  "joint_sha256": "0ec5c8bcd813cd0781fafb8da47dceeb58496610592635c1c45684d4c6a9fd6d",
+  "root": "D:\\Users\\THH32\\DSH-ZNT\\workbench",
+  "total_bytes": 85286,
+  "total_chars": 63904
+}

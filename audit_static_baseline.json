@@ -1,0 +1,4 @@
+{
+ "dead": {},
+ "note": "audit_static 死代码基线。新增死函数判红；基线里的名字不再是死函数（被修/被改/被删）也判红 —— 白名单腐烂和新增同样必须有人动手。重写：python audit_static.py --write-baseline"
+}

@@ -1,0 +1,109 @@
+任务 T-R40  当前状态=None  executor=local_process
+
+──── 状态=None → 下一步=new（task-new：建草稿 + acceptance.draft.yaml）
+
+$ python.exe lead.py task-new --task T-R40 --title 主理人自己动手：lead 角色真派活全链路 --priority P2 --scope ** --cmd test_lead_doc.py
+
+──── 状态='draft' → 下一步=approve（task-approve：digest 自洽 → 转正进 pending）
+
+$ python.exe lead.py task-approve --task T-R40
+  T-R40 备料完成: E03=1069 E08=1070 digest=sha256:69dec145d14a94aec09a10d05d7b613ec49d06a56ca58b36c613089763a75163
+    待人工转正：human_cli.py --op acceptance_approve --args '{"task":"T-R40"}'（digest 由签名器从文件读，不手填）
+
+  ⚠ --sign-as yg：本次验收转正由操作者显式授权自动签名，人工确认环节被跳过。这一行会留在输出里作为凭据。
+
+$ python.exe human_cli.py --sub sign --principal yg --op acceptance_approve --args {"task": "T-R40"}
+  {
+    "principal": "yg",
+    "op": "acceptance_approve",
+    "args": {
+      "task": "T-R40"
+    },
+    "nonce": "7e64dde0",
+    "ts_ms": 1794461880417,
+    "sig": "6f1d7f97099930a205503a7ba7f8495f6ca5626d9aa3174477ea0e2c8a4eb131"
+  }
+
+$ python.exe human_cli.py --principal yg --op acceptance_approve --args {"task": "T-R40"} --nonce 7e64dde0 --ts_ms 1794461880417 --sig 6f1d7f97099930a205503a7ba7f8495f6ca5626d9aa3174477ea0e2c8a4eb131
+  ACCEPT acceptance_approve as human:yg
+    event {'kind': 'acceptance_approved', 'seq': 1071}
+
+──── 状态='pending' → 下一步=dispatch（dispatch：预算/依赖/scope 冲突三关过后选批）
+
+$ python.exe lead.py dispatch --json
+  {
+    "window": 3,
+    "chosen": [
+      {
+        "task": "T-R40",
+        "state": "pending",
+        "priority": "P2",
+        "downstream": 0,
+        "depends_on": [],
+        "created_seq": 1070,
+        "scope": [
+          "docs/architecture/**"
+        ]
+      }
+    ],
+    "plan_id": "PL-1794461880740",
+    "skipped": [],
+    "pool": "local",
+    "budget": {
+      "today": "2026-11-12",
+      "accounting": "sum_of_task_wall_clock",
+      "used_min": 0.2,
+      "daily_limit_min": 600.0,
+      "per_task": {
+        "T-0004": 10.9,
+        "T-0005": 4.7,
+        "T-0006": 0.1,
+        "T-0007": 0.1,
+        "T-0008": 0.0,
+        "T-R38": 0.2
+      },
+      "hard_timeout_min": 60.0
+    }
+  }
+  → T-R40 在本批计划内（plan=PL-1794461880740）
+
+$ python.exe lead.py task-claim --task T-R40
+
+──── 状态='claimed' → 下一步=prepare（agent_runner prepare：建 worktree + brief + job）
+
+$ python.exe agent_runner.py prepare --task T-R40 --role lead --executor local_process
+  WARN executor override: lead.executor 'harness_subagent' → 'local_process' (this run only)
+  worktree D:\Users\THH32\DSH-ZNT\workbench\.workbench\wt\T-R40 (created) base=5d634d6
+  brief    D:\Users\THH32\DSH-ZNT\workbench\.workbench\tasks\T-R40\brief.md
+  job      D:\Users\THH32\DSH-ZNT\workbench\.workbench\state\agent_jobs\T-R40.lead.json
+  sentinel D:\Users\THH32\DSH-ZNT\workbench\.workbench\state\agent_done\T-R40.lead.json
+  
+  外部执行体只需读 job 文件：executor / model / deadline / write_scope /
+  done_sentinel 全在里面，不需要口头转述。完成后：
+    agent_runner.py finish --task T-R40 --role lead --base 5d634d6
+
+$ python.exe agent_runner.py run --task T-R40 --role lead --executor local_process --entrypoint wb_demo_lead.py --submit --wait 1800
+  WARN executor override: lead.executor 'harness_subagent' → 'local_process' (this run only)
+  WARN entrypoint override: lead.entrypoint → 'D:/Users/THH32/DSH-ZNT/workbench/tests/wb_demo_lead.py' (this run only)
+  prepare: worktree=D:\Users\THH32\DSH-ZNT\workbench\.workbench\wt\T-R40 base=5d634d6eb1f6 brief=D:\Users\THH32\DSH-ZNT\workbench\.workbench\tasks\T-R40\brief.md
+  spawn  E05=1076 pid=6560 creation=-
+  state  E08=1077 claimed→in_progress (T06)
+  REFUSE T-R40/lead：写域越界
+    - None  mid-path wildcard not allowed in scope: '.workbench/tasks/**/brief.md'
+
+==================================================================
+🔵 在做 T-R40 正在做，当前状态 in_progress。
+
+§ 结论
+  落点：未合入
+
+§ 依据
+  · 验收标准已人工转正：E32 seq=1071 digest=sha256:69dec145
+  · 派给谁执行：E05 seq=1076 role=lead executor=local_process pid_observable=True
+
+§ 风险
+  ! 没有 E10：验收命令一次都没跑过 —— 这个任务的『做完了』目前只有执行体自己说过。
+
+§ 下一步
+  等执行体写 sentinel，然后 --resume。
+==================================================================

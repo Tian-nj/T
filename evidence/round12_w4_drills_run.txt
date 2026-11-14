@@ -1,0 +1,20 @@
+W4 DRILLS  temp_repo=C:\Users\THH32\AppData\Local\Temp\w4_drill_9fgfvol9  WB_HOME=C:\Users\THH32\AppData\Local\Temp\w4_drill_9fgfvol9\.workbench
+PROD_WB (read-only source)=D:\Users\THH32\DSH-ZNT\workbench\.workbench
+------------------------------------------------------------------------
+[E0] PASS          实测: `python.exe platform_ops.py selftest` rc=0 | 输出末行: '9 checks, 0 failed' | selftest 含 'kill_tree refuses pid reuse': True | 九项实现落点: | atomic_replace -> workbench/.work
+[E1] SCALED        实测(SCALED): 3 个 worker 真起子进程做 append+5.0s 工作，替代定稿 3×5min；串行基线=逐起逐等（3×5.0s 累加），并行=一次起 3 个一起等；按附录H.2 采样 3 轮（单次采样不作基线）。 | 逐轮: [{"serial_s": 15.111, "parallel_s": 5.06, "rati
+[E2] PASS          实测: diff_sandbox_check.check() 三路越界路径 | (a) 带 deny_abs 调用返回: {"ok": false, "violations": [{"file": "C:/Windows/System32/evil.dll", "reason": "deny_absolute_prefix: C:/Win
+[E3] ABSENT        实测(未跑 external API): workbench/.workbench/spec/enums.json:199 token_metering={"state": "absent", "note": "模型供应商无统一用量 API"}；扫描 <TMP>/.workbench/scripts/*.py 命中计量/用量接口符号的文件
+[E4] PASS          实测 E4a: scrub_env 输入含 6 个密钥类键 ["W4_API_KEY", "W4_AUTH_TOKEN", "W4_CREDENTIAL", "W4_PASSWORD", "W4_SECRET", "WORKBENCH_ROOT_KEY"]；漏出=[]；PATH/WB_TASK/WB_HOME 保留=True | 实测 E
+[E5] PASS          实测: 本地 HTTPServer 127.0.0.1:13582，config.yaml 注入 {kind:webhook,url_env:W4_WEBHOOK_URL,min_level:p1}；scan_text 命中 ["aws_access_key"] → alert(...,st=None) 返回 [{"channel": "
+[F08] PASS          实测: `sign_manifest.main([])` rc=0 输出 'wrote C:\\Users\\THH32\\AppData\\Local\\Temp\\w4_drill_9fgfvol9\\.workbench\\root.manifest  entries=47  algo=hmac-sha256-v1  uuid=17
+[F09] PASS          实测: <TMP>/.workbench/config.yaml 末尾追加顶层 `w4_drill_unknown_key: 1` | spec_lint.lint() 共 1 finding，S008 命中=[{"code": "S008", "detail": "config.yaml 多出未声明键: ['w4_drill_unkno
+[F10] PASS          实测: X1 expr 'lease_heartbeat_sec * 3 <= lease_ttl_sec' → 'lease_heartbeat_sec_typo * 3 <= lease_ttl_sec'（bindings 不变，标识符拼错） | spec_lint.lint() 共 1 finding；S015 求值失败命中=[{"
+[F12] PASS          实测: 链上 E32 acceptance_approved = {"seq": 218, "acceptance_digest": "sha256:CHAIN_APPROVED_ORIGINAL"} | 篡改 acceptance（A1='python --version'）并重算自洽 digest=sha256:a61a156e87c
+[F13] PASS          实测: diff_sandbox_check.check(scopes=['src/'], changed=[...]) | .workbench/scripts/evil.py -> {"ok": false, "violations": [{"file": ".workbench/scripts/evil.py", "reason":
+[F14] PASS          实测: 临时 git 仓造 base=a70bc02e / master=6a257d08 / feature=20faf8dc（merge-base=a70bc02e），conflict.txt 两侧改成不同内容 | `git merge-tree --write-tree 6a257d08 20faf8dc` rc=1 stdout=
+[F15] PASS          实测主分支: append state{from:null,to:'escalated'} ts=1794265993552；注入 now_ms=ts+14400001（SLA=240min=14400000ms） | scan(dry_run=True) -> sla_ms=14400000 fired=[{"task": "T-W4-
+------------------------------------------------------------------------
+SUMMARY {'pass': 11, 'fail': 0, 'scaled': 1, 'absent': 1, 'exposed_gap': 0, 'dependent': 0}  (DESIGNED_ONLY 见 designed_only_notes，不计入六项)
+JSON -> D:\Users\THH32\DSH-ZNT\workbench\evidence\round11_w4_drills.json
+touched_production_chain = false

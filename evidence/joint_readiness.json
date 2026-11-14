@@ -1,0 +1,34 @@
+{
+  "all_ready": false,
+  "blocked_count": 3,
+  "criterion": "joint_acceptance_v1",
+  "items": [
+    {
+      "id": "model",
+      "missing": [
+        "WB_REF_MODEL_ENDPOINT",
+        "WB_REF_MODEL_KEY"
+      ],
+      "ready": false,
+      "title": "真供应商模型",
+      "why": "缺 WB_REF_MODEL_ENDPOINT、WB_REF_MODEL_KEY：执行体会以 `refusing to pretend a model ran` 直接失败，不降级成 mock（这是设计，不是缺陷）"
+    },
+    {
+      "id": "actions",
+      "missing": [],
+      "ready": false,
+      "title": "GitHub Actions 真跑",
+      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+    },
+    {
+      "id": "window",
+      "missing": [],
+      "ready": false,
+      "title": "7 天观察窗口",
+      "why": "观察跨度 50.057/168 小时，ETA 2026-11-18T15:07:45Z；此时任何「日级结论」都是单点外推"
+    }
+  ],
+  "mode": "readiness",
+  "ready_count": 0,
+  "schema": 1
+}

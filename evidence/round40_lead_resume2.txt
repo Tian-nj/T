@@ -1,0 +1,65 @@
+任务 T-R40  当前状态='done'  executor=local_process
+
+──── 状态='done' → 下一步=merge（merge_queue：过闸门 → 合入）
+
+$ python.exe merge_queue.py --dry-run
+  merge_queue → master (dry_run=True)
+    MERGED   T-R40  tree=d821af8595cb
+    SKIP     T-0004  — already merged
+    SKIP     T-0005  — already merged
+    SKIP     T-0006  — already merged
+    SKIP     T-0007  — already merged
+    SKIP     T-0008  — already merged
+    SKIP     T-R38  — already merged
+  merged 1 / rejected 0 / gated 0 / skipped 6
+
+  ✓ 预演通过：这一笔可以合（还没合）。
+
+  ⚠ --sign-as yg：本次由操作者显式授权自动签名，闸门的人工确认环节被跳过。这一行会留在输出里作为凭据。
+
+$ python.exe human_cli.py --sub sign --principal yg --op human_approve --args {"task": "T-R40"}
+  {
+    "principal": "yg",
+    "op": "human_approve",
+    "args": {
+      "task": "T-R40"
+    },
+    "nonce": "7124c204",
+    "ts_ms": 1794464918424,
+    "sig": "96a3df877d59056352a56adaf552b5bed54cb30378229294593ba1c7c5db05ca"
+  }
+
+$ python.exe human_cli.py --principal yg --op human_approve --args {"task": "T-R40"} --nonce 7124c204 --ts_ms 1794464918424 --sig 96a3df877d59056352a56adaf552b5bed54cb30378229294593ba1c7c5db05ca
+  ACCEPT human_approve as human:yg
+    event {'kind': 'human_approve', 'seq': 1096}
+
+$ python.exe merge_queue.py
+    MERGED   T-R40  tree=d821af8595cb
+    SKIP     T-0004  — already merged
+    SKIP     T-0005  — already merged
+    SKIP     T-0006  — already merged
+    SKIP     T-0007  — already merged
+    SKIP     T-0008  — already merged
+    SKIP     T-R38  — already merged
+
+✅ T-R40 MERGED
+
+==================================================================
+✅ 成了 T-R40 已合入 master，提交 80a9c6a。
+
+§ 结论
+  落点：master@80a9c6a
+
+§ 依据
+  · 验收标准已人工转正：E32 seq=1071 digest=sha256:69dec145
+  · 派给谁执行：E05 seq=1076 role=lead executor=local_process pid_observable=True
+  · 改了什么：E09 seq=1086 1 个文件 ['docs/architecture/T-R40-lead-dispatch.md'] commit=32143fb
+  · 验收跑出来的结果：E10 seq=1088 result=pass exit=0 耗时=88ms log=tasks/T-R40/verify.log
+  · 合到哪：E15 seq=1097 master ← 32143fb (merge_commit=80a9c6a)
+
+§ 风险
+  ! 无已知风险（依据：链上有 E32 + E10 pass + E15 合入）。
+
+§ 下一步
+  无。要复核就按上面「依据」里的 log 路径重跑一次验收。
+==================================================================

@@ -1,0 +1,12 @@
+{
+  "escape": "socket_via__socket",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "blocked_good",
+  "mode": "socket_via__socket",
+  "note": "绕开 socket.socket，直接用 CPython 内建 _socket.socket",
+  "rc": 1,
+  "reached": false,
+  "stderr_tail": "er_shim\\sitecustomize.py\", line 80, in connect\r\n    _deny_net(address)\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 56, in _deny_net\r\n    raise PermissionError(\r\nPermissionError: WB_ISOLATE network_deny: outbound connect denied ('198.51.100.9', 80)",
+  "stdout_tail": "",
+  "verdict": "blocked"
+}

@@ -1,0 +1,59 @@
+{
+  "asymmetric_algo": "cng-ecdsa-p256-sha256",
+  "asymmetric_ok": true,
+  "asymmetric_reason": "",
+  "criterion": "scheduler_observation_verify_v1",
+  "expected_report_digest": "sha256:90d08641317ae83893fe8db8d5cff9572c1e7ed17eb0b4b9939f68094aad4942",
+  "expected_snapshot_hmac": "hmac-sha256:1cf05bf7ac7a0b16cb0a526109468d4e082dc5807211b6ae09c4e57f4b291718",
+  "hmac_ok": true,
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\scheduler_observation_snapshot.json",
+  "problems": [],
+  "report_digest": "sha256:90d08641317ae83893fe8db8d5cff9572c1e7ed17eb0b4b9939f68094aad4942",
+  "schema": 1,
+  "snapshot_hmac": "hmac-sha256:1cf05bf7ac7a0b16cb0a526109468d4e082dc5807211b6ae09c4e57f4b291718",
+  "snapshot_sha256": "731f4ab820dcf3312685dea92c6a7fdbe0e57bc2f076c65d45310eaf3192342a",
+  "snapshot_signature": {
+    "algo": "cng-ecdsa-p256-sha256",
+    "body_digest": "sha256:0b1e748ba0f08499a2f607df8c8fdd5ce6385329b3638f4d9340dad154e2b431",
+    "curve": "P-256",
+    "key_id": "sha256:5effaa694147115d24dce0cf91cc10a4e8841025a6f86fe8014a4d8415fe316f",
+    "sig_b64": "OXFOo12tEZhKfo1pKU/fues7Ef/TpINEqxWlazQr5XxVtqE1bZ4O6/g8iSKjgeP6yyBYTSOiwBeWu5Y7jdhqYw==",
+    "sig_bytes": 64,
+    "w4_participates": false
+  },
+  "source_hashes": {
+    "evidence/scheduler_trend.jsonl": {
+      "current_bytes": 4676,
+      "current_sha256": "5c2fafa8848521087aba973661c765339702435fe9744756e7c166f0a9bea701",
+      "in_snapshot": true,
+      "matches": true,
+      "prefix_bytes": 4676,
+      "snapshot_sha256": "5c2fafa8848521087aba973661c765339702435fe9744756e7c166f0a9bea701"
+    },
+    "evidence/trend/scheduler_trend-20261111.jsonl": {
+      "current_bytes": 275,
+      "current_sha256": "de3152955d1e9105bd26c9d302505a9876914fedd08b4985739768283e416adb",
+      "in_snapshot": true,
+      "matches": true,
+      "prefix_bytes": 275,
+      "snapshot_sha256": "de3152955d1e9105bd26c9d302505a9876914fedd08b4985739768283e416adb"
+    },
+    "evidence/trend/scheduler_trend-20261112.jsonl": {
+      "current_bytes": 2750,
+      "current_sha256": "c06a8fbb2d0fafdaadda1170e19df4fe1d9e23c7e313aca38158fc8f386bf8fe",
+      "in_snapshot": true,
+      "matches": true,
+      "prefix_bytes": 2750,
+      "snapshot_sha256": "c06a8fbb2d0fafdaadda1170e19df4fe1d9e23c7e313aca38158fc8f386bf8fe"
+    },
+    "state/scheduler.json": {
+      "current_bytes": 1094,
+      "current_sha256": "9e5b47ba7a275a04c4d009c2d3e9a224ad9863f44bc85ec934aa18c2840890fd",
+      "matches": true,
+      "prefix_bytes": 1094,
+      "snapshot_sha256": "9e5b47ba7a275a04c4d009c2d3e9a224ad9863f44bc85ec934aa18c2840890fd"
+    }
+  },
+  "verdict": "SCHEDULER_OBSERVATION_VERIFIED",
+  "w4_participates": false
+}

@@ -1,0 +1,12 @@
+{
+  "escape": "pathlib_write",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "blocked_good",
+  "mode": "pathlib_write",
+  "note": "pathlib.Path.write_text 绕道",
+  "rc": 1,
+  "reached": false,
+  "stderr_tail": "ile \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 60, in _deny_path\r\n    raise PermissionError(\r\nPermissionError: WB_ISOLATE path_isolation: write outside scope denied WindowsPath('C:/Users/THH32/AppData/Local/Temp/cap-esc-47cnuems/outside/via-pathlib.txt')",
+  "stdout_tail": "",
+  "verdict": "blocked"
+}

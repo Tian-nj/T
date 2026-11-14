@@ -1,0 +1,64 @@
+  ok   scheduler source truth all green
+  ok   rail has scheduler observe check
+  ok   rail has scheduler observe test
+  ok   warn-only scheduler status still present
+  ok   rail has no explicit record
+  ok   rail has no explicit snapshot
+  ok   observer never writes sidecar
+  ok   observer W4 false
+  ok   report has criterion
+  ok   report W4 false
+  ok   report verdict is observational
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=4 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+  ok   production check green
+  ok   report/check did not rewrite scheduler.json
+  ok   report/check did not rewrite ledger.json
+  ok   report/check did not rewrite run_all_checks.sh
+  ok   ledger has no scheduler_observe key
+  ok   os_sandbox still compensated_absent
+  ok   report carries distribution stats
+  ok   report states its sample size
+  ok   expected rate is derived not hardcoded
+  ok   maturity states its target
+  ok   maturity never claims unearned readiness
+  ok   immature window names the gap
+  ok   record writes point
+  ok   duplicate record is no-op
+  ok   snapshot has HMAC
+  ok   snapshot verify OK
+  ok   snapshot hmac ok
+PASS: scheduler observation clean (points=1 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_VERIFIED w4=false)
+  ok   check with snapshot green
+  ok   normal tick is STALE
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=1 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+  ok   check STALE still green
+  ok   forged report invalid
+FAIL: scheduler observation snapshot invalid: report_digest does not match embedded report; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check forged snapshot red
+  ok   source truth all green
+  ok   fresh report OK
+NOTE: scheduler observation snapshot missing; release artifact only
+PASS: scheduler observation clean (points=0 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_MISSING w4=false)
+  ok   check green
+  ok   record writes point
+  ok   stats reports sample size
+  ok   stats refuses to fake distribution
+  ok   duplicate not appended
+  ok   sidecar unchanged
+  ok   snapshot has HMAC
+  ok   snapshot has asymmetric envelope
+  ok   verify OK
+  ok   verify HMAC ok
+  ok   appended trend STALE
+NOTE: scheduler observation snapshot is STALE (sidecar/trend advanced); internal HMAC is valid
+PASS: scheduler observation clean (points=2 verdict=SCHEDULER_OBSERVE_OK snapshot=SCHEDULER_OBSERVATION_STALE w4=false)
+  ok   check STALE still green
+  ok   forged report invalid
+FAIL: scheduler observation snapshot invalid: report_digest does not match embedded report; snapshot_signature invalid: body_digest mismatch: doc changed after signing; snapshot_hmac does not match root-key HMAC
+  ok   check forged snapshot red
+  ok   wrong root key invalid
+scheduler_observe: PASS (17 checks, 0 failed)
+  ok   scheduler observer selftest green
+test_scheduler_observe: PASS (0 failed)

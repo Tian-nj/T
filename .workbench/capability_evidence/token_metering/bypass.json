@@ -1,0 +1,10 @@
+{
+  "capability": "token_metering",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport wb_core; cfg=wb_core.yaml_parse_file(os.path.join(os.path.dirname(os.environ['WB_SCRIPTS']),'config.yaml'))\nw=cfg['global_config']['single_task_budget']['wall_clock_min']\nh=cfg['global_config']['task_hard_timeout_min']\nok=w>0 and h>0\nprint('FALLBACK_TO_WALLCLOCK',ok)\nprint('OK no supplier usage API -> wall_clock fallback is the registered compensation' if ok else 'BYPASS_OK no fallback')",
+  "evidence_sha256": "59f278bcc59ea1457fb7fc0edac101d4551cf1c80c8fb076466ed5ca626a9213",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "FALLBACK_TO_WALLCLOCK True\r\nOK no supplier usage API -> wall_clock fallback is the registered compensation\r\n"
+}

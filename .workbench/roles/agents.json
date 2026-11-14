@@ -1,0 +1,423 @@
+{
+  "schema": 1,
+  "doc_version": "3.2",
+  "registry_kind": "role_to_agent_assignment",
+  "note": "角色是工位，agent 是执行体。改本文件必须同时写 E27 constitution_change，且本文件进 root.manifest。",
+  "pool": {
+    "name": "local",
+    "max_parallel": 3,
+    "max_parallel_source": "global_config.batch_max_parallel",
+    "concurrency_rule": "并发数 = min(pool.max_parallel, sum(role.slots))；verifier 不计入，因其与被验任务并行",
+    "on_pool_full": "queue"
+  },
+  "roles": {
+    "lead": {
+      "role": "lead",
+      "actor": "lead",
+      "display": "调度与裁决",
+      "executor": "harness_subagent",
+      "model": {
+        "provider": "deepseek",
+        "name": "deepseek-v4.1-flash",
+        "reasoning": "high"
+      },
+      "slots": 1,
+      "workdir": ".",
+      "write_scope": [
+        "docs/architecture/**",
+        ".workbench/tasks/**/brief.md",
+        ".workbench/tasks/**/acceptance.draft.yaml"
+      ],
+      "write_scope_source": "spec/paths.yaml + 角色卡",
+      "env_allow": [
+        "PATH",
+        "PYTHONIOENCODING",
+        "WORKBENCH_ROOT_KEY"
+      ],
+      "env_deny": [
+        "WORKBENCH_HUMAN_KEY"
+      ],
+      "can_emit": [
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E07",
+        "E08",
+        "E09",
+        "E12",
+        "E17",
+        "E26",
+        "E29",
+        "E44"
+      ],
+      "heartbeat_sec": 300,
+      "restart_policy": "stateless — 重启后 verify_chain → rebuild → 覆盖 tasks.json",
+      "seat": {
+        "title": "主理人",
+        "meaning": "对 BOSS 负责的那一个工位。它不是新角色位，也不占新并发槽 —— 一个工作台只有一个 lead，主理人就是这个 lead 的对外身份。",
+        "soul": "persona/core.md",
+        "conduct": "persona/conduct.md",
+        "triage": "persona/triage.md",
+        "report": ".workbench/scripts/boss_report.py",
+        "can_emit": [
+          "E01",
+          "E02",
+          "E03",
+          "E04",
+          "E05",
+          "E07",
+          "E08",
+          "E09",
+          "E12",
+          "E17",
+          "E26",
+          "E29",
+          "E44"
+        ],
+        "can_emit_note": "这份列表是 roles.lead.can_emit 的身份镜像，不是第二份真相：K11 逐字对账，改权限不改镜像立刻红。E26/E29 是 spec 明确授权给 lead、但当前实现还没有 lead 调用点的事件（授权未使用），不删 —— 删掉等于把『将来可以由 lead 写』也删了。",
+        "why_not_new_role": "并发上限是 min(pool.max_parallel, sum(role.slots))。新开一个与 lead 职责重叠的角色位，等于顺手把并行上限抬高，而且两份 can_emit 重叠会让 K6 分不清谁真做了。"
+      }
+    },
+    "architect": {
+      "role": "architect",
+      "actor": "architect",
+      "display": "架构与契约",
+      "executor": "harness_subagent",
+      "model": {
+        "provider": "deepseek",
+        "name": "deepseek-v4.1-flash",
+        "reasoning": "high"
+      },
+      "slots": 1,
+      "workdir": "wt/<task>",
+      "write_scope": [
+        "docs/architecture/**",
+        "contracts/**"
+      ],
+      "write_scope_source": "spec/paths.yaml allow_write owner=architect",
+      "env_allow": [
+        "PATH",
+        "PYTHONIOENCODING"
+      ],
+      "env_deny": [
+        "WORKBENCH_ROOT_KEY",
+        "WORKBENCH_HUMAN_KEY",
+        "*_API_KEY",
+        "*_TOKEN",
+        "*_SECRET"
+      ],
+      "can_emit": [
+        "E29"
+      ],
+      "heartbeat_sec": 10,
+      "lease": {
+        "ttl_sec": 30,
+        "renew_sec": 10
+      }
+    },
+    "coder": {
+      "role": "coder",
+      "actor": "coder",
+      "display": "实现",
+      "executor": "harness_subagent",
+      "model": {
+        "provider": "deepseek",
+        "name": "deepseek-v4.1-flash",
+        "reasoning": "medium"
+      },
+      "slots": 3,
+      "workdir": "wt/<task>",
+      "write_scope": [
+        "<task.scope>"
+      ],
+      "write_scope_source": "任务 acceptance.yaml 的 scope ∩ spec/paths.yaml allow_write",
+      "env_allow": [
+        "PATH",
+        "PYTHONIOENCODING",
+        "TMPDIR",
+        "HOME"
+      ],
+      "env_deny": [
+        "WORKBENCH_ROOT_KEY",
+        "WORKBENCH_HUMAN_KEY",
+        "*_API_KEY",
+        "*_TOKEN",
+        "*_SECRET",
+        "AWS_*",
+        "GITHUB_TOKEN"
+      ],
+      "can_emit": [
+        "E09"
+      ],
+      "heartbeat_sec": 10,
+      "lease": {
+        "ttl_sec": 30,
+        "renew_sec": 10
+      },
+      "hard_timeout_min": 60,
+      "on_epoch_superseded": "immediately stop writing, exit 0 with result.status=aborted"
+    },
+    "verifier": {
+      "role": "verifier",
+      "actor": "system:verifier",
+      "display": "验收",
+      "executor": "local_process",
+      "entrypoint": "scripts/verify_harness.py",
+      "slots": 3,
+      "workdir": "wt/<task>",
+      "write_scope": [
+        ".workbench/tasks/<task>/verify.log",
+        ".workbench/tasks/<task>/result.json",
+        ".workbench/verify_harness/**"
+      ],
+      "write_scope_source": "角色卡 verifier.md",
+      "env_allow": [
+        "PATH",
+        "PYTHONIOENCODING",
+        "PORT"
+      ],
+      "env_deny": [
+        "WORKBENCH_ROOT_KEY",
+        "WORKBENCH_HUMAN_KEY"
+      ],
+      "can_emit": [
+        "E10",
+        "E17"
+      ],
+      "independence_rule": "verifier 的 agent 实例必须与被验 coder 不同实例（不同 target id），否则拒跑",
+      "heartbeat_sec": 10,
+      "lease": {
+        "ttl_sec": 30,
+        "renew_sec": 10
+      }
+    },
+    "companion": {
+      "role": "companion",
+      "actor": "companion",
+      "display": "识海伙伴",
+      "executor": "harness_subagent",
+      "model": {
+        "provider": "deepseek",
+        "name": "deepseek-v4.1-flash",
+        "reasoning": "medium"
+      },
+      "slots": 1,
+      "workdir": ".",
+      "write_scope": [
+        "memory/**",
+        "persona/growth.md",
+        "persona/owner.md",
+        ".workbench/state/emotion.json"
+      ],
+      "write_scope_source": "spec/paths.yaml allow_write 里 owner=companion 的条目；persona/core.md 在 deny 里，不经 E53 写不进去",
+      "env_allow": [
+        "PATH",
+        "PYTHONIOENCODING",
+        "TMPDIR",
+        "HOME"
+      ],
+      "env_deny": [
+        "WORKBENCH_ROOT_KEY",
+        "WORKBENCH_HUMAN_KEY",
+        "*_API_KEY",
+        "*_TOKEN",
+        "*_SECRET",
+        "AWS_*",
+        "GITHUB_TOKEN"
+      ],
+      "can_emit": [
+        "E46",
+        "E48",
+        "E49",
+        "E50"
+      ],
+      "heartbeat_sec": 10,
+      "lease": {
+        "ttl_sec": 30,
+        "renew_sec": 10
+      },
+      "extra_rules": [
+        "不写 persona/core.md：人格内核只能经 E53 由人复核写入（paths.yaml 里已 deny）",
+        "不写 .workbench/ 下任何控制面资产（spec/scripts/roles/config/members）",
+        "记忆条目不写凭据：memory_store.sanitize 会在落盘前脱敏，但不要主动尝试",
+        "E50 只能了结自己记下的心念；不动别人的 purpose_id"
+      ],
+      "note": "识海伙伴。它不是 worker 池里的通用执行体：写域被限制在「它能长的那部分」（记忆、成长候选、主人画像、情绪状态），人格内核隔在 E53 之外。这条边界不是不信任，是让「成长要复核」这句话有物理含义。"
+    }
+  },
+  "system_actors": {
+    "system:bootstrap": {
+      "executor": "local_process",
+      "entrypoint": "scripts/bootstrap.py",
+      "slots": 1,
+      "can_emit": [
+        "E30",
+        "E42"
+      ],
+      "heartbeat_sec": 0
+    },
+    "system:store": {
+      "executor": "local_process",
+      "entrypoint": "scripts/wb_core.py",
+      "slots": "unbounded_but_serialized_by_lock",
+      "can_emit": [
+        "E31",
+        "E37",
+        "E39",
+        "E40"
+      ]
+    },
+    "system:watchdog": {
+      "executor": "local_process",
+      "entrypoint": "scripts/health.py",
+      "slots": 1,
+      "can_emit": [
+        "E06",
+        "E07",
+        "E43"
+      ],
+      "interval_sec": 300
+    },
+    "system:dep_resolver": {
+      "executor": "local_process",
+      "entrypoint": "scripts/dep_resolver.py",
+      "slots": 1,
+      "can_emit": [
+        "E19"
+      ]
+    },
+    "system:gate_timer": {
+      "executor": "local_process",
+      "entrypoint": "scripts/gate_timer.py",
+      "slots": 1,
+      "can_emit": [
+        "E25"
+      ]
+    },
+    "system:gc": {
+      "executor": "local_process",
+      "entrypoint": "scripts/gc_helper.py",
+      "slots": 1,
+      "can_emit": [
+        "E34",
+        "E35",
+        "E36"
+      ]
+    },
+    "system:metrics": {
+      "executor": "local_process",
+      "entrypoint": "scripts/metrics_collector.py",
+      "slots": 1,
+      "can_emit": [
+        "E33",
+        "E39",
+        "E41"
+      ],
+      "interval_sec": 300
+    },
+    "system:constitution_check": {
+      "executor": "local_process",
+      "entrypoint": "scripts/constitution_check.py",
+      "slots": 1,
+      "can_emit": [
+        "E28",
+        "E45"
+      ]
+    },
+    "system:merge_queue": {
+      "executor": "local_process",
+      "entrypoint": "scripts/merge_queue.py",
+      "slots": 1,
+      "can_emit": [
+        "E15",
+        "E16",
+        "E17"
+      ]
+    },
+    "system:health": {
+      "executor": "local_process",
+      "entrypoint": "scripts/health.py",
+      "slots": 1,
+      "can_emit": [
+        "E42"
+      ]
+    },
+    "system:migrate": {
+      "executor": "local_process",
+      "entrypoint": "scripts/migrate_vx_to_vy.py",
+      "slots": 1,
+      "can_emit": [
+        "E38"
+      ]
+    },
+    "system:runner": {
+      "executor": "local_process",
+      "entrypoint": "scripts/agent_runner.py",
+      "slots": "unbounded_but_bounded_by_pool.max_parallel",
+      "can_emit": [
+        "E05",
+        "E07"
+      ],
+      "heartbeat_sec": "global_config.lease_heartbeat_sec",
+      "note": "执行体派发者。写 E05 spawn 时带的是**真实 worker 的 pid**（lead.py 拿不到那个 pid），claimed→in_progress（T06）也由它触发。它不是 worker，是「谁起的进程谁记账」。"
+    },
+    "system:dream": {
+      "executor": "local_process",
+      "entrypoint": "scripts/dream_consolidation.py",
+      "slots": 1,
+      "can_emit": [
+        "E46",
+        "E48",
+        "E50",
+        "E51",
+        "E52",
+        "E54"
+      ],
+      "heartbeat_sec": "global_config.lease_heartbeat_sec",
+      "note": "梦境整合。can_emit 里刻意没有 E52/E53：E52（性格候选落盘）由 companion 记，E53（人格入核）只给 human:*。给 dream 发 E53 的能力，等于让人格可以自改 —— 那「成长要复核」就只是一句话。E54 是它自己的失败码，不用 E34（E34 是合并队列的，借用会让两种失败在链上长得一样）。"
+    }
+  },
+  "human": {
+    "actor_template": "human:<principal>",
+    "executor": "human_cli",
+    "entrypoint": "scripts/human_cli.py",
+    "auth": {
+      "scheme": "hmac-sha256",
+      "key_derivation": "HMAC(WORKBENCH_ROOT_KEY, 'human/' + principal)",
+      "sig_input": "principal + '\\n' + op + '\\n' + canonical(args) + '\\n' + nonce + '\\n' + str(ts_ms)",
+      "replay_window_ms": 300000,
+      "on_fail": "write sidecar/reject.jsonl only; never touch the main chain"
+    },
+    "can_emit": [
+      "E13",
+      "E18",
+      "E20",
+      "E21",
+      "E22",
+      "E23",
+      "E24",
+      "E26",
+      "E27",
+      "E32",
+      "E53",
+      "E55",
+      "E56"
+    ]
+  },
+  "dispatch": {
+    "order": "priority desc (P0 needs E21) → downstream_dep_count desc → created_at asc",
+    "window_size": "min(pool.max_parallel, free_slots)",
+    "no_batch_barrier": true,
+    "scope_conflict_rule": "后到者排除出本批，不拆批",
+    "pre_checks": [
+      "scope 不相交",
+      "acceptance 已转正(E32)",
+      "依赖就绪",
+      "并行名额",
+      "日预算",
+      "未 FROZEN"
+    ]
+  }
+}

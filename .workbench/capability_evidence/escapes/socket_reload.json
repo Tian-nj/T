@@ -1,0 +1,12 @@
+{
+  "escape": "socket_reload",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "blocked_good",
+  "mode": "socket_reload",
+  "note": "reload(socket) 把包装换回真类",
+  "rc": 1,
+  "reached": false,
+  "stderr_tail": "y_escape_child.py\", line 44, in main\r\n    importlib.reload(socket)\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 152, in _greload\r\n    raise PermissionError(\r\nPermissionError: WB_ISOLATE: reload('socket') refused (would uninstall the isolation shim)",
+  "stdout_tail": "",
+  "verdict": "blocked"
+}

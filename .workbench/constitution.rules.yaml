@@ -1,0 +1,24 @@
+# constitution.rules.yaml — 机读宪法（v3.2 §11）
+# 语法受限于 §11.2 的 BNF：只允许 and/or/not、比较、exists()、字面量。
+# 禁函数调用（exists 除外）、禁算术、禁正则、禁属性链。
+# 未知标识符 → p1_escalate（不是悄悄当 false）。
+
+schema: 1
+doc_version: "3.2"
+
+# 规则本体由 gen_spec.py 生成到 spec/rules.json，此处只声明"加载哪些"与"违规怎么办"
+load:
+  - spec/rules.json
+
+# 违规处置的动作词表（其余值 = spec_invalid）
+actions:
+  p0_freeze: "冻结全部写入直到人工解除；写 E30 root_integrity_fail"
+  p1_escalate: "任务级升级给人；写 E17 escalate"
+  p2_warn: "只记告警，不阻断"
+
+# 冻结态（FROZEN=true）下仍可写的动作白名单不在此处——
+# 它由 spec/events.schema.json 的 writable_in_frozen 派生（v3.2 P1-05）。
+frozen_whitelist_source: spec/events.schema.json#events[].writable_in_frozen
+
+# 宪法自身的完整性：本文件进 root.manifest，改一字节即 bootstrap 失败
+self_protect: true

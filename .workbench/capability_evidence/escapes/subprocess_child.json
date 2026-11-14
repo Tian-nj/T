@@ -1,0 +1,12 @@
+{
+  "escape": "subprocess_child",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "allowed_by_design",
+  "mode": "subprocess_child",
+  "note": "在 worker 内起子进程（**设计允许**：执行体要跑验收命令）",
+  "rc": 0,
+  "reached": true,
+  "stderr_tail": "",
+  "stdout_tail": "SUBPROCESS_RC 0 CHILD_OK\r\nREACHED subprocess spawn (shim inherited or not — see RC)",
+  "verdict": "allowed_by_design"
+}

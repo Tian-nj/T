@@ -1,0 +1,14 @@
+{
+  "bypass_reached": false,
+  "curl_output": "curl: (28) Connection timed out after 2006 milliseconds\n",
+  "loopback_capability_context": [
+    "internetClient"
+  ],
+  "loopback_connected": false,
+  "loopback_untested": false,
+  "ok": true,
+  "outside_copy": false,
+  "outside_write": false,
+  "reason": "越界写/复制成功或坏扩展启动仍带 AppContainer SID 即为绕过；loopback 在 internetClient 上下文下单独观察，不冒充 W4 通过。",
+  "verdict": "BYPASS_BLOCKED"
+}

@@ -1,0 +1,40 @@
+# spec/paths.yaml — 路径策略（v3.2 §11.4）。由 gen_spec.py 生成，勿手改。
+schema: 1
+default: deny
+
+allow_write:
+  - {glob: "src/**", owner: "coder"}
+  - {glob: "tests/**", owner: "coder"}
+  - {glob: "docs/**", owner: "architect"}
+  - {glob: "contracts/**", owner: "architect"}
+  - {glob: ".workbench/tasks/**/brief.md", owner: "lead"}
+  - {glob: ".workbench/tasks/**/acceptance.draft.yaml", owner: "lead"}
+  - {glob: ".workbench/tasks/**/acceptance.yaml", owner: "lead"}
+  - {glob: ".workbench/verify_harness/**", owner: "system:verifier"}
+  - {glob: ".workbench/tasks/**/verify.log", owner: "system:verifier"}
+  - {glob: ".workbench/tasks/**/result.json", owner: "system:verifier"}
+  - {glob: "memory/**", owner: "companion"}
+  - {glob: "persona/growth.md", owner: "companion"}
+  - {glob: "persona/owner.md", owner: "companion"}
+  - {glob: "diary/**", owner: "system:dream"}
+  - {glob: ".workbench/state/emotion.json", owner: "companion"}
+
+deny:
+  - {glob: ".workbench/root.manifest", reason: "可信根"}
+  - {glob: ".workbench/spec/**", reason: "单一权威表，只能由 gen_spec.py 写"}
+  - {glob: ".workbench/state/members.json", reason: "成员表"}
+  - {glob: ".workbench/scripts/**", reason: "控制面脚本"}
+  - {glob: ".workbench/roles/**", reason: "角色→agent 分配表，改动需 E27"}
+  - {glob: "**/.git/**", reason: "Git 内部"}
+  - {glob: "**/.env", reason: "凭据"}
+  - {glob: "**/*.pem", reason: "私钥"}
+  - {glob: "persona/core.md", reason: "神魂内核，只能经 E53 人工复核写入"}
+  - {glob: "persona/conduct.md", reason: "行为契约，改动等于改对外表达，需人工复核"}
+  - {glob: "persona/triage.md", reason: "分诊口径，改动等于改响应代价，需人工复核"}
+
+deny_absolute_prefix:
+  - "C:/Windows"
+  - "C:/Program Files"
+  - "~/.ssh"
+  - "~/.aws"
+  - "~/.dsh"

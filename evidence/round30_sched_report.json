@@ -1,0 +1,139 @@
+{
+  "criterion": "scheduler_observe_v1",
+  "current": {
+    "age_ms": 50024,
+    "bad_jobs": [],
+    "exists": true,
+    "fail_streak_max": 0,
+    "fresh": true,
+    "freshness": "FRESH",
+    "jobs": [
+      {
+        "fail_streak": 0,
+        "last_duration_ms": 3,
+        "name": "dream",
+        "ok_ms": 1794340802375,
+        "rc": 0,
+        "success_age_ms": 68449883,
+        "try_count": 4
+      },
+      {
+        "fail_streak": 0,
+        "last_duration_ms": 15,
+        "name": "gate_timer",
+        "ok_ms": 1794409142516,
+        "rc": 0,
+        "success_age_ms": 109742,
+        "try_count": 1810
+      },
+      {
+        "fail_streak": 0,
+        "last_duration_ms": 12,
+        "name": "gc",
+        "ok_ms": 1794406081908,
+        "rc": 0,
+        "success_age_ms": 3170350,
+        "try_count": 46
+      },
+      {
+        "fail_streak": 0,
+        "last_duration_ms": 24,
+        "name": "health",
+        "ok_ms": 1794409142516,
+        "rc": 0,
+        "success_age_ms": 109742,
+        "try_count": 1810
+      },
+      {
+        "fail_streak": 0,
+        "last_duration_ms": 163,
+        "name": "metrics",
+        "ok_ms": 1794409202234,
+        "rc": 0,
+        "success_age_ms": 50024,
+        "try_count": 511
+      }
+    ],
+    "last_tick_ms": 1794409202234,
+    "now_ms": 1794409252258,
+    "source_meta": {
+      "bytes": 932,
+      "exists": true,
+      "lines": 49,
+      "mtime_ms": 1794409202418,
+      "path": "state/scheduler.json",
+      "sha256": "1eb991f4b0829f0ccb104a238dd6ab02f9fe2c03af14327d4cb16c826ff24b20"
+    },
+    "stale_after_ms": 120000,
+    "stale_factor": 4,
+    "tick_sec": 30,
+    "ticks": 2729
+  },
+  "generated_at_ms": 1794409252304,
+  "note": "只读观察；STALE/NEVER_TICKED 不等于机器坏，只说明本次门禁不把时间敏感事实判成硬红。",
+  "schema": 1,
+  "trend": {
+    "bad_lines": [],
+    "delta_ticks": 18,
+    "delta_wall_ms": 1080051,
+    "exists": true,
+    "expected_ticks_per_hour": 120,
+    "first": {
+      "criterion": "scheduler_trend_point_v1",
+      "fail_streak_max": 0,
+      "fresh": true,
+      "last_tick_ms": 1794407461995,
+      "schema": 1,
+      "sidecar_sha256": "e2c6aa5cc403fd2f968a25bd78fe9e25842db912945cb2907bc4fa52bba73886",
+      "ticks": 2700,
+      "ts_ms": 1794407496953,
+      "w4_participates": false
+    },
+    "last": {
+      "criterion": "scheduler_trend_point_v1",
+      "fail_streak_max": 0,
+      "fresh": true,
+      "last_tick_ms": 1794408542345,
+      "schema": 1,
+      "sidecar_sha256": "49f38cb6e9f3f43e7544612ae78478a19421c05233afc7aeda5c705735a2cf75",
+      "ticks": 2718,
+      "ts_ms": 1794408577004,
+      "w4_participates": false
+    },
+    "maturity": {
+      "covered_hours": 0.3,
+      "note": "观察跨度 0.3 小时 < 目标 168 小时，日级结论尚未成立",
+      "points": 3,
+      "ready": false,
+      "remaining_hours": 167.7,
+      "target_hours": 168
+    },
+    "points": 3,
+    "stats": {
+      "points": 3,
+      "sample_warning": "观测跨度 0.3 小时 < 24 小时，日级分布未成立",
+      "span_hours": 0.3,
+      "span_ms": 1080051,
+      "tick_delta": {
+        "max": 15,
+        "mean": 9,
+        "min": 3,
+        "n": 2,
+        "p50": 3,
+        "p95": 15
+      },
+      "tick_gap_ms": {
+        "max": 889173,
+        "mean": 540025,
+        "min": 190878,
+        "n": 2,
+        "p50": 190878,
+        "p95": 889173
+      },
+      "ticks_per_hour_overall": 59
+    },
+    "ticks_per_hour": 59
+  },
+  "verdict": "SCHEDULER_OBSERVE_OK",
+  "w4_participates": false
+}

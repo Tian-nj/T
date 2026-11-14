@@ -1,0 +1,67 @@
+name: workbench-platform-runners
+
+# 第二十九轮候选 2：Linux/macOS 隔离面只读探测骨架。
+# 第三十一轮候选 1：产物必须带 CI 证言（HMAC），否则本机 ingest 拒收。
+# 这条 workflow 只产出 INSPECTED_NOT_VALIDATED 证据，绝不把只读存在性探测
+# 冒充 W4 三证或 AppContainer 等价能力验证。
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".workbench/scripts/platform_runner_probe.py"
+      - ".github/workflows/platform-runners.yml"
+      - ".workbench/capability_evidence/platform_runners/matrix.json"
+
+permissions:
+  contents: read
+
+jobs:
+  linux-surface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only Linux isolation surface probe
+        run: |
+          python3 .workbench/scripts/platform_runner_probe.py --inspect --write --json
+      # 没有 CI 密钥就必须红：未签名的产物本机不认，宁可这一步失败也不要
+      # 产出一份「看起来合规」的裸 JSON 让人肉贴回可信根。
+      - name: Attest the artifact
+        env:
+          WORKBENCH_CI_KEY: ${{ secrets.WORKBENCH_CI_KEY }}
+        run: |
+          if [ -z "$WORKBENCH_CI_KEY" ]; then
+            echo "::error::WORKBENCH_CI_KEY secret is not configured"
+            exit 1
+          fi
+          python3 .workbench/scripts/platform_runner_probe.py attest --file .workbench/capability_evidence/platform_runners/linux.json
+      - name: Show evidence (never mark W4 validated)
+        run: |
+          python3 .workbench/scripts/platform_runner_probe.py --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platform-runner-linux
+          path: .workbench/capability_evidence/platform_runners/linux.json
+
+  macos-surface:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only macOS sandbox surface probe
+        run: |
+          python3 .workbench/scripts/platform_runner_probe.py --inspect --write --json
+      - name: Attest the artifact
+        env:
+          WORKBENCH_CI_KEY: ${{ secrets.WORKBENCH_CI_KEY }}
+        run: |
+          if [ -z "$WORKBENCH_CI_KEY" ]; then
+            echo "::error::WORKBENCH_CI_KEY secret is not configured"
+            exit 1
+          fi
+          python3 .workbench/scripts/platform_runner_probe.py attest --file .workbench/capability_evidence/platform_runners/macos.json
+      - name: Show evidence (never mark W4 validated)
+        run: |
+          python3 .workbench/scripts/platform_runner_probe.py --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platform-runner-macos
+          path: .workbench/capability_evidence/platform_runners/macos.json

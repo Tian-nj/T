@@ -1,0 +1,107 @@
+name: workbench-posix-lock
+
+# 第三十六轮：POSIX 分支的实机验证（窄口，不是全量回归）。
+#
+# 为什么是窄口而不是 `bash run_all_checks.sh`：
+#   `run_all_checks.sh:20` 的 PY 默认值是一个 Windows 绝对路径
+#   （C:/Users/.../python.exe）。在 Linux runner 上跑全套，第一步就找不到
+#   解释器，之后每一件都会连带红 —— 那种"红"说明的是环境不匹配，不是代码
+#   有问题，看的人第二天就学会了忽略它。窄口只跑与锁和状态机直接相关的
+#   四件，红了就一定是有东西真的坏了。
+#
+# 这四件为什么是这四件：
+#   · test_lock_timeout_and_contention —— 抢锁、超时、退避、5 进程争抢
+#   · test_cross_process_lock         —— 两进程 transition 排他 + 纯写竞争
+#   · test_state_sentinel             —— 哨兵只从 spec 读，不散落副本
+#   · test_from_states                —— 写入口的前置态校验（锁内二次校验的
+#                                        另一边：锁不管语义，语义在锁里面）
+#
+# 它证明什么、不证明什么（写在这里，免得以后有人拿它当"POSIX 已验证等价"）：
+#   证明：这些代码路径在 Linux 上跑得通；fcntl.flock 分支真的被走到；
+#         建议锁下并发写仍然不产生重复 seq、不产生同源迁移。
+#   不证明：真实 Linux 服务器上的行为。GitHub runner 是共享、临时的容器化
+#         VM，生产里抢锁的可能是另一个长期驻留的服务进程，不是同类 python
+#         进程 —— 建议锁对那种"不配合的第三方"完全无效。
+#   也不改变：spec/lock_semantics.json 里 equivalent 永远为 false。
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".workbench/scripts/wb_core.py"
+      - ".workbench/spec/states.json"
+      - ".workbench/spec/lock_semantics.json"
+      - "tests/test_lock_timeout_and_contention.py"
+      - "tests/test_cross_process_lock.py"
+      - "tests/test_state_sentinel.py"
+      - "tests/test_from_states.py"
+      - "tests/xproc_worker.py"
+      - ".github/workflows/posix-lock.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  posix-lock:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONIOENCODING: utf-8
+      WORKBENCH_ROOT_KEY: dev-root-key-ci-not-a-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show which lock primitive this OS will actually use
+        run: |
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, ".workbench/scripts")
+          import wb_core
+          print("IS_WIN =", wb_core.IS_WIN)
+          print("expect False on this runner")
+          print("BACKOFF_MAX =", wb_core.Store._Lock.BACKOFF_MAX)
+          print("DEFAULT_TIMEOUT_MS =", wb_core.Store._Lock.DEFAULT_TIMEOUT_MS)
+          PY
+
+      # 建议锁 vs 强制锁不是文档问题而是行为问题：这一行把"这台机器上
+      # 到底是哪一种"打出来，失败的时候第一眼就能看出是不是跑错 OS 了。
+      - name: Assert we are NOT on Windows (this job's whole point)
+        run: |
+          python3 -c "import sys; assert sys.platform != 'win32', 'this job must run on POSIX'; print('platform =', sys.platform)"
+
+      - name: Lock timeout / backoff / 5-process contention
+        run: python3 tests/test_lock_timeout_and_contention.py
+
+      - name: Cross-process mutual exclusion
+        run: python3 tests/test_cross_process_lock.py
+
+      - name: State sentinel comes from spec only
+        run: python3 tests/test_state_sentinel.py
+
+      - name: from_states gate on the single write path
+        run: python3 tests/test_from_states.py
+
+      # 联合验收四证（evaluate_items 合并器）：把三件外部输入的窄网关
+      # （模型就绪 / CI remote / 7 天观测窗口）汇成一份诚实结论，落 evidence。
+      # JOINT_BLOCKED 是当前真实状态（三件外部输入未到位），故用 `|| true`
+      # 容忍退出码 3，只负责把 JSON 证据写下来，不冒充通过。
+      - name: Joint acceptance four-proof (honest registry; JOINT_BLOCKED is the honest current state)
+        run: |
+          python3 .workbench/scripts/joint_acceptance.py --out evidence/joint_acceptance.json || true
+          echo "joint_acceptance.json written (verdict is JOINT_BLOCKED until the three external inputs arrive)"
+
+      - name: Lock semantics table still says "not equivalent"
+        run: |
+          python3 - <<'PY'
+          import io, json, sys
+          d = json.load(io.open(".workbench/spec/lock_semantics.json", encoding="utf-8"))
+          assert d.get("equivalent") is False, (
+              "equivalent 被改成了 %r —— msvcrt.locking 是强制锁、"
+              "fcntl.flock 是建议锁，二者不等价；改成 true 必须给出依据"
+              % (d.get("equivalent"),))
+          assert d["platforms"]["posix"]["semantics"] == "advisory"
+          assert d["platforms"]["posix"]["third_party_respects"] is False
+          print("lock_semantics.json: equivalent = false ✔ (posix = advisory)")
+          PY

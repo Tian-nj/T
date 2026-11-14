@@ -1,0 +1,105 @@
+overlay: 758 file(s) copied from working tree
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.jWVrNrWHsL/wb-demo  (真实仓库未被触碰)
+
+===== 0. reset chain =====
+reset ok
+
+===== 0b. demo baseline（只在演示仓里重置）=====
+demo baseline: calc.py has only add(); tests require sub()
+
+===== 0c. demo 召回欠账基线（演示链专用）=====
+demo recall_baseline: scope=demo_fresh_chain, demo_tasks=['T-0001'], expected_dispatches=1, entries=0
+
+===== 1. resign manifest =====
+wrote .workbench\root.manifest  entries=119  algo=hmac-sha256-v1  uuid=175dcd06006595c5e20809e3138ba255
+digest hmac-sha256:493354306e784489e652eb30c9ee27c623f9f1332902ebedd0985f3918e49113
+
+===== 2. bootstrap =====
+manifest     : PASS (mode=full, 119 files)
+uuid         : PASS
+git          : PASS (actual=2.56.0, min=2.38)
+chain        : ok
+capabilities : os_sandbox=absent, network_deny=enforced, credential_deny=enforced, path_isolation=enforced, token_metering=absent, external_alert=enforced
+RESULT: PASS  events=['E42']
+exit=0
+
+===== 3. init member =====
+
+===== 4. new task =====
+
+===== 5. approve（Lead 备料）=====
+T-0001 备料完成: E03=5 E08=6 digest=sha256:fd8700ba352f2aff8d2625672e76a5a549837a7497e8e8e47761d517f8e649b5
+  待人工转正：human_cli.py --op acceptance_approve --args '{"task":"T-0001"}'（digest 由签名器从文件读，不手填）
+
+===== 5b. acceptance 人工转正（E32 by human:yg，§6.2）=====
+ACCEPT acceptance_approve as human:yg
+  event {'kind': 'acceptance_approved', 'seq': 7}
+
+===== 6. dispatch =====
+
+===== 7. claim =====
+
+===== 8. agent_runner 派发 coder =====
+WARN executor override: coder.executor 'harness_subagent' → 'local_process' (this run only)
+WARN entrypoint override: coder.entrypoint → 'C:/Users/THH32/AppData/Local/Temp/tmp.jWVrNrWHsL/wb-demo/tests/wb_demo_sub.py' (this run only)
+NOTE persona 显忆段为空（query='给 calc 加 sub 函数 给 calc 加 sub 函数，并让 tests/test_calc.py 通过 src/calc.py tests/test_'，召回无命中或未注入）
+prepare: worktree=C:/Users/THH32/AppData/Local/Temp/tmp.jWVrNrWHsL/wb-demo/.workbench\wt\T-0001 base=dca6d4a brief=C:/Users/THH32/AppData/Local/Temp/tmp.jWVrNrWHsL/wb-demo/.workbench\tasks\T-0001\brief.md
+OK T-0001/coder：changed=1 ['src/calc.py']
+
+===== 9. verify =====
+T-0001 VERIFY PASS → done (E10=16 E08=17, 1 cmds)
+
+===== 9a. human single sign（AUTO_CORE 灰区）=====
+ACCEPT human_approve as human:yg
+  event {'kind': 'human_approve', 'seq': 18}
+
+===== 9b. merge queue =====
+  MERGED   T-0001  tree=e7646ea2f486
+master HEAD: fb19863 merge: T-0001
+calc.py on master has sub()? 1
+
+===== 10. status =====
+TASK       STATE        LAST_SEQ
+T-0001     done         17
+
+1 task(s), 19 chain line(s)
+
+===== 11. checks =====
+chain: ok lines=19
+ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4
+RESULT: PASS (0 failure(s))
+RESULT: PASS (0 finding(s))
+NOTE K12 can_emit 全角色对账：actors=19 declared=66；授权未使用不判红，E08 *authority* 由迁移 authority 决定
+NOTE K13 记忆门槛单一来源：repeat_min_count=3（旧键未写）
+NOTE K13 兼容键退役期限 deprecate_after_ms=1796083200000（还有约 421 小时）；config_key 在配置中未写，schema_key 在 schema 中存在；到期仍留着会判红
+NOTE K14 演示链基线双条件成立：entries=0，链上派活 1 个全部落在 demo_tasks=['T-0001'] 内（expected_dispatches=1）；生产 (task, dispatch_ms) 登记表不适用于这条全新链，这不是「没有尺子」
+RESULT: PASS (0 failure(s))
+
+===== 12. event chain =====
+  1  capability_check     system:bootstrap          
+  2  constitution_change  human:yg                  
+  3  draft_created        lead                      T-0001
+  4  state                lead               T01    draft
+  5  draft_approved       lead                      T-0001
+  6  state                lead               T02    pending
+  7  acceptance_approved  human:yg                  T-0001
+  8  plan                 lead                      
+  9  claim                lead                      T-0001
+ 10  state                lead               T05    claimed
+ 11  spawn                system:runner             T-0001
+ 12  state                system:runner      T06    in_progress
+ 13  kill                 system:runner             T-0001
+ 14  submit               lead                      T-0001
+ 15  state                lead               T07    submitted
+ 16  verify               system:verifier           pass
+ 17  state                system:verifier    T08    done
+ 18  human_approve        human:yg                  T-0001
+ 19  merge                system:merge_queue        T-0001
+total 19 line(s)
+
+===== 13. 对账（不信输出，只信树枝）=====
+reconcile: master 上的 calc.py 确有 sub() (grep -c = 1)
+
+===== DEMO OK: 全部步骤通过 =====
+
+demo repo: C:/Users/THH32/AppData/Local/Temp/tmp.jWVrNrWHsL/wb-demo （未删除；如不需要可手动清理）

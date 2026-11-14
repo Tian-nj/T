@@ -1,0 +1,17 @@
+{
+  "manifest_entries": 118,
+  "events_total": 56,
+  "events_live": 53,
+  "states": 12,
+  "transitions": 23,
+  "rules": 6,
+  "script_files": 53,
+  "script_lines": 29114,
+  "checks_total": 108,
+  "test_count": 71,
+  "audit_count": 5,
+  "check_count": 0,
+  "verify_count": 31,
+  "e2e_count": 1,
+  "source": "doc_numbers.compute()"
+}

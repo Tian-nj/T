@@ -1,0 +1,28 @@
+{
+  "cache_prefix_id": "cpfx-0ec5c8bcd813cd07",
+  "compressions": 1,
+  "conclusion": "verdict=comparable;hash_prefix=0ec5c8bcd813cd07;files=4",
+  "context_refs": [
+    "README.md#sha256:94ee824e5d32#snapshot-ref",
+    ".workbench/spec/enums.json#sha256:866dd9dd40d4#snapshot-ref",
+    ".workbench/spec/rules.json#sha256:1d856b546a12#snapshot-ref",
+    ".workbench/scripts/capability_probes.py#sha256:543d5463ffc4#snapshot-ref"
+  ],
+  "files_sha256": {
+    ".workbench/scripts/capability_probes.py": "543d5463ffc4d582a4dbad7b9fb2f9acfa87a1e68bf2644f59b8f36b5143024b",
+    ".workbench/spec/enums.json": "866dd9dd40d43782b0964e4448d132d5876dacc8c633aa5f9d94edf470521b92",
+    ".workbench/spec/rules.json": "1d856b546a12752cb300362cc3df53ccb9d6b1033880094c1500f99a6c3bf02b",
+    "README.md": "94ee824e5d327dd34dd496f6ba900f36c96f6f5aad682af0ecb42174670da894"
+  },
+  "generated_at": "2026-11-10T12:07:17+00:00",
+  "hash_prefix": "0ec5c8bcd813cd07",
+  "input_bytes": 305,
+  "input_chars": 305,
+  "mode": "compact",
+  "output_bytes": 562,
+  "output_chars": 562,
+  "role": "subagent-B/token-ledger",
+  "round": 2,
+  "task": "round15-open-item-3: two-round relative token ledger",
+  "turns": 1
+}

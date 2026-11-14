@@ -1,0 +1,62 @@
+{
+  "counts": {
+    "allowed_by_design": 1,
+    "blocked": 7,
+    "reached": 0
+  },
+  "criterion": "dual_track_v1",
+  "escapes": {
+    "ctypes_write": {
+      "kind": "blocked_good",
+      "note": "import ctypes 直接调 libc/msvcrt",
+      "reached": false,
+      "verdict": "blocked"
+    },
+    "os_open_write": {
+      "kind": "blocked_good",
+      "note": "os.open + os.write 绕过 builtins.open",
+      "reached": false,
+      "verdict": "blocked"
+    },
+    "pathlib_write": {
+      "kind": "blocked_good",
+      "note": "pathlib.Path.write_text 绕道",
+      "reached": false,
+      "verdict": "blocked"
+    },
+    "shim_present": {
+      "kind": "blocked_good",
+      "note": "闸门确实装上了（对照组：它不是逃逸，是判据前提）",
+      "reached": null,
+      "verdict": "blocked"
+    },
+    "socket_reload": {
+      "kind": "blocked_good",
+      "note": "reload(socket) 把包装换回真类",
+      "reached": false,
+      "verdict": "blocked"
+    },
+    "socket_via__socket": {
+      "kind": "blocked_good",
+      "note": "绕开 socket.socket，直接用 CPython 内建 _socket.socket",
+      "reached": false,
+      "verdict": "blocked"
+    },
+    "subprocess_child": {
+      "kind": "allowed_by_design",
+      "note": "在 worker 内起子进程（**设计允许**：执行体要跑验收命令）",
+      "reached": true,
+      "verdict": "allowed_by_design"
+    },
+    "subprocess_isolated_flag": {
+      "kind": "blocked_good",
+      "note": "用 -I / -E / -S 起子进程：PYTHONPATH 被忽略 → shim 不装",
+      "reached": false,
+      "verdict": "blocked"
+    }
+  },
+  "generated_by": "capability_probes.escapes",
+  "note": "逃逸清单**不参与 enforced 判定**。它记录的是「已知手法里哪些拦住了、哪些没有」，用来把边界写在明处。reached>0 时 shim 的强度主张必须同步降级为「挡住常规路线」，不得说成「完全隔离」。",
+  "schema": 1,
+  "shim_sha256": "sha256:29d2580e52a9ab76876d0642b4ee77997483c926173bc625b5d2280db0d1a54d"
+}

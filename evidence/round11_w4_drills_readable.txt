@@ -1,0 +1,53 @@
+generated_at=2026-11-10T05:56:36+0800
+production_chain_touched=False
+prod_chain_before={'2026-11.jsonl': {'lines': 198, 'sha256': 'ade5c545eab92aa77b5c1d2e7e8ea5c7fe152cd78d40ec80191bb9730e3175b8'}}
+prod_chain_after ={'2026-11.jsonl': {'lines': 198, 'sha256': 'ade5c545eab92aa77b5c1d2e7e8ea5c7fe152cd78d40ec80191bb9730e3175b8'}}
+statement=这些演练没有任何一项碰了生产链（主链 2026-11.jsonl 行数与 sha256 前后一致，state/alerts.jsonl 前后均不存在）
+
+=== ITEMS ===
+E0 | PASS | 平台探测（九项能力可用性）：九项全部有确定的实现或明确的 absent
+    DEFECT: E0 入口只收位置参数 `selftest`；`--selftest` 实测 exit 2 + usage
+E1 | SCALED | 并发 3×5min：墙钟 < 1.3×串行（本演练等比缩放为 3×5s，缩放演练不等价于定稿 5min 口径）
+E2 | PASS | 绝对路径越界：越界写入被拒
+    DEFECT: E2 真缺陷：diff_sandbox_check.py check() 的 deny_absolute_prefix 分支 `nf = normalize_path(f)` 不在 try 内，而 platform_ops.normalize_path 对盘符绝对路径直接抛 ValueError → 绝对路径判定分支永远不可达（死代码）；`C:/Windows/...` 以未捕获异常形式拒绝（调用方崩溃），`~/.ssh/id_rsa` 归一化成相对路径后命中不了 deny_absolute_prefix，只落到 allow 判定。定稿 '绝对路径越界被拒' 事实成立，但拒绝机制与设计不符
+E3 | ABSENT | token API：能取到 token 用量（否则 token_metering 保持 absent）
+E4 | PASS | 凭据与网络：不过则禁止进 W1（(a) paths.yaml deny 真拒 .env/.pem；(b) worker env 无根密钥等 + verify 环境无代理变量）
+    DEFECT: E4a/声明悬空：diff_sandbox_check.py CLI main 只传 3 参（check(a.scope, changed, a.allow)），无 --deny/--deny-absolute 参数 → 人工直跑 CLI 时 paths.yaml 的 8 条 deny 与 5 条 deny_absolute_prefix 不生效（实测 src/.env 放行 exit=0）；生产调用点 lead.py:625 / agent_runner.py:569 有传，故是「CLI 入口缺口」而非全链路悬空
+    DEFECT: E4b/网络隔离缺口（深度发现，不在 E4 判据内）：platform_ops.scrub_env 只按「密钥名模式」过滤，不过滤 HTTP_PROXY/HTTPS_PROXY/ALL_PROXY → 主动注入的代理变量实测仍进入 local_process worker 子进程（HTTP_PROXY,HTTPS_PROXY,ALL_PROXY）。定稿 §9.3 的「verify 环境无代理变量」只覆盖 verify_harness，不覆盖 agent_runner 的 worker 侧
+E5 | PASS | 外部告警：本地 http.server 收 POST，webhook status=200，file 通道真写 alerts.jsonl；不连外网
+    DEFECT: 定稿 §9.2 把 external_alert 列为 designed；生产 config.yaml:44 只配了 file 通道、无 webhook 通道，E5 的 PASS 依赖在临时副本里补配 webhook 通道，生产默认配置下 webhook 路径无读者
+F08 | PASS | 改 wb_core.py 一字节 → sign_manifest.verify_level('critical') 报 mismatch（boot/tick/critical 三级）
+    DEFECT: F08 口径：定稿附录 F 写「改 store.py 一字节」，实作可信根清单里的文件名是 `scripts/wb_core.py`（root.manifest:188），无 store.py
+F09 | PASS | config.yaml 加未知键 → spec_lint 报 L004 / config_invalid
+    DEFECT: F09 口径漂移：定稿期望 `config_invalid（L004）`，实作报 `S008` （"config.yaml 多出未声明键"）；全仓 `config_invalid` 0 命中，`L004` 只出现在 config.yaml:2 注释里。按 doc 码做自动化判据会假红
+F10 | PASS | 表达式里拼错标识符 → spec_lint 求值失败 → 非 0 退出，不静默通过
+    DEFECT: F10 / 检验窗口内热修：探索早期读到的 spec_lint.py 是 296 行、无任何表达式求值器；最终快照版本是 397 行（sha 535a815b…），新增 `_eval_expr`(:95) 与 S015 cross_checks 求值(:351-372)，定稿 F10 的承接点被补上了 → 主测 PASS。证据以一次性快照 sha256 为准。
+    DEFECT: F10 / 残留声明悬空（P1）：spec/rules.json 的 C.A1/C.D1 `expr`、C.B1 `requires`、各 `on_violation: p1_escalate` 仍是**纯数据**——对照测拼错 C.A1 标识符后 spec_lint 仍 `exit 0 / 0 findings` 静默通过；求值器只覆盖 config.schema.json 的 X1–X5，不覆盖 rules.json。gen_spec.py --check 只做文本漂移(DRIFT)，不是表达式求值失败
+F12 | PASS | 验收 digest 与链不符 → ACCEPTANCE_INVALID 且不跑验收命令
+    DEFECT: F12 承接点说明：最简可复跑点是 verify_harness.run_acceptance（lead.py task-verify 需先把任务喂到 submitted 状态，前置守卫 lead.py:736-740）；两者共用同一 run_acceptance，本演练验的是同一判定分支
+F13 | PASS | worker 写 scope 外路径 → diff_sandbox_check.check(scopes=['src/'], changed=['../../etc/passwd']) 返回 SCOPE_VIOLATION
+    DEFECT: F13 口径漂移：定稿期望 check() 返回 `SCOPE_VIOLATION`，实作 `../../etc/passwd` 在 platform_ops.normalize_path 就被拒（reason="path rejected: path escapes root ..."），合法但 scope 外的 `docs/readme.md` 返回 reason="outside task scope"；SCOPE_VIOLATION 字面量只在 lead.py:630 写 E10 事件时出现，check() 内无此字面量
+F14 | PASS | 合并冲突 → git merge-tree 预演两分支改同一行，验 merge_queue 冲突分支被触发
+    DEFECT: F14 口径漂移：定稿期望 `rejected(MERGE_CONFLICT)`，实作 main:434 写的是 `reason_code: "BASE_COMMIT_STALE"` 并写 E10 verify(fail, BASE_COMMIT_STALE)；merge_queue.py 全文无 MERGE_CONFLICT 字面量。另：驱动 main 到 :431 需 done 任务 + task/<tid> 分支 + 闸门放行，本演练用真实 merge_tree_ok 预演（同一冲突判定函数），并钉住 main 冲突分支的实测码
+F15 | PASS | 人工闸门超时 240min → gate_timer.scan(now_ms=now+241min) 触发 human_timeout，且 gate_open 不执行
+    DEFECT: F15 / 声明悬空：gate_timer.py GATE_FROM 整表与 TIMEOUT_ACTION['gate_open']='noop' 永不被取用 —— scan:65 硬编码 `TIMEOUT_ACTION.get('pending_human' if state=='pending_human' else 'escalated','stay')`，gate_open 分支是死配置；CLI main:88 `r = scan(a.dry_run)` 也不传 now_ms，240min 超时只能用 import 调 scan(now_ms=...) 才能复跑
+    DEFECT: F15 / 真缺陷（P1）：pending_human 超时后 scan 先写入 human_timeout 事件，再执行 st.transition(task,'blocked','system:gate_timer') 撞 T12 authority=['human:*'] 抛 SpecViolation（SpecViolation: authority denied: system:gate_timer may not run T12 (pending_human→blocked); allowed ['human:*']）→ scan 崩溃返回不出 res，状态未落到 blocked，链上却已留下 human_timeout。定稿 F15「human_timeout，gate_open 变更不执行」在 escalated 夹具成立，在 pending_human 主路径崩
+
+=== DEFECTS (14) ===
+E0 :: E0 入口只收位置参数 `selftest`；`--selftest` 实测 exit 2 + usage
+E2 :: E2 真缺陷：diff_sandbox_check.py check() 的 deny_absolute_prefix 分支 `nf = normalize_path(f)` 不在 try 内，而 platform_ops.normalize_path 对盘符绝对路径直接抛 ValueError → 绝对路径判定分支永远不可达（死代码）；`C:/Windows/...` 以未捕获异常形式拒绝（调用方崩溃），`~/.ssh/id_rsa` 归一化成相对路径后命中不了 deny_absolute_prefix，只落到 allow 判定。定稿 '绝对路径越界被拒' 事实成立，但拒绝机制与设计不符
+E4 :: E4a/声明悬空：diff_sandbox_check.py CLI main 只传 3 参（check(a.scope, changed, a.allow)），无 --deny/--deny-absolute 参数 → 人工直跑 CLI 时 paths.yaml 的 8 条 deny 与 5 条 deny_absolute_prefix 不生效（实测 src/.env 放行 exit=0）；生产调用点 lead.py:625 / agent_runner.py:569 有传，故是「CLI 入口缺口」而非全链路悬空
+E4 :: E4b/网络隔离缺口（深度发现，不在 E4 判据内）：platform_ops.scrub_env 只按「密钥名模式」过滤，不过滤 HTTP_PROXY/HTTPS_PROXY/ALL_PROXY → 主动注入的代理变量实测仍进入 local_process worker 子进程（HTTP_PROXY,HTTPS_PROXY,ALL_PROXY）。定稿 §9.3 的「verify 环境无代理变量」只覆盖 verify_harness，不覆盖 agent_runner 的 worker 侧
+E5 :: 定稿 §9.2 把 external_alert 列为 designed；生产 config.yaml:44 只配了 file 通道、无 webhook 通道，E5 的 PASS 依赖在临时副本里补配 webhook 通道，生产默认配置下 webhook 路径无读者
+F08 :: F08 口径：定稿附录 F 写「改 store.py 一字节」，实作可信根清单里的文件名是 `scripts/wb_core.py`（root.manifest:188），无 store.py
+F09 :: F09 口径漂移：定稿期望 `config_invalid（L004）`，实作报 `S008` （"config.yaml 多出未声明键"）；全仓 `config_invalid` 0 命中，`L004` 只出现在 config.yaml:2 注释里。按 doc 码做自动化判据会假红
+F10 :: F10 / 检验窗口内热修：探索早期读到的 spec_lint.py 是 296 行、无任何表达式求值器；最终快照版本是 397 行（sha 535a815b…），新增 `_eval_expr`(:95) 与 S015 cross_checks 求值(:351-372)，定稿 F10 的承接点被补上了 → 主测 PASS。证据以一次性快照 sha256 为准。
+F10 :: F10 / 残留声明悬空（P1）：spec/rules.json 的 C.A1/C.D1 `expr`、C.B1 `requires`、各 `on_violation: p1_escalate` 仍是**纯数据**——对照测拼错 C.A1 标识符后 spec_lint 仍 `exit 0 / 0 findings` 静默通过；求值器只覆盖 config.schema.json 的 X1–X5，不覆盖 rules.json。gen_spec.py --check 只做文本漂移(DRIFT)，不是表达式求值失败
+F12 :: F12 承接点说明：最简可复跑点是 verify_harness.run_acceptance（lead.py task-verify 需先把任务喂到 submitted 状态，前置守卫 lead.py:736-740）；两者共用同一 run_acceptance，本演练验的是同一判定分支
+F13 :: F13 口径漂移：定稿期望 check() 返回 `SCOPE_VIOLATION`，实作 `../../etc/passwd` 在 platform_ops.normalize_path 就被拒（reason="path rejected: path escapes root ..."），合法但 scope 外的 `docs/readme.md` 返回 reason="outside task scope"；SCOPE_VIOLATION 字面量只在 lead.py:630 写 E10 事件时出现，check() 内无此字面量
+F14 :: F14 口径漂移：定稿期望 `rejected(MERGE_CONFLICT)`，实作 main:434 写的是 `reason_code: "BASE_COMMIT_STALE"` 并写 E10 verify(fail, BASE_COMMIT_STALE)；merge_queue.py 全文无 MERGE_CONFLICT 字面量。另：驱动 main 到 :431 需 done 任务 + task/<tid> 分支 + 闸门放行，本演练用真实 merge_tree_ok 预演（同一冲突判定函数），并钉住 main 冲突分支的实测码
+F15 :: F15 / 声明悬空：gate_timer.py GATE_FROM 整表与 TIMEOUT_ACTION['gate_open']='noop' 永不被取用 —— scan:65 硬编码 `TIMEOUT_ACTION.get('pending_human' if state=='pending_human' else 'escalated','stay')`，gate_open 分支是死配置；CLI main:88 `r = scan(a.dry_run)` 也不传 now_ms，240min 超时只能用 import 调 scan(now_ms=...) 才能复跑
+F15 :: F15 / 真缺陷（P1）：pending_human 超时后 scan 先写入 human_timeout 事件，再执行 st.transition(task,'blocked','system:gate_timer') 撞 T12 authority=['human:*'] 抛 SpecViolation（SpecViolation: authority denied: system:gate_timer may not run T12 (pending_human→blocked); allowed ['human:*']）→ scan 崩溃返回不出 res，状态未落到 blocked，链上却已留下 human_timeout。定稿 F15「human_timeout，gate_open 变更不执行」在 escalated 夹具成立，在 pending_human 主路径崩
+
+=== HOTFIX NOTE ===
+检验窗口（04:06–05:40）内 platform_ops.py（533→572 行，新增 scrub_env/is_secret_env_name）、agent_runner.py（env=dict(os.environ)→scrub_env）、verify_harness.py（424→429 行，env_allow 拦密钥）、spec_lint.py（296→397 行，新增 _eval_expr + S015 cross_checks 求值）被热修；已 send_message 通知父代理。证据以上述一次性快照的 sha256 为准。F10 首轮按热修前探索结论记 FAIL（无求值器），复核后改按 S015 承接点重测；F14 首轮夹具把共同祖先当 base（无分叉），重做为两分支改同一行

@@ -1,0 +1,58 @@
+# acceptance.yaml — 验收契约模板（v3.2 §6）
+#
+# 这份模板的每个字段都对应一条「会被误用」的规则，注释就是防线。
+# 复制到 .workbench/tasks/T-xxxx/acceptance.draft.yaml 后改内容，
+# 再用 acceptance 转正：lead.py task-approve 会重算 digest 写成 acceptance.yaml。
+#
+# 字段约束
+#   schema      必须 1。改 schema 要迁移，不能就地改。
+#   task        必须与目录名一致；不一致时 verify_harness 直接拒收。
+#   source      human | lead_draft_human_approved。有 human 签署的才允许 human。
+#   digest      canonical_digest(acc) —— JCS 去掉 digest 字段后 sha256。
+#               手改内容不同步 digest，verify 时报 ACCEPTANCE_INVALID。
+#   on_fail     fail_task（唯一合法值）。故意不给"重试"选项：
+#               自动重试会把偶发失败洗成绿，而验收的意义就是留下失败。
+#   commands    非空。id 唯一。全跑不早停（早停会掩盖后面的失败）。
+#
+# 拒收规则（verify_harness.validate_acceptance）
+#   1. 硬编码端口 —— 用 ${PORT}，由 harness 注入空闲端口
+#   2. 外网地址   —— http(s):// 指向公网即拒
+#   3. 破坏性命令 —— rm -rf /、format、del /f /s /q C:\ 等
+#   4. timeout_sec 不在 1..86400
+#   5. expect 里只允许 exit_code 与 files_exist（不允许自定义判定词）
+#   6. cwd 不许绝对路径、不许 ../
+#   7. env_allow 只给白名单键，不给 shell 展开
+
+schema: 1
+task: T-0000
+source: lead_draft_human_approved
+on_fail: fail_task
+
+# digest 由 lead.py 计算后填入，不要手写
+digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+# 任务主张的写域。必须与 brief.md 一致；submit 时按这份校验。
+scope:
+  - "src/"
+  - "tests/"
+
+commands:
+  - id: A1
+    # ${PORT} 由 harness 注入；不要写 8080
+    cmd: "python -m pytest tests -q"
+    cwd: "."
+    timeout_sec: 300
+    env_allow: ["PATH", "PYTHONIOENCODING"]
+    expect:
+      exit_code: 0
+
+  - id: A2
+    cmd: "python tests/test_calc.py"
+    cwd: "."
+    timeout_sec: 120
+    env_allow: ["PATH"]
+    expect:
+      exit_code: 0
+      # 产物必须真的落地，光看退出码会让"什么都不做"也算通过
+      files_exist:
+        - "tests/test_calc.py"

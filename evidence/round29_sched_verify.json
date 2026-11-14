@@ -1,0 +1,30 @@
+{
+  "criterion": "scheduler_observation_verify_v1",
+  "expected_report_digest": "sha256:b67df4583ed79452180d43cf7d203fe156af89e611eefe3b142f906643266fa8",
+  "expected_snapshot_hmac": "hmac-sha256:f2f4abb556c9daec833d831ee62fd49e9435fbc846e1e11e81364f50e3432a33",
+  "hmac_ok": true,
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\scheduler_observation_snapshot.json",
+  "problems": [],
+  "report_digest": "sha256:b67df4583ed79452180d43cf7d203fe156af89e611eefe3b142f906643266fa8",
+  "schema": 1,
+  "snapshot_hmac": "hmac-sha256:f2f4abb556c9daec833d831ee62fd49e9435fbc846e1e11e81364f50e3432a33",
+  "snapshot_sha256": "6be99fc03a295e14e3aba345e260bc1bb8e617e8f9ac93e0b98b06095fce999e",
+  "source_hashes": {
+    "evidence/scheduler_trend.jsonl": {
+      "current_bytes": 550,
+      "current_sha256": "6ee533a6961fa478dce4727bb88660af4f021747b018447454351f7a76f71a7e",
+      "matches": true,
+      "prefix_bytes": 550,
+      "snapshot_sha256": "6ee533a6961fa478dce4727bb88660af4f021747b018447454351f7a76f71a7e"
+    },
+    "state/scheduler.json": {
+      "current_bytes": 932,
+      "current_sha256": "5bc2801ac6589f085a3b5a898c3027b9e2fc6afcce773e119bb229fdb5ae5cd1",
+      "matches": true,
+      "prefix_bytes": 932,
+      "snapshot_sha256": "5bc2801ac6589f085a3b5a898c3027b9e2fc6afcce773e119bb229fdb5ae5cd1"
+    }
+  },
+  "verdict": "SCHEDULER_OBSERVATION_VERIFIED",
+  "w4_participates": false
+}

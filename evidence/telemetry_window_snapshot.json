@@ -1,0 +1,238 @@
+{
+  "criterion": "telemetry_snapshot_v1",
+  "generated_at_ms": 1794411329215,
+  "note": "显式 snapshot 是唯一写入命令。第二十九轮：snapshot_digest 为公开 body digest；signature_chain 锁定 report/source_hashes/body；snapshot_hmac 由 WORKBENCH_ROOT_KEY 做 root-key HMAC。它不是公钥签名，持有 root key 的主体可重签。",
+  "report": {
+    "bad_lines": [],
+    "criterion": "telemetry_window_v1",
+    "cutoff_ms": 1794324929210,
+    "future": [],
+    "note": "空窗口只代表该时间窗无运行记录；坏行/残留/失败装配/W4 混入/未来时间戳/接线悬空都会红。",
+    "now_ms": 1794411329210,
+    "overall": {
+      "bad_lines": 0,
+      "empty_window": false,
+      "failed_assemblies": 0,
+      "future_rows": 0,
+      "in_window_rows": 22,
+      "outside_window_rows": 0,
+      "residual_rows": 0,
+      "total_rows": 22,
+      "w4_violations": 0,
+      "wiring_ok": true
+    },
+    "schema": 1,
+    "sources": {
+      "appcontainer": {
+        "assemblies": 1,
+        "bad_lines": [],
+        "cleanups": 1,
+        "exists": true,
+        "failed_assemblies": 0,
+        "future": [],
+        "future_rows": 0,
+        "in_window_rows": 2,
+        "last": [
+          {
+            "data": {
+              "dacl_restore": {
+                "detail": "DACL restored",
+                "ok": true
+              },
+              "delete_hr": "0x00000000",
+              "derive_after_delete_hr": "0x00000000",
+              "derive_after_delete_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+              "fixture_removed": true,
+              "probe_root": "C:\\Users\\THH32\\AppData\\Local\\Temp\\wb-appcontainer-8xxlebxx",
+              "profile_exists_error": null,
+              "profile_folder": null,
+              "profile_folder_left": false,
+              "profile_mapping_exists_after_delete": false,
+              "profile_name": "WbAppContainerProbe-30c06157386c-1794380899758",
+              "residual": false
+            },
+            "kind": "cleanup",
+            "schema": 1,
+            "ts_ms": 1794380904872,
+            "w4_participates": false
+          },
+          {
+            "data": {
+              "capabilities": [
+                "internetClient"
+              ],
+              "ok": true,
+              "probe_root": "C:\\Users\\THH32\\AppData\\Local\\Temp\\wb-appcontainer-8xxlebxx",
+              "profile_name": "WbAppContainerProbe-30c06157386c-1794380899758",
+              "profile_sid": "S-1-15-2-154367148-2724341844-4030706432-1731123932-2368738588-1434942252-1863464900",
+              "residual": false,
+              "verdict": "APPCONTAINER_ASSEMBLED_VALIDATED"
+            },
+            "kind": "assemble",
+            "schema": 1,
+            "ts_ms": 1794380904874,
+            "w4_participates": false
+          }
+        ],
+        "latest_assemble_verdict": "APPCONTAINER_ASSEMBLED_VALIDATED",
+        "note": "显式 --assemble 的系统级实验台账；窗口外旧失败留痕，未来时间戳单列报红。",
+        "outside_window_rows": 0,
+        "path": "state/appcontainer_probe.jsonl",
+        "residual_rows": 0,
+        "total_rows": 2,
+        "w4_participates": false,
+        "w4_violations": 0
+      },
+      "containment": {
+        "applied": 10,
+        "bad_lines": [],
+        "degraded": 10,
+        "exists": true,
+        "future": [],
+        "future_rows": 0,
+        "in_window_rows": 20,
+        "last": [
+          {
+            "active_process_limit": null,
+            "applied": false,
+            "argv0": "python.exe",
+            "detail": "INJECTED_FAIL: 模拟 OpenProcess/Assign 失败",
+            "mode": "degraded",
+            "note": "best-effort runtime containment ledger; not W4 capability evidence",
+            "pid": 14408,
+            "schema": 1,
+            "ts_ms": 1794408922809,
+            "w4_participates": false
+          },
+          {
+            "active_process_limit": null,
+            "applied": true,
+            "argv0": "python.exe",
+            "detail": "KILL_ON_JOB_CLOSE 已设，后代进程自动归属此 Job",
+            "mode": "kill_on_job_close",
+            "note": "best-effort runtime containment ledger; not W4 capability evidence",
+            "pid": 19668,
+            "schema": 1,
+            "ts_ms": 1794409401851,
+            "w4_participates": false
+          },
+          {
+            "active_process_limit": null,
+            "applied": false,
+            "argv0": "python.exe",
+            "detail": "INJECTED_FAIL: 模拟 OpenProcess/Assign 失败",
+            "mode": "degraded",
+            "note": "best-effort runtime containment ledger; not W4 capability evidence",
+            "pid": 19172,
+            "schema": 1,
+            "ts_ms": 1794409401858,
+            "w4_participates": false
+          },
+          {
+            "active_process_limit": null,
+            "applied": true,
+            "argv0": "python.exe",
+            "detail": "KILL_ON_JOB_CLOSE 已设，后代进程自动归属此 Job",
+            "mode": "kill_on_job_close",
+            "note": "best-effort runtime containment ledger; not W4 capability evidence",
+            "pid": 15176,
+            "schema": 1,
+            "ts_ms": 1794411242960,
+            "w4_participates": false
+          },
+          {
+            "active_process_limit": null,
+            "applied": false,
+            "argv0": "python.exe",
+            "detail": "INJECTED_FAIL: 模拟 OpenProcess/Assign 失败",
+            "mode": "degraded",
+            "note": "best-effort runtime containment ledger; not W4 capability evidence",
+            "pid": 27076,
+            "schema": 1,
+            "ts_ms": 1794411242967,
+            "w4_participates": false
+          }
+        ],
+        "note": "contain=False 默认路径不写台账；空窗口只代表该窗口无记录。未来时间戳单列报红。",
+        "outside_window_rows": 0,
+        "path": "state/containment.jsonl",
+        "total_rows": 20,
+        "w4_participates": false,
+        "w4_violations": 0
+      }
+    },
+    "verdict": "TELEMETRY_WINDOW_OK",
+    "w4_participates": false,
+    "window_min": 1440,
+    "wiring": {
+      "exclude_appcontainer": true,
+      "exclude_containment": true,
+      "ledger_criterion_dual_track_v1": true,
+      "ledger_unpolluted": true,
+      "os_sandbox_compensated_absent": true,
+      "rail_check": true,
+      "rail_test": true,
+      "w4_participates_false": true
+    }
+  },
+  "report_digest": "sha256:9cdceb3486915e2d3dd5f061539727dc48863766f5955f200ac84f70f62f1bc0",
+  "schema": 1,
+  "signature_chain": [
+    {
+      "criterion": "telemetry_snapshot_chain_v1",
+      "digest": "sha256:c24501b2ad10f3b6acd1d24415c716258f51c5c66780f9eb2de988377bb1773f",
+      "label": "report",
+      "report_digest": "sha256:9cdceb3486915e2d3dd5f061539727dc48863766f5955f200ac84f70f62f1bc0",
+      "schema": 1,
+      "step": 1
+    },
+    {
+      "criterion": "telemetry_snapshot_chain_v1",
+      "digest": "sha256:5703a896eb19edbef59ffc70db1fd329b2f856499eece5b51ccba83c06cc5dd5",
+      "label": "source_hashes",
+      "prev": "sha256:c24501b2ad10f3b6acd1d24415c716258f51c5c66780f9eb2de988377bb1773f",
+      "schema": 1,
+      "source_hashes_digest": "sha256:bec51c9560e51e52b011ac693f993a6951b8d35f967761ca6efbc4787615cb64",
+      "step": 2
+    },
+    {
+      "criterion": "telemetry_snapshot_chain_v1",
+      "digest": "sha256:7900949c5cd94cc4acd302ac939a0aedcafca1849da69a1ed6351f7e74ab8b94",
+      "label": "public_body",
+      "prev": "sha256:5703a896eb19edbef59ffc70db1fd329b2f856499eece5b51ccba83c06cc5dd5",
+      "public_body_digest": "sha256:a2efc3ead673848132f6d3abc94b6731775c5631574838309666a57348b49fb8",
+      "schema": 1,
+      "step": 3
+    }
+  ],
+  "snapshot_digest": "sha256:a2efc3ead673848132f6d3abc94b6731775c5631574838309666a57348b49fb8",
+  "snapshot_hmac": "hmac-sha256:4a7303b8ba90fc32264526dfc3c82c5fb51c141b5dc0c97c914d0e7c113f3910",
+  "snapshot_signature": {
+    "algo": "cng-ecdsa-p256-sha256",
+    "body_digest": "sha256:ae7be45697000652d02adb6f3c6fe6de37bb7237cc9776dd411205b27cb1e2ec",
+    "curve": "P-256",
+    "key_id": "sha256:5effaa694147115d24dce0cf91cc10a4e8841025a6f86fe8014a4d8415fe316f",
+    "sig_b64": "C2WIm3EqH/BLCCKMEIiiLB8RUDXuGcy0HfOyIx1wu3CUgzjoiY2cr0eJvM7YMnN48XSw9UfFlu283xdMFf3W/A==",
+    "sig_bytes": 64,
+    "w4_participates": false
+  },
+  "source_hashes": {
+    "state/appcontainer_probe.jsonl": {
+      "bytes": 1113,
+      "exists": true,
+      "lines": 2,
+      "mtime_ms": 1794380904874,
+      "path": "state/appcontainer_probe.jsonl",
+      "sha256": "7a39fbe6f10dc80c5fade47c6907b11cbbdae88a293355487791436ddc3f04f2"
+    },
+    "state/containment.jsonl": {
+      "bytes": 6346,
+      "exists": true,
+      "lines": 20,
+      "mtime_ms": 1794411242968,
+      "path": "state/containment.jsonl",
+      "sha256": "e3c6424cd6f92b378095e2b3750f27b7e16a24fd8c688b55b2a1e17994ff56a1"
+    }
+  },
+  "w4_participates": false
+}

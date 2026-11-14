@@ -1,0 +1,12 @@
+{
+  "escape": "ctypes_write",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "kind": "blocked_good",
+  "mode": "ctypes_write",
+  "note": "import ctypes 直接调 libc/msvcrt",
+  "rc": 1,
+  "reached": false,
+  "stderr_tail": "nch\\scripts\\capability_escape_child.py\", line 61, in main\r\n    import ctypes\r\n  File \"D:\\Users\\THH32\\DSH-ZNT\\workbench\\.workbench\\scripts\\worker_shim\\sitecustomize.py\", line 166, in _gimport\r\n    raise PermissionError(\r\nPermissionError: WB_ISOLATE: import 'ctypes' refused (below-Python escape hatch)",
+  "stdout_tail": "",
+  "verdict": "blocked"
+}

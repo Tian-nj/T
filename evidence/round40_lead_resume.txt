@@ -1,0 +1,72 @@
+任务 T-R40  当前状态='in_progress'  executor=local_process
+
+──── 状态='in_progress' → 下一步=finish（agent_runner finish：读 sentinel → 复核写域 → submit）
+
+$ python.exe agent_runner.py finish --task T-R40 --role lead --submit
+  OK T-R40/lead：changed=1 ['docs/architecture/T-R40-lead-dispatch.md']
+     summary: 主理人(lead)写 docs/architecture/T-R40-lead-dispatch.md，并通过 tests/test_lead_doc.py
+     selfcheck: python tests/test_lead_doc.py → exit=0
+
+──── 状态='submitted' → 下一步=verify（task-verify：跑验收命令，写 E10）
+
+$ python.exe lead.py task-verify --task T-R40 --worktree T-R40
+  T-R40 VERIFY PASS → done (E10=1088 E08=1089, 1 cmds)
+
+──── 状态='done' → 下一步=merge（merge_queue：过闸门 → 合入）
+
+$ python.exe merge_queue.py --dry-run
+  merge_queue → master (dry_run=True)
+    SKIP     T-0004  — already merged
+    SKIP     T-0005  — already merged
+    SKIP     T-0006  — already merged
+    SKIP     T-0007  — already merged
+    SKIP     T-0008  — already merged
+    SKIP     T-R38  — already merged
+    WAIT     T-R40  NEVER_WAIVE   double_sign file_delete: evidence/round40_lead_run.txt, evidence/round75_full.txt;
+  merged 0 / rejected 0 / gated 1 / skipped 6
+
+  ⚠ --sign-as yg：本次由操作者显式授权自动签名，闸门的人工确认环节被跳过。这一行会留在输出里作为凭据。
+
+$ python.exe human_cli.py --sub sign --principal yg --op human_approve --args {"task": "T-R40"}
+  {
+    "principal": "yg",
+    "op": "human_approve",
+    "args": {
+      "task": "T-R40"
+    },
+    "nonce": "7f35fc5c",
+    "ts_ms": 1794463544799,
+    "sig": "e091e4bfd690ec9ca9ccddb1413f213b61cfa474324e236bfdb0e79c97b6c9ec"
+  }
+
+$ python.exe human_cli.py --principal yg --op human_approve --args {"task": "T-R40"} --nonce 7f35fc5c --ts_ms 1794463544799 --sig e091e4bfd690ec9ca9ccddb1413f213b61cfa474324e236bfdb0e79c97b6c9ec
+  ACCEPT human_approve as human:yg
+    event {'kind': 'human_approve', 'seq': 1090}
+
+$ python.exe merge_queue.py
+    SKIP     T-0004  — already merged
+    SKIP     T-0005  — already merged
+    SKIP     T-0006  — already merged
+    SKIP     T-0007  — already merged
+    SKIP     T-0008  — already merged
+    SKIP     T-R38  — already merged
+    WAIT     T-R40  NEVER_WAIVE   double_sign file_delete: evidence/round40_lead_run.txt, evidence/round75_full.txt;
+
+==================================================================
+🟡 验过，没合 T-R40 验收通过但还没合入 —— 改动在任务分支上。
+
+§ 结论
+  落点：未合入
+
+§ 依据
+  · 验收标准已人工转正：E32 seq=1071 digest=sha256:69dec145
+  · 派给谁执行：E05 seq=1076 role=lead executor=local_process pid_observable=True
+  · 改了什么：E09 seq=1086 1 个文件 ['docs/architecture/T-R40-lead-dispatch.md'] commit=32143fb
+  · 验收跑出来的结果：E10 seq=1088 result=pass exit=0 耗时=88ms log=tasks/T-R40/verify.log
+
+§ 风险
+  ! 状态已到 done 但没有 E15：代码还没进主干，随时可能被下一轮改动覆盖。
+
+§ 下一步
+  跑 run_task.py --task T-R40 --resume 走闸门并合并。
+==================================================================

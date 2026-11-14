@@ -1,0 +1,148 @@
+# 第 3 轮深度自检 —— 五件审计 + 十二项检查全程实录
+# 2026-11-09T13:05:06Z  python 3.12.14 on win32
+
+########## audit_static.py ##########
+==============================================================================
+静态审计 audit_static.py v2（跨文件调用统计）
+==============================================================================
+
+file                           LOC  func  flags
+------------------------------------------------------------------------------
+bootstrap.py                   131     3  ok
+constitution_check.py          158     4  ok
+dep_resolver.py                120     5  ok
+diff_sandbox_check.py          244    11  ok
+gate_timer.py                  104     3  ok
+gc_helper.py                   206     9  ok
+gen_spec.py                    430     8  ok
+health.py                      140     6  ok
+human_cli.py                   309    12  ok
+lead.py                        761    25  ok
+merge_queue.py                 263    11  ok
+metrics_collector.py           193     5  ok
+migrate_vx_to_vy.py            244     8  ok
+platform_ops.py                441    15  ok
+sign_manifest.py               277    12  ok
+spec_lint.py                   296     6  ok
+verify_harness.py              404    10  ok
+wb_core.py                     934    42  ok
+
+总行数 5655，文件 18
+
+------------------------------------------------------------------------------
+A. 静默吞异常（except: pass / continue / return None / bare except）
+------------------------------------------------------------------------------
+  合计 0 处
+
+------------------------------------------------------------------------------
+B. 定义但从未被调用（跨文件后仍无引用）
+------------------------------------------------------------------------------
+  无 —— 所有定义的函数都至少被引用一次
+
+wrote evidence/audit_static.json
+[exit=0]
+
+########## audit_drift.py ##########
+==============================================================================
+真相源漂移审计 audit_drift.py
+==============================================================================
+  A wb_core.spec_tables()  ← 硬编码第二份
+  B .workbench/spec/*.json ← gen_spec.py 生成物
+
+  事件 45 / 状态 12 / 迁移 22 / reason_code 29 / actor 16 / 冻结 14
+
+RESULT: NO DRIFT — 两份表当前逐项一致
+
+  警告：一致 ≠ 安全。两份手工维护的表此刻相同，只说明还没人改错。
+  真正的修法是删掉一份，让 spec_tables() 从 spec/*.json 读。
+
+wrote evidence/audit_drift.json
+[exit=0]
+
+########## audit_runtime.py ##########
+==============================================================================
+运行时行为探针 audit_runtime.py
+==============================================================================
+
+  P01   租约被拒后再申请（None 与 int 比较）                                    OK
+  P02   租约过期后可被低 epoch 抢占                                          OK
+  P03   未知事件类型是否被拒                                                 OK
+  P04   缺 required_payload 是否被拒                                    OK
+  P05   FROZEN 态是否真的拦非白名单事件                                        OK
+  P06   rebuild 是否拒绝非法状态名                                          OK
+  P07   rebuild 是否拒绝非法迁移                                           OK
+  P08   主链月份文件名是否硬编码                                               OK
+  P09   跨月文件 seq 连续（当前是否可测）                                        OK
+  P10   对照：中间行篡改被抓                                                 OK
+  P11   对照：末行截断修复后可续写                                              OK
+  P12   ts_ms 是否只能由 store 生成                                       OK
+  P13   冻结白名单是否真来自 spec（集合比对）                                      OK
+  P14   sidecar 数值字段是否 integer-only                                OK
+  P15   空改动不会被打扮成改动                                                OK
+
+------------------------------------------------------------------------------
+探针 15 条：15 条声称被证实，0 条发现缺陷
+
+
+wrote evidence/audit_runtime.json
+[exit=0]
+
+########## audit_payload.py ##########
+==============================================================================
+payload 必填键核对 audit_payload.py
+==============================================================================
+
+  bootstrap.py           :81     capability_check      ok
+  bootstrap.py           :88     root_integrity_fail   ok
+  dep_resolver.py        :70     dep_cascade           ok
+  gate_timer.py          :71     human_timeout         ok
+  gc_helper.py           :176    gc                    ok
+  health.py              :99     heartbeat_lost        ok
+  health.py              :107    heartbeat_resumed     ok
+  human_cli.py           :212    (动态 kind，无法静态判定)
+  lead.py                :151    draft_created         ok
+  lead.py                :201    draft_approved        ok
+  lead.py                :203    acceptance_approved   ok
+  lead.py                :285    lease_conflict        ok
+  lead.py                :289    claim                 ok
+  lead.py                :291    spawn                 ok
+  lead.py                :401    verify                ok
+  lead.py                :430    submit                ok
+  lead.py                :516    verify                ok
+  lead.py                :541    kill                  payload 非字面量 → 运行期校验
+  lead.py                :601    escalate              ok
+  merge_queue.py         :180    verify                ok
+  merge_queue.py         :206    merge                 ok
+  merge_queue.py         :220    merge_reverted        ok
+  merge_queue.py         :234    escalate              ok
+  metrics_collector.py   :160    metrics_snapshot      payload 非字面量 → 运行期校验
+  migrate_vx_to_vy.py    :177    config_change         ok
+  wb_core.py             :584    state                 payload 非字面量 → 运行期校验
+
+------------------------------------------------------------------------------
+调用点 26 个，静态可见的问题 0 处
+（payload 非字面量的调用点由运行期 SpecViolation 兜底，属预期）
+[exit=0]
+
+########## audit_closure.py ##########
+==============================================================================
+声明→执行闭合审计 audit_closure.py
+==============================================================================
+
+  C01   H3  priority=P0 只能由 E21 设定                                     OK
+  C02   H6  draft 自动确认闸门（auto_approve_draft）                           OK
+  C03   H7  attempts 上限 max_attempts                                   OK
+  C04   C.A2 + paths.deny 凭据文件保护                                       OK
+  C05   C.B2 命令白名单                                                     OK
+  C06   C.D1 墙钟预算守卫                                                    OK
+  C07   H5  escalate 前 worker 必须死透                                     OK
+  C08   H4  dep_cascade 跳过 never_spawned 的 kill                        OK
+  C09   I-6 冻结白名单只从 spec 读                                             OK
+  C10   I-1 state 事件唯一写入口                                              OK
+
+------------------------------------------------------------------------------
+闭合探针 10 条：10 条闭合，0 条声明悬空
+
+wrote evidence\audit_closure.json
+[exit=0]
+

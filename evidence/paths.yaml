@@ -1,0 +1,32 @@
+# spec/paths.yaml — 路径策略（v3.2 §11.4）。由 gen_spec.py 生成，勿手改。
+schema: 1
+default: deny
+
+allow_write:
+  - {glob: "src/**", owner: "coder"}
+  - {glob: "tests/**", owner: "coder"}
+  - {glob: "docs/**", owner: "architect"}
+  - {glob: "contracts/**", owner: "architect"}
+  - {glob: ".workbench/tasks/**/brief.md", owner: "lead"}
+  - {glob: ".workbench/tasks/**/acceptance.draft.yaml", owner: "lead"}
+  - {glob: ".workbench/tasks/**/acceptance.yaml", owner: "lead"}
+  - {glob: ".workbench/verify_harness/**", owner: "system:verifier"}
+  - {glob: ".workbench/tasks/**/verify.log", owner: "system:verifier"}
+  - {glob: ".workbench/tasks/**/result.json", owner: "system:verifier"}
+
+deny:
+  - {glob: ".workbench/root.manifest", reason: "可信根"}
+  - {glob: ".workbench/spec/**", reason: "单一权威表，只能由 gen_spec.py 写"}
+  - {glob: ".workbench/state/members.json", reason: "成员表"}
+  - {glob: ".workbench/scripts/**", reason: "控制面脚本"}
+  - {glob: ".workbench/roles/**", reason: "角色→agent 分配表，改动需 E27"}
+  - {glob: "**/.git/**", reason: "Git 内部"}
+  - {glob: "**/.env", reason: "凭据"}
+  - {glob: "**/*.pem", reason: "私钥"}
+
+deny_absolute_prefix:
+  - "C:/Windows"
+  - "C:/Program Files"
+  - "~/.ssh"
+  - "~/.aws"
+  - "~/.dsh"

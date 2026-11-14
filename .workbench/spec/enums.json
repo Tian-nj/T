@@ -1,0 +1,473 @@
+{
+  "schema": 1,
+  "reason_code": [
+    {
+      "code": "ACCEPTANCE_INVALID",
+      "desc": "验收文件非法或 digest 不符",
+      "domain": "verify"
+    },
+    {
+      "code": "CONTRACT_DRIFT",
+      "desc": "契约与实现漂移",
+      "domain": "verify"
+    },
+    {
+      "code": "NEEDS_REBREAK",
+      "desc": "需重新拆解",
+      "domain": "merge"
+    },
+    {
+      "code": "SCOPE_VIOLATION",
+      "desc": "写域越界",
+      "domain": "verify"
+    },
+    {
+      "code": "TIMEOUT",
+      "desc": "超时",
+      "domain": "exec"
+    },
+    {
+      "code": "BUDGET_EXCEEDED",
+      "desc": "预算超限",
+      "domain": "exec"
+    },
+    {
+      "code": "ENV_BROKEN",
+      "desc": "环境损坏",
+      "domain": "exec"
+    },
+    {
+      "code": "VERIFY_FLAKY",
+      "desc": "验证不稳定",
+      "domain": "verify"
+    },
+    {
+      "code": "DEADLOCK_GUARD",
+      "desc": "死锁守卫触发",
+      "domain": "exec"
+    },
+    {
+      "code": "HUMAN_REJECTED",
+      "desc": "人工拒绝",
+      "domain": "human"
+    },
+    {
+      "code": "BASE_COMMIT_STALE",
+      "desc": "基线过期",
+      "domain": "merge"
+    },
+    {
+      "code": "PATCH_HASH_MISMATCH",
+      "desc": "补丁哈希不符",
+      "domain": "merge"
+    },
+    {
+      "code": "SELFCHECK_FAIL",
+      "desc": "自检与控制面不一致",
+      "domain": "verify"
+    },
+    {
+      "code": "MISSING_YAML",
+      "desc": "缺必需文件",
+      "domain": "verify"
+    },
+    {
+      "code": "ROOT_INTEGRITY_FAIL",
+      "desc": "可信根校验失败",
+      "domain": "trust"
+    },
+    {
+      "code": "CHAIN_TAMPERED",
+      "desc": "链被篡改",
+      "domain": "trust"
+    },
+    {
+      "code": "LEASE_CONFLICT",
+      "desc": "租约冲突",
+      "domain": "trust"
+    },
+    {
+      "code": "DEP_UNRESOLVED",
+      "desc": "依赖无法解析",
+      "domain": "exec"
+    },
+    {
+      "code": "MERGE_CONFLICT",
+      "desc": "合并冲突",
+      "domain": "merge"
+    },
+    {
+      "code": "SMOKE_FAILED",
+      "desc": "冒烟失败",
+      "domain": "merge"
+    },
+    {
+      "code": "WT_RECLAIM_FAILED",
+      "desc": "worktree 回收失败",
+      "domain": "gc"
+    },
+    {
+      "code": "POLICY_DENIED",
+      "desc": "策略拒绝",
+      "domain": "trust"
+    },
+    {
+      "code": "SECRET_DETECTED",
+      "desc": "检出密钥",
+      "domain": "security"
+    },
+    {
+      "code": "QUOTA_EXCEEDED",
+      "desc": "配额超限",
+      "domain": "exec"
+    },
+    {
+      "code": "CAPABILITY_ABSENT",
+      "desc": "能力缺失",
+      "domain": "trust"
+    },
+    {
+      "code": "MIGRATION_FAILED",
+      "desc": "迁移失败",
+      "domain": "trust"
+    },
+    {
+      "code": "SNAPSHOT_FAILED",
+      "desc": "快照失败",
+      "domain": "trust"
+    },
+    {
+      "code": "GC_PARTIAL",
+      "desc": "GC 部分完成",
+      "domain": "gc"
+    },
+    {
+      "code": "OPERATOR_ABORT",
+      "desc": "操作员中止",
+      "domain": "human"
+    }
+  ],
+  "root_cause_class": [
+    "SPEC_GAP",
+    "IMPL_BUG",
+    "ENV_FLAKY",
+    "TOOL_LIMIT",
+    "HUMAN_ERR"
+  ],
+  "capability_state": [
+    "absent",
+    "designed",
+    "verified",
+    "enforced"
+  ],
+  "actor": [
+    "lead",
+    "architect",
+    "coder",
+    "companion",
+    "human:*",
+    "system:bootstrap",
+    "system:store",
+    "system:verifier",
+    "system:watchdog",
+    "system:dep_resolver",
+    "system:gate_timer",
+    "system:gc",
+    "system:metrics",
+    "system:constitution_check",
+    "system:migrate",
+    "system:merge_queue",
+    "system:health",
+    "system:runner",
+    "system:dream"
+  ],
+  "capabilities": {
+    "os_sandbox": {
+      "state": "absent",
+      "note": "Windows 无 seccomp/namespace 等价物"
+    },
+    "network_deny": {
+      "state": "enforced",
+      "note": "靠 PATH 白名单 + 代理环境变量，非内核级"
+    },
+    "credential_deny": {
+      "state": "enforced",
+      "note": "worker 进程不注入任何密钥环境变量"
+    },
+    "path_isolation": {
+      "state": "enforced",
+      "note": "workdir 限定在 wt/<task>，无 chroot"
+    },
+    "token_metering": {
+      "state": "absent",
+      "note": "模型供应商无统一用量 API"
+    },
+    "external_alert": {
+      "state": "enforced",
+      "note": "文件通道已验证；webhook 需 url_env 注入"
+    }
+  },
+  "capability_evidence": {
+    "schema": 1,
+    "criterion": "dual_track_v1",
+    "three_evidence": [
+      "real",
+      "injection",
+      "bypass"
+    ],
+    "threshold_bp": 8000,
+    "implementable": [
+      "network_deny",
+      "credential_deny",
+      "path_isolation",
+      "external_alert"
+    ],
+    "compensated_absent": [
+      "os_sandbox",
+      "token_metering"
+    ],
+    "capabilities": {
+      "os_sandbox": {
+        "track": "compensated_absent",
+        "evidence": {
+          "real": "capability_evidence/os_sandbox/real.json",
+          "injection": "capability_evidence/os_sandbox/injection.json",
+          "bypass": "capability_evidence/os_sandbox/bypass.json"
+        }
+      },
+      "network_deny": {
+        "track": "implementable",
+        "evidence": {
+          "real": "capability_evidence/network_deny/real.json",
+          "injection": "capability_evidence/network_deny/injection.json",
+          "bypass": "capability_evidence/network_deny/bypass.json"
+        }
+      },
+      "credential_deny": {
+        "track": "implementable",
+        "evidence": {
+          "real": "capability_evidence/credential_deny/real.json",
+          "injection": "capability_evidence/credential_deny/injection.json",
+          "bypass": "capability_evidence/credential_deny/bypass.json"
+        }
+      },
+      "path_isolation": {
+        "track": "implementable",
+        "evidence": {
+          "real": "capability_evidence/path_isolation/real.json",
+          "injection": "capability_evidence/path_isolation/injection.json",
+          "bypass": "capability_evidence/path_isolation/bypass.json"
+        }
+      },
+      "token_metering": {
+        "track": "compensated_absent",
+        "evidence": {
+          "real": "capability_evidence/token_metering/real.json",
+          "injection": "capability_evidence/token_metering/injection.json",
+          "bypass": "capability_evidence/token_metering/bypass.json"
+        }
+      },
+      "external_alert": {
+        "track": "implementable",
+        "evidence": {
+          "real": "capability_evidence/external_alert/real.json",
+          "injection": "capability_evidence/external_alert/injection.json",
+          "bypass": "capability_evidence/external_alert/bypass.json"
+        }
+      }
+    },
+    "note": "六项三证由 capability_probes.py 真采回填：6/6 成套。可实施项三证齐全即可由 _gen_enums 派生 enforced；absent 两项按 §9.3 登记为保留残余，state 永远 absent，禁止涂成 enforced 凑覆盖。evidence 只存引用，判 MET 还要过 capability_gate 与 S019。"
+  },
+  "team_protocol": {
+    "schema": 1,
+    "criterion": "team_protocol_v1",
+    "axioms": [
+      "no_self_audit",
+      "no_dangling_declaration",
+      "pass_needs_ran_evidence",
+      "measure_twice",
+      "one_ruler_per_thing"
+    ],
+    "roles": {
+      "owner": {
+        "writes": [],
+        "may_not": [
+          "author_plan",
+          "author_impl",
+          "verify"
+        ]
+      },
+      "lead": {
+        "writes": [
+          "control_plane"
+        ],
+        "may_not": [
+          "author_impl",
+          "audit_own_plan"
+        ]
+      },
+      "architect": {
+        "writes": [
+          "plan",
+          "contracts"
+        ],
+        "may_not": [
+          "dispatch",
+          "author_impl"
+        ]
+      },
+      "auditor": {
+        "writes": [
+          "plan_audit"
+        ],
+        "read_only_inputs": true,
+        "may_not": [
+          "author_plan",
+          "dispatch",
+          "author_impl",
+          "verify"
+        ]
+      },
+      "executor": {
+        "writes": [
+          "write_scope"
+        ],
+        "may_not": [
+          "commit",
+          "merge",
+          "edit_acceptance"
+        ]
+      },
+      "verifier": {
+        "writes": [
+          "verify"
+        ],
+        "frozen_snapshot": true,
+        "may_not": [
+          "author_impl",
+          "edit_to_pass"
+        ]
+      },
+      "reviewer": {
+        "writes": [
+          "signature"
+        ],
+        "activation": "double_sign",
+        "may_not": [
+          "author_impl"
+        ]
+      },
+      "scribe": {
+        "writes": [
+          "handoff"
+        ],
+        "activation": "dag_join",
+        "may_not": [
+          "author_impl"
+        ]
+      }
+    },
+    "separation": [
+      {
+        "stage": "plan_audit",
+        "producer": "architect",
+        "auditor": "auditor",
+        "dispatcher": "lead",
+        "distinct": true
+      }
+    ],
+    "triage": {
+      "S": {
+        "roles": [
+          "lead",
+          "executor",
+          "verifier"
+        ],
+        "gate": "single_sign"
+      },
+      "A": {
+        "roles": [
+          "lead",
+          "architect",
+          "auditor",
+          "executor",
+          "verifier"
+        ],
+        "gate": "plan_audit"
+      },
+      "B": {
+        "roles": [
+          "lead",
+          "architect",
+          "auditor",
+          "executor",
+          "verifier",
+          "reviewer"
+        ],
+        "gate": "human_promote"
+      }
+    },
+    "dag": {
+      "edge_only_on": "artifact_dependency",
+      "forbid": [
+        "habitual_order",
+        "priority_order"
+      ]
+    },
+    "handoff_required": [
+      "task",
+      "produced",
+      "consumed",
+      "contract_ref",
+      "evidence",
+      "decisions",
+      "open_questions",
+      "context_refs"
+    ],
+    "task_evidence": [
+      "real",
+      "injection",
+      "bypass"
+    ],
+    "token_ledger": [
+      "role",
+      "task",
+      "turns",
+      "input_chars",
+      "output_chars",
+      "context_refs",
+      "cache_prefix_id",
+      "compressions"
+    ],
+    "soft_dependency": {
+      "blocks_main_chain": false,
+      "writes_back": true
+    },
+    "antilazy": {
+      "natural_language_claim_weight": 0,
+      "timeout_autodone": false,
+      "exit_codes": {
+        "MET": 0,
+        "NOT_MET": 0,
+        "INVALID": 2,
+        "FAIL": 1
+      }
+    },
+    "readers": {
+      "spec_lint": "S018",
+      "ran_checklist": "lead.py check ran:",
+      "regression_test": "tests/test_team_protocol.py",
+      "lint_reuses_gate": "team_protocol.validate",
+      "regression_runner": "run_all_checks.sh"
+    },
+    "driver_wired": true,
+    "natural_language_claim_weight": 0,
+    "note": "第十五轮：run_task.py 已真接 plan/plan_audit/handoff 的 DAG 驱动。team_protocol._driver_probe() 仍以源码标记复核；声明 true 而源码无接线判 INVALID，不把『契约落地』写成『编排全自动』。自然语言自述零权重。"
+  },
+  "counts": {
+    "reason_code": 29,
+    "root_cause_class": 5,
+    "capability_state": 4,
+    "actor": 19
+  }
+}

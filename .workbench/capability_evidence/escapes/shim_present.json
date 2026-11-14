@@ -1,0 +1,13 @@
+{
+  "escape": "shim_present",
+  "evidence_sha256": "cdbaf005694441ce43e2ea18895e7a3354839fb0eb7f3c85444d94b29b2decc1",
+  "installed": true,
+  "kind": "blocked_good",
+  "mode": "shim_present",
+  "note": "闸门确实装上了（对照组：它不是逃逸，是判据前提）",
+  "rc": 0,
+  "reached": null,
+  "stderr_tail": "",
+  "stdout_tail": "SOCKET_IS type\r\nSHIM_MARKER True",
+  "verdict": "blocked"
+}

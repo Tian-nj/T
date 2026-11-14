@@ -1,0 +1,16 @@
+{
+  "duplicate": false,
+  "ok": true,
+  "path": "evidence/scheduler_trend.jsonl",
+  "point": {
+    "criterion": "scheduler_trend_point_v1",
+    "fail_streak_max": 0,
+    "fresh": true,
+    "last_tick_ms": 1794407643396,
+    "schema": 1,
+    "sidecar_sha256": "5bc2801ac6589f085a3b5a898c3027b9e2fc6afcce773e119bb229fdb5ae5cd1",
+    "ticks": 2703,
+    "ts_ms": 1794407687831,
+    "w4_participates": false
+  }
+}

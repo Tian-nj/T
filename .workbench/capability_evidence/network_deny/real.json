@@ -1,0 +1,10 @@
+{
+  "capability": "network_deny",
+  "cmd": "import os,sys;sys.path.insert(0,os.environ['WB_SCRIPTS'])\nimport platform_ops as p\ne=p.scrub_env({'PATH':'/x','HTTP_PROXY':'p','ALL_PROXY':'p','WORKBENCH_ROOT_KEY':'k','WB_TASK':'t'})\nprint('KEPT',sorted(e))\nassert 'HTTP_PROXY' not in e and 'ALL_PROXY' not in e and 'WORKBENCH_ROOT_KEY' not in e\nassert 'WB_TASK' in e and 'PATH' in e\nprint('OK scrub_env keeps task vars, drops proxy+secret vars')",
+  "evidence_sha256": "91278f0f7e00f78dcd5a5aa7421d43f14f5509d619199dd0bc2d1a326c105261",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "KEPT ['PATH', 'WB_TASK']\r\nOK scrub_env keeps task vars, drops proxy+secret vars\r\n"
+}

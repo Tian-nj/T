@@ -1,0 +1,24 @@
+{
+  "criterion": "telemetry_snapshot_v1",
+  "generated_at_ms": 1794395931735,
+  "path": "D:\\Users\\THH32\\DSH-ZNT\\workbench\\evidence\\telemetry_window_snapshot.json",
+  "report_digest": "sha256:f2d69665689e57f5f3372b0c91d565a80791bf5d5f9f63bd83e6afe181c008a3",
+  "source_hashes": {
+    "state/appcontainer_probe.jsonl": {
+      "bytes": 1113,
+      "exists": true,
+      "lines": 2,
+      "mtime_ms": 1794380904874,
+      "path": "state/appcontainer_probe.jsonl",
+      "sha256": "7a39fbe6f10dc80c5fade47c6907b11cbbdae88a293355487791436ddc3f04f2"
+    },
+    "state/containment.jsonl": {
+      "bytes": 3172,
+      "exists": true,
+      "lines": 10,
+      "mtime_ms": 1794395879764,
+      "path": "state/containment.jsonl",
+      "sha256": "e85b521284dfbf327bb8c7a8455948fcb14305eadb2c0e540e78c4cac7f842e2"
+    }
+  }
+}
