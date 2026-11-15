@@ -337,6 +337,12 @@
   "silent": [],
   "dead": []
  },
+ "index_consistency.py": {
+  "loc": 157,
+  "funcs": 7,
+  "silent": [],
+  "dead": []
+ },
  "job_object_probe.py": {
   "loc": 692,
   "funcs": 17,

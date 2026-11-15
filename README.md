@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 156 个文件的 HMAC 清单
+  root.manifest            # 157 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 64 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 65 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（64 个 .py / 36043 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（65 个 .py / 36200 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 123 项：84 测试 + 5 审计 + 33 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 124 项：84 测试 + 5 审计 + 34 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 84 测试 + 5 审计 + 33 校验 + 覆盖率 + e2e = **123 项 / 123 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 84 测试 + 5 审计 + 34 校验 + 覆盖率 + e2e = **124 项 / 124 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1573,3 +1573,22 @@ B10「期望 B10，实得 ['B99']」、无 Traceback → 还原转绿；prod_dri
 是 live() 侧、需改 COVER 源文件才能注入（会掀翻 manifest），本轮不注入；P 族（audit_*
 探针）0 条在册（探针 id 不是字面量，码扫描没抓到），待补。本轮**没有**发现坏门禁 ——
 如实说，不制造「修复」。
+
+### 19.13 第一百四十六轮：三份文档说的数，对得上吗（round146）
+
+前五轮查代码内部（读者 / 模块对齐 / 门禁对错）。这一轮查**跨工件一致性**：三份索引文档
+（PROJECT-INDEX.md / DSH README.md / 本 README）彼此、以及它们与代码，说的数对不对得上。
+这是我反复手写同步、反复踩「数字对了但句子错位」的地方，从没被机器守过。
+
+只读盘点：被跟踪数字目前对得上，但**目录源文件行**「代码 7 / 测试 154」实际是 4 / 105（逐轮手改
+漂的），还残留一个旧轮次号例子。于是建 ``.workbench/scripts/index_consistency.py``
+把「对得上」变成机器判据（N1 全量自检项 / N2 passed / N3 manifest 条数 / N4 目录源文件 / N5 套装 README
+的 N/0，全对 doc_numbers.compute()）；**刻意不 gate 字节数**（README 每改必变 = 噪音）。selftest 判据
+自证（涂改真值→红、还原→消失、区分度），不依赖基线干净 —— 把「门会工作」和「文档当前干净」耦合是错的。
+
+这道门一上线就抓到「加它自己造成的漂移」：加 check 让计数 123→124、manifest 156→157，五处索引文档
+数字立刻对不上；更硬的是新脚本进 COVER 触发 tool_registry 的 T5「未登记的工具」（连带 gen_spec 漂移、
+spec_lint、demo e2e 全红）—— 那正是 tool_registry 该抓的，按它提示重生成 spec + 重签归零。round146 全绿。
+
+教训：跨工件一致是「装饰性安全」的又一镜像 —— 三份文档各自都对，合起来可能互相矛盾，而没有任何东西
+在核「它们说的是不是同一件事」。手写同步撑不长，只有把「对得上」变成机器判据，才不会在第 N 轮改数时漏。

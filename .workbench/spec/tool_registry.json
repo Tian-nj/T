@@ -190,6 +190,10 @@
       "tier": "read_only",
       "loc": 454
     },
+    "scripts/index_consistency.py": {
+      "tier": "read_only",
+      "loc": 157
+    },
     "scripts/job_object_probe.py": {
       "tier": "write_local",
       "loc": 692
@@ -324,12 +328,12 @@
     }
   },
   "counts": {
-    "tools": 66,
+    "tools": 67,
     "by_tier": {
       "outbound": 5,
       "write_local": 33,
       "destructive": 15,
-      "read_only": 13
+      "read_only": 14
     },
     "derivable_tiers": 4,
     "override_only_tiers": 2

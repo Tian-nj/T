@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794767746797,
-  "digest": "hmac-sha256:7f31762acc7405086bb8acf2d664cbe795bb0aef302952990d0f96ef95d37a9a",
+  "created_ms": 1794784915063,
+  "digest": "hmac-sha256:9104a4523c4fe570a54f9a0ea3c2aa9c75665eb8dd7bd77d1b8c87ee7238da5b",
   "entries": [
     {
       "bytes": 3315,
@@ -504,6 +504,11 @@
       "sha256": "sha256:6d3df2ea32bab8964198dfed845d7e308c3460e410e2301ce5291252799f0e40"
     },
     {
+      "bytes": 6288,
+      "path": "scripts/index_consistency.py",
+      "sha256": "sha256:b37d3da4f009c720b8ee8a876cbfeede5c3fddb5cde89d6bb6fe284ecba4289d"
+    },
+    {
       "bytes": 33403,
       "path": "scripts/job_object_probe.py",
       "sha256": "sha256:c7d480fa868c3c0c8edb1fbc16c692fafe4b1797e0a515467f426f328081d45b"
@@ -754,9 +759,9 @@
       "sha256": "sha256:0ac6b536aae34fff490c589eaa1d37003370c799d5aac299c734c197b1d51bbe"
     },
     {
-      "bytes": 7652,
+      "bytes": 7741,
       "path": "spec/tool_registry.json",
-      "sha256": "sha256:2babbd193311d3a80bbb78b822580dc0b1f3b4067c284641cddb838231db5818"
+      "sha256": "sha256:22209d184c1ad05bd4b964355ec4e1d8707275339834870e129d7f849ff2aaa1"
     },
     {
       "bytes": 599,
@@ -784,9 +789,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 156,
+  "entry_count": 157,
   "manifest_version": 1,
-  "sig": "hmac-sha256:7f31762acc7405086bb8acf2d664cbe795bb0aef302952990d0f96ef95d37a9a",
+  "sig": "hmac-sha256:9104a4523c4fe570a54f9a0ea3c2aa9c75665eb8dd7bd77d1b8c87ee7238da5b",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }
