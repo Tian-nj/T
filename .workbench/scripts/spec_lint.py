@@ -28,6 +28,11 @@
   S020  token 两轮相对账本完整、结论一致、明确非精确账单（真跑 CLI）
   S021  .workbench 顶层目录必须登记在分级守卫的白名单里
   S022  README 里声明的数字与实际一致（复用 doc_numbers.compute，不手抄）
+  S023  事件前置态/目标态与迁移表对账
+  S024  执行体能力注册表与代码/角色表一致（复用 executor_registry）
+  S025  工具能力分级注册表与 AST 事实一致（复用 tool_registry）
+  S026  连接器登记表与代码事实一致（复用 connector_registry）
+  S027  平台边界声明与 AST 事实一致；UNTESTED 不许涂成 PASS（复用 platform_boundary）
 
 用法
   python spec_lint.py            # 人读
@@ -731,6 +736,39 @@ def lint() -> list:
         bad("S026", "spec/connector_registry.json 缺失（先跑 gen_spec.py）: %s" % _exc)
     except Exception as _exc:
         bad("S026", "连接器对账失败: %s" % _exc)
+
+    # S027 平台边界声明必须与代码事实一致（阶段 9.1 / 第 144 轮）。
+    #
+    # `platform_ops.py` 的 docstring 从 v3.2 起写着「上层代码不许写裸
+    # os.name 比较」，可实测全树 26 处、14 个文件，且每一处都合理。那句话
+    # 的问题不是「没做到」，而是**没有读者** —— 改代码时没人核它，改它时
+    # 也没人核代码。本条就是那个读者：由 platform_boundary.reconcile()
+    # 现扫 AST 与声明逐条比，任一 B 码算红。
+    #
+    # 与 S024/S025/S026 同构（声明改了自己变得像真的），但有一条独有的
+    # 判据：B5 不允许把 `posix_runtime.status` 从 UNTESTED 涂成 PASS ——
+    # 那等于在 Windows 上伪造一份跨 OS 证据。
+    try:
+        import platform_boundary as _pb
+        _bfind, _btable = _pb.reconcile()
+        if _pb.declaration() is None:
+            bad("S027", "spec/platform_boundary.json 缺失（先跑 gen_spec.py）")
+        for _f in _bfind:
+            if isinstance(_f, (tuple, list)) and len(_f) >= 2:
+                _code, _detail = _f[0], _f[1]
+            elif isinstance(_f, dict):
+                _code, _detail = _f.get("code"), _f.get("detail")
+            else:
+                _code, _detail = "?", repr(_f)
+            bad("S027", "%s %s" % (_code, _detail))
+        if not (_btable or {}).get("total"):
+            bad("S027", "平台边界对账返回 0 处比较（scan() 没扫到任何东西）")
+    except ImportError as _exc:
+        bad("S027", "无法 import platform_boundary: %s" % _exc)
+    except FileNotFoundError as _exc:
+        bad("S027", "spec/platform_boundary.json 缺失（先跑 gen_spec.py）: %s" % _exc)
+    except Exception as _exc:
+        bad("S027", "平台边界对账失败: %s" % _exc)
 
     return out
 

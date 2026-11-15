@@ -310,8 +310,8 @@
   "dead": []
  },
  "gen_spec.py": {
-  "loc": 1583,
-  "funcs": 20,
+  "loc": 1720,
+  "funcs": 21,
   "silent": [
    {
     "line": 372,
@@ -549,8 +549,14 @@
   "silent": [],
   "dead": []
  },
+ "platform_boundary.py": {
+  "loc": 268,
+  "funcs": 11,
+  "silent": [],
+  "dead": []
+ },
  "platform_ops.py": {
-  "loc": 813,
+  "loc": 851,
   "funcs": 24,
   "silent": [],
   "dead": []
@@ -699,11 +705,11 @@
   "dead": []
  },
  "spec_lint.py": {
-  "loc": 758,
+  "loc": 796,
   "funcs": 11,
   "silent": [
    {
-    "line": 549,
+    "line": 554,
     "bare": false,
     "type": "ImportError",
     "body": [

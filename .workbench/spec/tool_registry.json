@@ -180,7 +180,7 @@
     },
     "scripts/gen_spec.py": {
       "tier": "write_local",
-      "loc": 1583
+      "loc": 1720
     },
     "scripts/health.py": {
       "tier": "write_local",
@@ -238,9 +238,13 @@
       "tier": "write_local",
       "loc": 529
     },
+    "scripts/platform_boundary.py": {
+      "tier": "read_only",
+      "loc": 268
+    },
     "scripts/platform_ops.py": {
       "tier": "write_local",
-      "loc": 813
+      "loc": 851
     },
     "scripts/platform_runner_probe.py": {
       "tier": "destructive",
@@ -288,7 +292,7 @@
     },
     "scripts/spec_lint.py": {
       "tier": "write_local",
-      "loc": 758
+      "loc": 796
     },
     "scripts/team_protocol.py": {
       "tier": "read_only",
@@ -320,12 +324,12 @@
     }
   },
   "counts": {
-    "tools": 65,
+    "tools": 66,
     "by_tier": {
       "outbound": 5,
       "write_local": 33,
       "destructive": 15,
-      "read_only": 12
+      "read_only": 13
     },
     "derivable_tiers": 4,
     "override_only_tiers": 2

@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "criterion": "platform_boundary_v1",
+  "note": "comparisons 由 platform_boundary.scan() 现算，本表只存人的分类与理由。platform_ops.py 的『不许写裸 os.name』是过度承诺的散文 —— 真实边界是『每处都登记、理由只属四类、证据生产者不许用可覆盖声明』，由 reconcile()/S027 机器核。",
+  "policy": {
+    "allowed_kinds": [
+      "real_os_primitive",
+      "evidence_producer",
+      "platform_layer",
+      "test_fixture"
+    ],
+    "kinds_why": {
+      "real_os_primitive": "真实 OS 原语/库，声明覆盖不能凭空造出",
+      "evidence_producer": "证据生产者必须读真实平台，否则可伪造跨 OS 证据",
+      "platform_layer": "地面真相层，覆盖能力的参照物",
+      "test_fixture": "测试夹具按真实平台跳过"
+    },
+    "rule": "新增一处裸 os.name/sys.platform 比较而不登记 → B6；登记了却删掉 → B7；比较清单漂移 → B8；kind 非法或缺 why → B9/B10；counts 涂改 → B11。"
+  },
+  "posix_runtime": {
+    "status": "UNTESTED",
+    "why": "本机是 Windows（非管理员 / HypervisorPresent=False / 无 WSL 发行版 / 无 Docker），物理产不出真实 Linux/macOS 运行期证据。9.2 CI 矩阵、9.3 WSL/VM、9.4 真机均暂定冻结（m08962）。在 Windows 上把此格涂成 PASS 就是伪造跨 OS 证据（B5 判红）。",
+    "unfreeze_when": "用户提供私有仓 + PAT + Actions secret，或一台真机/可用云 runner"
+  },
+  "sites": {
+    ".workbench/scripts/appcontainer_probe.py": {
+      "kind": "evidence_producer",
+      "why": "Win32 AppContainer / App Sandbox 探测，非 win32 早退报 NOT_WINDOWS，矩阵里 linux/macos 保持 UNTESTED。这层读真实 sys.platform 是『不许伪造跨 OS 证据』的执行点。",
+      "comparisons": [
+        "sys.platform != 'win32'",
+        "sys.platform != 'win32'",
+        "sys.platform != 'win32'",
+        "sys.platform == 'win32'",
+        "sys.platform == 'win32'",
+        "sys.platform == 'win32'"
+      ]
+    },
+    ".workbench/scripts/bootstrap.py": {
+      "kind": "evidence_producer",
+      "why": "POSIX mode 位检查只能读真实 os.name：非 POSIX 必须报 skipped 而不是 pass（『没检查 ≠ 检查通过』）。让声明覆盖进来等于允许在 Windows 上假装查过 Linux 权限位。",
+      "comparisons": [
+        "os.name == 'posix'"
+      ]
+    },
+    ".workbench/scripts/job_object_probe.py": {
+      "kind": "evidence_producer",
+      "why": "Windows Job Object 探测，非 win32 报 NOT_APPLICABLE；同 appcontainer_probe，必须用真实平台而非可覆盖声明。",
+      "comparisons": [
+        "sys.platform != 'win32'",
+        "sys.platform == 'win32'"
+      ]
+    },
+    ".workbench/scripts/lock_truth.py": {
+      "kind": "evidence_producer",
+      "why": "锁语义探针要证明的正是『真实 OS 的锁对不配合进程是否生效』（win32 强制锁 / posix 建议锁）。读可覆盖的 IS_WIN 会让Windows 主机凭空产出一条 posix 锁证据 —— 自我确认。",
+      "comparisons": [
+        "os.name == 'nt'"
+      ]
+    },
+    ".workbench/scripts/platform_ops.py": {
+      "kind": "platform_layer",
+      "why": "_resolve_os() 是唯一读真实 os.name 的地面真相：它算 real 并与 config.platform.os 声明比对，声明不符时 WARN 并以声明为准。这一层若也改读可覆盖值，覆盖就没有参照物了。",
+      "comparisons": [
+        "os.name == 'nt'"
+      ]
+    },
+    ".workbench/scripts/platform_runner_probe.py": {
+      "kind": "evidence_producer",
+      "why": "读 CI runner 的真实 host_platform (darwin/linux) 验签产物是否名实相符。若改读可覆盖的 os.name，就等于允许自签一份假 runner 证据 —— 正是本仓反复清理的假证据。",
+      "comparisons": [
+        "sys.platform == 'darwin'",
+        "sys.platform == 'darwin'",
+        "sys.platform == 'darwin'",
+        "sys.platform == 'darwin'"
+      ]
+    },
+    ".workbench/scripts/signature_backend.py": {
+      "kind": "real_os_primitive",
+      "why": "CNG (bcrypt.dll) 只在 Windows 存在；os.name != 'nt' 直接抛 _CngError。声明覆盖改不出这个 DLL，硬改会得到 ImportError。",
+      "comparisons": [
+        "os.name != 'nt'"
+      ]
+    },
+    ".workbench/scripts/verify_harness.py": {
+      "kind": "real_os_primitive",
+      "why": "shlex 方言、cmd.exe / /bin/sh 选择、win32 的 python.exe 依赖同目录 DLL（只能走 .cmd 转发脚本）都是真实 OS 事实。第 144 轮刻意不搬：没有真 POSIX 环境可验证搬动后的验收行为。",
+      "comparisons": [
+        "os.name != 'nt'",
+        "os.name == 'nt'",
+        "os.name == 'nt'",
+        "os.name == 'nt'"
+      ]
+    },
+    ".workbench/scripts/wb_core.py": {
+      "kind": "real_os_primitive",
+      "why": "`import msvcrt` / `import fcntl` 是真实 OS 原语，链写入的字节范围锁依赖它。声明覆盖不能凭空造出 fcntl 或 msvcrt；spec/lock_semantics.json 明说二者 equivalent=false。",
+      "comparisons": [
+        "os.name == 'nt'"
+      ]
+    },
+    "tests/test_appcontainer_probe.py": {
+      "kind": "test_fixture",
+      "why": "断言 win32 专属的 AppContainer 行为，按真实平台跳过。",
+      "comparisons": [
+        "sys.platform == 'win32'"
+      ]
+    },
+    "tests/test_job_object_probe.py": {
+      "kind": "test_fixture",
+      "why": "断言 win32 专属的 Job Object 行为，按真实平台跳过。",
+      "comparisons": [
+        "sys.platform != 'win32'"
+      ]
+    },
+    "tests/test_platform_declared_os.py": {
+      "kind": "test_fixture",
+      "why": "本文件测的正是『可覆盖声明 vs 真实平台』的判别，所以 `_real()` 必须读**真实** `os.name` 当基准；若改读可覆盖的 IS_WIN，「掐掉配置读者后回到真实平台」这条判据会自己证明自己（恒绿）。门禁上线时它自己先撞了 B6 —— 这正是这道门该做的：新写一处裸比较就必须登记，写门禁的人也不例外。",
+      "comparisons": [
+        "os.name == 'nt'",
+        "os.name == 'nt'"
+      ]
+    },
+    "tests/test_platform_runner_probe.py": {
+      "kind": "test_fixture",
+      "why": "夹具按真实 host_platform (darwin) 构造 runner 证据。",
+      "comparisons": [
+        "sys.platform == 'darwin'"
+      ]
+    },
+    "tests/test_spawn_containment.py": {
+      "kind": "test_fixture",
+      "why": "进程遏制是 Windows Job Object 专属，非 win32 跳过。",
+      "comparisons": [
+        "sys.platform != 'win32'"
+      ]
+    },
+    "tests/test_toolchain.py": {
+      "kind": "test_fixture",
+      "why": "工具链绝对路径夹具按真实 os.name 跳过。",
+      "comparisons": [
+        "os.name != 'nt'"
+      ]
+    }
+  },
+  "counts": {
+    "files": 15,
+    "sites": 28,
+    "scripts_files": 9,
+    "test_files": 6
+  }
+}

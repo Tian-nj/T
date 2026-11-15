@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 154 个文件的 HMAC 清单
+  root.manifest            # 156 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 63 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 64 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（63 个 .py / 35562 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（64 个 .py / 36043 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 121 项：82 测试 + 5 审计 + 33 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 122 项：83 测试 + 5 审计 + 33 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 82 测试 + 5 审计 + 33 校验 + 覆盖率 + e2e = **121 项 / 121 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 83 测试 + 5 审计 + 33 校验 + 覆盖率 + e2e = **122 项 / 122 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1455,3 +1455,67 @@ Windows 上客户端还没写完就被 RST（10053）。
 放在 `tests/` 而不是 `scripts/`，因为它是测试基础设施，不该进可信根）。
 `doc_numbers` 的 `test_count` 只数 `for t in` 清单里的名字，`_memiso.py` 不在清单里，
 所以计数不受影响。
+
+
+---
+
+### 19.11 第一百四十四轮：一句「不许写裸 os.name」写了很久，却没有读者（阶段 9.1）
+
+方案 §9.1 的原话是「清残留 Windows 绝对路径；路径/换行/编码抽象；确保 POSIX 分支与
+`skipped` 判定正确」。真按这个去数，结果有点反直觉：
+
+| 项 | 实测 | 结论 |
+|---|---|---|
+| 硬编码 Windows 绝对路径 | 10 处 / 7 文件 | 全是**有意的**：`SystemRoot` 回退（`appcontainer_probe.py` / `sched_install.py`，只在 win32 装配路径被调到）、`gen_spec.py:615` 的 `deny_absolute_prefix` 策略数据、selftest 路径夹具、`tests/test_w4_drills.py` 故意的越权拒绝用例 |
+| `open()` 无 encoding | 20 处 | 14 处是 `os.open` / `tarfile.open` / CNG 对象 `c.open()` 的误报；6 处是 selftest 里的纯 ASCII 临时文件。**编码这一项没有真缺陷** |
+| POSIX 分支与 `skipped` | `verify_harness.py` 的 `shlex.split(posix=...)` / `_shell()` / `-c` 与 `/c` / `os.symlink` vs `.cmd` 转发脚本 | 分支正确；`bootstrap.py:116` 的 `{"ok": True, "skipped": True}` 是全仓唯一一处，dream/webhook 侧的 `skipped` 消费有真断言（`test_dream_backlog.py:173` / `test_round63.py:390` / `test_round5_alerts_snapshot.py:133`），只有 bootstrap 的 `checks["mode"].skipped` 无机器读者 |
+
+所以 9.1 真正的问题不在上面三项，而在 `platform_ops.py` 的 docstring：从 v3.2 起它写着
+「所有平台差异只在这一层出现。上层代码不许写 `if os.name == "nt"`」。第 144 轮用 AST 精确扫
+全树，**26 处裸 `os.name` / `sys.platform` 比较，分布在 14 个文件里**（后来加上本轮新写的
+测试文件，共 28 处 / 15 文件）。
+
+**每一处都是合理的**，分四类：
+
+1. 真实 OS 原语：`wb_core.py:40` 的 `import msvcrt` / `import fcntl`、
+   `signature_backend.py:93` 的 CNG、`verify_harness.py` 的 `cmd.exe` / `/bin/sh` 与
+   win32 python.exe 依赖同目录 DLL。声明覆盖不能凭空造出一个不存在的库或 DLL；
+   `spec/lock_semantics.json` 明说 `equivalent: false`。
+2. 证据生产者必须读**真实**平台：`appcontainer_probe.py` 非 win32 报 `NOT_WINDOWS`、
+   `platform_runner_probe.py` 的 linux/macos 保持 `UNTESTED`、`bootstrap.py` 非 POSIX
+   报 `skipped`、`lock_truth.py` 的锁语义探针。让它们读可覆盖的 `IS_WIN`，
+   等于允许在 Windows 上「声明 posix」凭空伪造一条 Linux 证据 —— 正是本仓一直在清理的自我确认。
+3. 平台层自己：`platform_ops.py:57` 的 `real = "win32" if os.name == "nt" else "posix"`
+   是覆盖能力的**参照物**，改读可覆盖值就没得比了。
+4. 测试夹具按真实平台跳过。
+
+也就是说，那句约束**不是「没做到」，而是「没有读者」**：改代码时没人核它，改它时也没人核代码。
+这一轮做的事是给它装一个读者，而不是把 28 处硬塞进 platform_ops（没有真 POSIX 环境可验证搬动
+后的验收行为，硬搬等于用「看起来更整齐」换一个未验证的回归）。
+
+**装读者**：`spec/platform_boundary.json`（gen_spec 生成、进可信根）存人的分类与理由；
+`.workbench/scripts/platform_boundary.py` 用 AST 现扫全树、比的是**比较表达式的多重集合**
+而不是行号（改注释挪行不红，新增/删除/漂移才红）；`spec_lint.py` 新增 **S027** 接进闸门。
+错误码 B1–B11，其中 **B5 专门钉「把 `posix_runtime.status` 从 `UNTESTED` 涂成 `PASS`」**
+—— 那等于在 Windows 上伪造一份跨 OS 证据。
+
+**顺手补一个从生下来就没测过的分支**：`_resolve_os()` 的 `config.platform.os` 覆盖，
+全仓 grep 只命中 `platform_ops.py` 自己，零测试覆盖。`tests/test_platform_declared_os.py`
+造临时 config、调真的 `_resolve_os()`、再 **reload 模块**看 `IS_WIN` / `normalize_path` /
+`case_sensitive()` 有没有跟着翻；`t_discrimination` 把配置读者掐掉，证明那些绿不是
+「os.name 本来就是 posix」碰巧撞上的。负向验证（`cdrive-audit/neg_verify_platform_decl.py`）
+把覆盖分支改成直接 `return real` → **7 条断言精确变红**、无 Traceback、恢复后转绿。
+
+门禁上线时**先抓了我自己**：新写的测试文件里有两处 `os.name` 比较，B6 立刻报「未登记」；
+改完登记又抓了我写死的「26 处」—— 加一条登记就过期，于是判据改成「现扫总数 == 声明登记数」。
+写门禁的人不豁免于门禁，这条比门禁本身更值得记。
+
+**边界与诚实口径**：真实 Linux/macOS 运行期行为仍是 `UNTESTED`（9.2 CI 矩阵 / 9.3 WSL·VM /
+9.4 真机均按 m08962 暂定冻结，本机非管理员、`HypervisorPresent=False`、无 WSL 发行版、无
+Docker）。本阶段交付的是「代码兼容层的声明有读者、覆盖能力有真测试、UNTESTED 不许被涂改」，
+**不声称**跨 OS 已验证。
+
+**教训**：一句「不许 X」如果全树有 28 个反例，先别急着判 X 失败了 —— 要么禁令本身写错了，
+要么它从来就只是一句散文。前者改禁令（收窄成可判的边界），后者给它装读者。这个仓第 143 轮
+学到的是「恒绿比报错难查」，这一轮学到的是它的孪生兄弟：**一句没有读者的约束，比没有约束
+更危险，因为它让人以为那件事已经管住了。**

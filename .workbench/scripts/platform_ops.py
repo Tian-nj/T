@@ -2,7 +2,45 @@
 # -*- coding: utf-8 -*-
 """platform.py — 平台适配九项（v3.2 §9.1）。
 
-所有平台差异只在这一层出现。上层代码不许写 `if os.name == "nt"`。
+★ 第 144 轮订正（阶段 9.1）：这里原来写的是「所有平台差异只在这一层出现。
+  上层代码不许写 `if os.name == "nt"`」—— **这句话是假的**。实测全树有 26 处
+  裸 `os.name` / `sys.platform` 比较，分布在 14 个文件里。它们不是「没抽象
+  干净」的漏网之鱼，而是两类根本搬不进这一层的东西：
+
+    (1) 真实 OS 原语。`msvcrt.locking` 在 Windows 上才存在，`fcntl.flock` 在
+        POSIX 上才存在；CNG 只有 win32 有；`schtasks` / AppContainer / Job
+        Object 是 Windows 专有的；`cmd.exe` 与 `/bin/sh`、`shlex` 方言、
+        `os.symlink` 与 `.cmd` 转发脚本也都是真实 OS 事实。让这些代码改读
+        `IS_WIN`，只会得到「声明说 posix、实际 import msvcrt」这种更坏的
+        假象 —— 声明覆盖不能凭空造出一个不存在的库或 DLL。
+
+    (2) 证据生产者必须读**真实**平台。`appcontainer_probe` 要如实报
+        `NOT_WINDOWS`，`platform_runner_probe` 的 linux/macos 格必须保持
+        `UNTESTED`，`bootstrap` 的 POSIX mode 检查在非 POSIX 上必须报
+        `skipped` 而不是 `pass`。若让它们读可覆盖的 `platform.os`，就等于
+        允许「在 Windows 上声明 posix」凭空伪造一条 Linux 证据 —— 这正是
+        本仓一直在清理的自我确认。
+
+  所以真正的边界不是「零处裸比较」，而是「**每一处都登记在案、理由只属于
+  上面两类、且证据生产者不许用可覆盖的声明**」。`tests/test_platform_boundary.py`
+  用 AST 把全树扫一遍与声明逐条对账：新加一处裸比较而不登记 → 红；登记了
+  却删掉 → 也红。那个测试就是这句约束的读者 —— 之前它只是一句没人核的散文。
+
+  **可模拟语义**（路径大小写 `case_sensitive()`/`normalize_path()`、进程组
+  标志 `spawn_group()`、`free_bytes()`）在这一层，由可覆盖的 `IS_WIN`
+  驱动；`_resolve_os()` 的 `platform.os` 覆盖只许驱动它们，不许进证据链。
+  该覆盖能力此前**零测试**（全仓 grep 只有本文件自己读 `platform.os`），
+  第 144 轮由 `tests/test_platform_boundary.py` 真跑两种声明值。
+
+  `verify_harness.py` 的 shlex 方言、`_shell()`、`.cmd` 转发脚本仍用裸
+  `os.name`：它们同样登记为 `real_os_primitive` —— `cmd.exe` / `/bin/sh`
+  在这台机器上真实存在与否、win32 的 python.exe 依赖同目录 DLL，都不是
+  声明能改的事实。本轮**不搬动**这些已签署的验收行为：没有真 POSIX 环境
+  可验证搬动后的结果，硬搬等于用「看起来更整齐」换一个未验证的回归。
+
+  真实 POSIX 运行期行为仍是 `UNTESTED`（属 9.2/9.3/9.4，暂定冻结），
+  由 `spec/platform_boundary.json` 的 `posix_runtime.status` 登记，且
+  S027 会把「把 UNTESTED 涂成 PASS」判红。本轮不声称跨 OS 已验证。
 
     from platform_ops import atomic_replace, fsync_dir, kill_tree, ...
 （文件名 platform.py 会与标准库 platform 冲突，所以对外以 platform_ops 导入，

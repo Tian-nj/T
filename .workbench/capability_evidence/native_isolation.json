@@ -29,14 +29,14 @@
       "capability_evidence/ledger.json": "sha256:5b3698b1db161e40dcf7b8ac139088b8731f9d2def85e7aa4634d13dd5a83c3e",
       "scripts/agent_runner.py": "sha256:5fea3cef545d2cc6dc6c3928284c7a20cac1e4397da6ca0a751b3ca0badc5b50",
       "scripts/job_object_probe.py": "sha256:c7d480fa868c3c0c8edb1fbc16c692fafe4b1797e0a515467f426f328081d45b",
-      "scripts/platform_ops.py": "sha256:a5cbcd8ab483d584f39abb1dc72cafcc310450a1eee00f1826763ae00503839a",
+      "scripts/platform_ops.py": "sha256:1fe2595aa905dcef564a5315d4367c45369866d78e0cc4c6e529749f21b3ca57",
       "scripts/worker_shim/sitecustomize.py": "sha256:29d2580e52a9ab76876d0642b4ee77997483c926173bc625b5d2280db0d1a54d"
     },
     "w4_ledger_participates": false,
     "wired": true,
     "worker_shim_no_kernel_job": true
   },
-  "generated_at": "2026-11-15T14:49:21.456343+08:00",
+  "generated_at": "2026-11-16T02:35:46.483247+08:00",
   "isolation_gaps": {
     "filesystem_isolation_observed": "NOT_ISOLATED",
     "gaps_proven": true,

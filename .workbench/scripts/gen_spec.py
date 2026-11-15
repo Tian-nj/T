@@ -1531,6 +1531,142 @@ def _gen_lock_semantics():
     }
 
 
+def _gen_platform_boundary():
+    """平台边界声明（阶段 9.1 / 第 144 轮）。
+
+    这里存的是**人的分类与理由**，不是扫描结果。`comparisons` 那一栏由
+    `platform_boundary.scan()` 现算后填进去 —— 与 tool_registry 同一套：
+    生成器不抄一份扫描逻辑，免得声明与事实变成两个真相。
+
+    `platform_ops.py` 的 docstring 从 v3.2 起写「上层不许写裸 os.name
+    比较」，实测全树 26 处、14 个文件，且每一处都合理（真实 OS 原语 /
+    证据生产者 / 平台层 / 测试夹具）。问题从来不是「没抽象干净」，而是
+    **那句话没有读者**。本表 + `platform_boundary.reconcile()` 就是读者：
+    新增一处不登记即红，登记了删掉也红，把 UNTESTED 涂成 PASS 也红。
+
+    kind 只有四种，且 policy.allowed_kinds 必须与 platform_boundary.py
+    的 ALLOWED_KINDS 逐字一致（B4 会把两处口径分叉判红）。
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import platform_boundary as pb  # noqa: E402  （延迟 import：其它生成器不依赖它）
+
+    # 人的分类：为什么这一处必须读真实平台，搬进可覆盖的 IS_WIN 反而更坏。
+    # 每条 why 都是具体的（能指出反例），不是「平台相关」这类空话。
+    CLASS = {
+        ".workbench/scripts/platform_ops.py": (
+            "platform_layer",
+            "_resolve_os() 是唯一读真实 os.name 的地面真相：它算 real 并与 "
+            "config.platform.os 声明比对，声明不符时 WARN 并以声明为准。"
+            "这一层若也改读可覆盖值，覆盖就没有参照物了。"),
+        ".workbench/scripts/wb_core.py": (
+            "real_os_primitive",
+            "`import msvcrt` / `import fcntl` 是真实 OS 原语，链写入的字节"
+            "范围锁依赖它。声明覆盖不能凭空造出 fcntl 或 msvcrt；"
+            "spec/lock_semantics.json 明说二者 equivalent=false。"),
+        ".workbench/scripts/lock_truth.py": (
+            "evidence_producer",
+            "锁语义探针要证明的正是『真实 OS 的锁对不配合进程是否生效』"
+            "（win32 强制锁 / posix 建议锁）。读可覆盖的 IS_WIN 会让"
+            "Windows 主机凭空产出一条 posix 锁证据 —— 自我确认。"),
+        ".workbench/scripts/signature_backend.py": (
+            "real_os_primitive",
+            "CNG (bcrypt.dll) 只在 Windows 存在；os.name != 'nt' 直接抛 "
+            "_CngError。声明覆盖改不出这个 DLL，硬改会得到 ImportError。"),
+        ".workbench/scripts/bootstrap.py": (
+            "evidence_producer",
+            "POSIX mode 位检查只能读真实 os.name：非 POSIX 必须报 "
+            "skipped 而不是 pass（『没检查 ≠ 检查通过』）。让声明覆盖进来"
+            "等于允许在 Windows 上假装查过 Linux 权限位。"),
+        ".workbench/scripts/appcontainer_probe.py": (
+            "evidence_producer",
+            "Win32 AppContainer / App Sandbox 探测，非 win32 早退报 "
+            "NOT_WINDOWS，矩阵里 linux/macos 保持 UNTESTED。这层读真实 "
+            "sys.platform 是『不许伪造跨 OS 证据』的执行点。"),
+        ".workbench/scripts/job_object_probe.py": (
+            "evidence_producer",
+            "Windows Job Object 探测，非 win32 报 NOT_APPLICABLE；"
+            "同 appcontainer_probe，必须用真实平台而非可覆盖声明。"),
+        ".workbench/scripts/platform_runner_probe.py": (
+            "evidence_producer",
+            "读 CI runner 的真实 host_platform (darwin/linux) 验签产物是否"
+            "名实相符。若改读可覆盖的 os.name，就等于允许自签一份假 runner "
+            "证据 —— 正是本仓反复清理的假证据。"),
+        ".workbench/scripts/verify_harness.py": (
+            "real_os_primitive",
+            "shlex 方言、cmd.exe / /bin/sh 选择、win32 的 python.exe 依赖"
+            "同目录 DLL（只能走 .cmd 转发脚本）都是真实 OS 事实。第 144 轮"
+            "刻意不搬：没有真 POSIX 环境可验证搬动后的验收行为。"),
+        "tests/test_appcontainer_probe.py": (
+            "test_fixture", "断言 win32 专属的 AppContainer 行为，按真实平台跳过。"),
+        "tests/test_job_object_probe.py": (
+            "test_fixture", "断言 win32 专属的 Job Object 行为，按真实平台跳过。"),
+        "tests/test_platform_runner_probe.py": (
+            "test_fixture", "夹具按真实 host_platform (darwin) 构造 runner 证据。"),
+        "tests/test_spawn_containment.py": (
+            "test_fixture", "进程遏制是 Windows Job Object 专属，非 win32 跳过。"),
+        "tests/test_toolchain.py": (
+            "test_fixture", "工具链绝对路径夹具按真实 os.name 跳过。"),
+        "tests/test_platform_declared_os.py": (
+            "test_fixture",
+            "本文件测的正是『可覆盖声明 vs 真实平台』的判别，所以 `_real()` "
+            "必须读**真实** `os.name` 当基准；若改读可覆盖的 IS_WIN，"
+            "「掐掉配置读者后回到真实平台」这条判据会自己证明自己（恒绿）。"
+            "门禁上线时它自己先撞了 B6 —— 这正是这道门该做的：新写一处"
+            "裸比较就必须登记，写门禁的人也不例外。"),
+    }
+
+    sites, errors = pb.scan()
+    if errors:
+        # 生成器也 fail-closed：有一份 .py 解析不了就不写一份残缺的声明。
+        raise RuntimeError("platform_boundary scan 有解析失败：%s" % (errors[:5],))
+    if set(sites) != set(CLASS):
+        missing = sorted(set(sites) - set(CLASS))
+        stale = sorted(set(CLASS) - set(sites))
+        raise RuntimeError("平台比较分类表与实测不一致：未分类=%s 悬空=%s"
+                           % (missing, stale))
+
+    out = {}
+    for rel in sorted(sites):
+        kind, why = CLASS[rel]
+        out[rel] = {"kind": kind, "why": why, "comparisons": sites[rel]}
+
+    total = sum(len(v) for v in sites.values())
+    return {
+        "schema": 1,
+        "criterion": pb.SCHEMA,
+        "note": ("comparisons 由 platform_boundary.scan() 现算，本表只存人的"
+                 "分类与理由。platform_ops.py 的『不许写裸 os.name』是过度承诺"
+                 "的散文 —— 真实边界是『每处都登记、理由只属四类、证据生产者"
+                 "不许用可覆盖声明』，由 reconcile()/S027 机器核。"),
+        "policy": {
+            "allowed_kinds": list(pb.ALLOWED_KINDS),
+            "kinds_why": {
+                "real_os_primitive": "真实 OS 原语/库，声明覆盖不能凭空造出",
+                "evidence_producer": "证据生产者必须读真实平台，否则可伪造跨 OS 证据",
+                "platform_layer": "地面真相层，覆盖能力的参照物",
+                "test_fixture": "测试夹具按真实平台跳过",
+            },
+            "rule": ("新增一处裸 os.name/sys.platform 比较而不登记 → B6；登记了"
+                     "却删掉 → B7；比较清单漂移 → B8；kind 非法或缺 why → "
+                     "B9/B10；counts 涂改 → B11。"),
+        },
+        "posix_runtime": {
+            "status": "UNTESTED",
+            "why": ("本机是 Windows（非管理员 / HypervisorPresent=False / 无 WSL "
+                    "发行版 / 无 Docker），物理产不出真实 Linux/macOS 运行期证据。"
+                    "9.2 CI 矩阵、9.3 WSL/VM、9.4 真机均暂定冻结（m08962）。"
+                    "在 Windows 上把此格涂成 PASS 就是伪造跨 OS 证据（B5 判红）。"),
+            "unfreeze_when": "用户提供私有仓 + PAT + Actions secret，或一台真机/可用云 runner",
+        },
+        "sites": out,
+        "counts": {"files": len(sites), "sites": total,
+                   "scripts_files": len([r for r in sites if r.startswith(".workbench/")]),
+                   "test_files": len([r for r in sites if r.startswith("tests/")])},
+    }
+
+
 def build():
     """返回 {相对路径: 文本}，不落盘。"""
     enc = lambda o: json.dumps(o, ensure_ascii=False, indent=2, sort_keys=False) + "\n"
@@ -1548,6 +1684,7 @@ def build():
         "executor_registry.json": enc(_gen_executor_registry()),
         "tool_registry.json": enc(_gen_tool_registry()),
         "connector_registry.json": enc(_gen_connectors()),
+        "platform_boundary.json": enc(_gen_platform_boundary()),
         "changelog.json": enc({"schema": 1, "entries": CHANGELOG}),
     }
 
