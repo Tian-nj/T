@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "criterion": "executor_registry_v1",
+  "note": "声明 vs 事实的边界：permission_level / cost_model / readiness 是策略，由控制面在此定义；capabilities / available 是快照，由 executor_registry.py 对着 PROVIDERS 与 roles/agents.json 逐条核对，不一致即 E8/E9/E10 报红。声明改了自己不会变成真的。",
+  "executors": {
+    "harness_subagent": {
+      "permission_level": "write_scoped",
+      "cost_model": "metered",
+      "readiness": "runtime_dependent",
+      "capability_source": "roles.<role>.model.provider → PROVIDERS[<provider>].strengths",
+      "capabilities": null,
+      "available": null,
+      "why": "控制面只写 job 等 sentinel，worker 由外部框架拉起；框架不在就没有 worker。能力不是它自己的，随角色声明的 provider 走。"
+    },
+    "local_process": {
+      "permission_level": "write_scoped",
+      "cost_model": "free",
+      "readiness": "ready",
+      "capability_source": "固定清单（本机脚本的固有本事，不随 provider 变）",
+      "capabilities": [
+        "确定性执行",
+        "脚本编写"
+      ],
+      "available": true,
+      "why": "本机脚本，入口在 executors/ 与 scripts/，python 在即可。"
+    },
+    "human_cli": {
+      "permission_level": "approve_only",
+      "cost_model": "free",
+      "readiness": "ready",
+      "capability_source": "固定清单",
+      "capabilities": [
+        "审批",
+        "签名",
+        "裁定"
+      ],
+      "available": true,
+      "why": "人工审批与签名，不写业务文件；只写 sidecar/reject.jsonl。"
+    },
+    "external_ai": {
+      "permission_level": {
+        "consult": "read",
+        "apply": "write_scoped"
+      },
+      "cost_model": "metered",
+      "readiness": "runtime_dependent",
+      "capability_source": "PROVIDERS[<provider>].strengths",
+      "capabilities": null,
+      "available": null,
+      "why": "默认 consult 不持写权（changed 恒空），apply 才写盘且受 write_scope 约束。consult→read 是硬边界，改它等于给外部 AI 开了写权。"
+    }
+  },
+  "providers": {
+    "deepseek": {
+      "available": true,
+      "capabilities": [
+        "实现",
+        "脚本编写",
+        "结构化输出"
+      ]
+    },
+    "doubao": {
+      "available": false,
+      "capabilities": []
+    },
+    "kimi": {
+      "available": true,
+      "capabilities": [
+        "长文推理",
+        "代码审读",
+        "中文语境",
+        "大上下文整段复核"
+      ]
+    },
+    "qianwen": {
+      "available": false,
+      "capabilities": []
+    },
+    "workbuddy": {
+      "available": false,
+      "capabilities": []
+    }
+  },
+  "counts": {
+    "executors": 4,
+    "providers": 5,
+    "providers_available": 2
+  }
+}

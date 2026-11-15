@@ -603,6 +603,47 @@ def lint() -> list:
     except Exception as _exc:
         bad("S023", "事件前置态/目标态对账失败: %s" % _exc)
 
+    # S024 执行体能力注册表必须与代码/角色表一致（阶段 2，O4）。
+    #
+    # 为什么要这条：方案 §6.2 的升级判定第 2 条是「执行体能力注册表标注该
+    # 执行体不具备所需能力标签」—— 但原版写这句话时，工作台里根本没有
+    # 「执行体能力表」，那条触发条件恒不成立。现在有了
+    # `spec/executor_registry.json`（声明）+ `executor_registry.py`（对账），
+    # 剩下的风险是「声明改了自己变得像真的」：有人把某家 provider 的
+    # available 从 False 涂成 True，或给某类执行体补上一条它并没有的能力，
+    # 只要没人跑一次对账，spec 里就躺着一份更乐观的假话。
+    #
+    # 判据沿用 capability_gate 的范式：**改判据 != 宣布通过**。这里不接受
+    # 「声明里写了就算」，必须由 executor_registry.reconcile() 去对着
+    # PROVIDERS 与 roles/agents.json 现算一遍，任一条 E 码都算红。
+    # 声明文件缺失也判红：那不是「没配置」，是「可信根里少了一块」。
+    try:
+        import executor_registry as _er
+        _findings, _rows = _er.reconcile()
+        if _er.declaration() is None:
+            bad("S024", "spec/executor_registry.json 缺失（先跑 gen_spec.py）")
+        # reconcile() 的 findings 是 (code, detail) 二元组 —— 首版这里按 dict
+        # 写了 `_f.get("code")`，于是**任何** finding 都让本行抛 AttributeError，
+        # 被下面的 except 捕成一条含糊的「对账失败: 'tuple' object has no
+        # attribute 'get'」。后果比不漏更糟：它对所有错误都红，红的原因却是
+        # 我自己崩了 —— 看起来像抓到了篡改，实际一条也没抓到。
+        # 教训：断言里取字段前先确认容器类型，否则判据会以「永远报错」的方式
+        # 假装自己有效。
+        for _f in _findings:
+            if isinstance(_f, (tuple, list)) and len(_f) >= 2:
+                _code, _detail = _f[0], _f[1]
+            elif isinstance(_f, dict):
+                _code, _detail = _f.get("code"), _f.get("detail")
+            else:
+                _code, _detail = "?", repr(_f)
+            bad("S024", "%s %s" % (_code, _detail))
+        if not _rows:
+            bad("S024", "执行体能力对账返回 0 行（live() 没拿到任何执行体）")
+    except ImportError as _exc:
+        bad("S024", "无法 import executor_registry: %s" % _exc)
+    except Exception as _exc:
+        bad("S024", "执行体能力对账失败: %s" % _exc)
+
     return out
 
 

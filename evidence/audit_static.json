@@ -241,6 +241,12 @@
   "silent": [],
   "dead": []
  },
+ "executor_registry.py": {
+  "loc": 525,
+  "funcs": 11,
+  "silent": [],
+  "dead": []
+ },
  "ext_review.py": {
   "loc": 340,
   "funcs": 10,
@@ -276,8 +282,8 @@
   "dead": []
  },
  "gen_spec.py": {
-  "loc": 1183,
-  "funcs": 16,
+  "loc": 1266,
+  "funcs": 17,
   "silent": [
    {
     "line": 372,
@@ -659,7 +665,7 @@
   "dead": []
  },
  "spec_lint.py": {
-  "loc": 629,
+  "loc": 670,
   "funcs": 11,
   "silent": [
    {

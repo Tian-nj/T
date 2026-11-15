@@ -1042,6 +1042,88 @@ def _gen_config_compat():
     }
 
 
+def _gen_executor_registry():
+    """执行体能力注册表（阶段 2，O4 的声明侧）。
+
+    为什么这张表必须存在：方案 §6.2 升级判定第 2 条是「执行体能力注册表
+    标注该执行体不具备所需能力标签」—— 原版写这句话时，工作台里没有任何
+    「执行体能力表」：外部 5 家的能力在 `executors/ext_ai_subagent.py` 的
+    `PROVIDERS`，而内部 4 类执行体的能力一个字都没有。没有这张表，那条
+    触发条件恒不成立，写进方案等于写了一条永不触发的规则。
+
+    为什么它还不算「第二份真相」：本表只承担**策略与快照**两部分 ——
+    权限档位（permission_level）、成本口径（cost_model）、就绪语义
+    （readiness）是控制面定义，不来自代码；而 capabilities 与 available
+    是快照，**由 `executor_registry.py reconcile()` 逐条对着代码与角色表核对**，
+    一不一致就报 E8/E9/E10。即「声明活在这里，但它不能自己为真」。
+
+    为什么 harness_subagent 的能力要写成「随 provider 走」而不是固定清单：
+    它的能力**不是它自己的**，而是角色声明的 provider 的能力。写死一份
+    清单就等于断言「所有角色都用同一个模型」，而 agents.json 允许逐角色
+    指定 —— 那时写死的清单会变成一句过期的话。所以这里只声明推导规则，
+    真正的值由 `executor_registry.live()` 现算。
+    """
+    return {
+        "schema": 1,
+        "criterion": "executor_registry_v1",
+        "note": (
+            "声明 vs 事实的边界：permission_level / cost_model / readiness 是策略，"
+            "由控制面在此定义；capabilities / available 是快照，由 "
+            "executor_registry.py 对着 PROVIDERS 与 roles/agents.json 逐条核对，"
+            "不一致即 E8/E9/E10 报红。声明改了自己不会变成真的。"),
+        "executors": {
+            "harness_subagent": {
+                "permission_level": "write_scoped",
+                "cost_model": "metered",
+                "readiness": "runtime_dependent",
+                "capability_source": "roles.<role>.model.provider → PROVIDERS[<provider>].strengths",
+                "capabilities": None,
+                "available": None,
+                "why": ("控制面只写 job 等 sentinel，worker 由外部框架拉起；"
+                        "框架不在就没有 worker。能力不是它自己的，随角色声明的 provider 走。"),
+            },
+            "local_process": {
+                "permission_level": "write_scoped",
+                "cost_model": "free",
+                "readiness": "ready",
+                "capability_source": "固定清单（本机脚本的固有本事，不随 provider 变）",
+                "capabilities": ["确定性执行", "脚本编写"],
+                "available": True,
+                "why": "本机脚本，入口在 executors/ 与 scripts/，python 在即可。",
+            },
+            "human_cli": {
+                "permission_level": "approve_only",
+                "cost_model": "free",
+                "readiness": "ready",
+                "capability_source": "固定清单",
+                "capabilities": ["审批", "签名", "裁定"],
+                "available": True,
+                "why": "人工审批与签名，不写业务文件；只写 sidecar/reject.jsonl。",
+            },
+            "external_ai": {
+                "permission_level": {"consult": "read", "apply": "write_scoped"},
+                "cost_model": "metered",
+                "readiness": "runtime_dependent",
+                "capability_source": "PROVIDERS[<provider>].strengths",
+                "capabilities": None,
+                "available": None,
+                "why": ("默认 consult 不持写权（changed 恒空），apply 才写盘且受 write_scope"
+                        " 约束。consult→read 是硬边界，改它等于给外部 AI 开了写权。"),
+            },
+        },
+        "providers": {
+            "deepseek": {"available": True,
+                         "capabilities": ["实现", "脚本编写", "结构化输出"]},
+            "doubao": {"available": False, "capabilities": []},
+            "kimi": {"available": True,
+                     "capabilities": ["长文推理", "代码审读", "中文语境", "大上下文整段复核"]},
+            "qianwen": {"available": False, "capabilities": []},
+            "workbuddy": {"available": False, "capabilities": []},
+        },
+        "counts": {"executors": 4, "providers": 5, "providers_available": 2},
+    }
+
+
 def _gen_lock_semantics():
     """跨平台锁语义对照表（第三十六轮）。
 
@@ -1148,6 +1230,7 @@ def build():
         "recall_baseline.json": enc(_gen_recall_baseline()),
         "config_compat.json": enc(_gen_config_compat()),
         "lock_semantics.json": enc(_gen_lock_semantics()),
+        "executor_registry.json": enc(_gen_executor_registry()),
         "changelog.json": enc({"schema": 1, "entries": CHANGELOG}),
     }
 

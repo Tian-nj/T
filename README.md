@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 124 个文件的 HMAC 清单
+  root.manifest            # 126 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 57 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 58 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,12 +154,12 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（57 个 .py / 32264 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（58 个 .py / 32913 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
 | `wb_core.py` | 被 import | Store / JCS / 链哈希 / YAML 子集 / **`Store.transition()` 状态唯一写入口** | 单写者；`body = chunks[:-1]` |
-| `gen_spec.py` | 人工 | 生成 7 个 spec 文件 | `--check` 漂移 exit 2 |
+| `gen_spec.py` | 人工 | 生成 12 个 spec 文件（含 `executor_registry.json`） | `--check` 漂移 exit 2；spec/** 是 deny 区，只能由它写 |
 | `sign_manifest.py` | 人工 | HMAC 签 manifest | 两段式 algo 分派 |
 | `bootstrap.py` | Lead 启动 | 验签→uuid→复算→E42 | 不符 exit 3 |
 | `lead.py` | Lead | 调度 / 迁移 / 检查 / escalate | `transition()` 委托 `wb_core`，不再自持一份状态机 |
@@ -169,13 +169,14 @@ docs/
 | `human_cli.py` | 人 | 三闸门 + override | 签名 + nonce + 状态机 |
 | `platform_ops.py` | 被 import | 九项平台原语 | atomic_replace 退避 100/300/900ms |
 | `toolchain.py` | 被 import / 人工 | 解析 python/git/bash/node/pnpm 的绝对路径并补 PATH | 顺序 env→config→PATH→探测；商店存根按「不存在」处理；找不到回落工具名而非 None |
+| `executor_registry.py` | 被 import / 人工 | 4 类执行体 + 5 家 provider 的能力**对账**（声明 vs 代码/角色表） | 声明在 `spec/executor_registry.json`（gen_spec 生成）里，但它不能自己为真；E1–E11 任一命中即非零；`--supports TAG` 分「能做 / 不能 / 未声明」三桶 |
 | `health.py` | timer | 看门狗 E06/E43 | 心跳不进主链 |
 | `dep_resolver.py` | 被调 | 依赖级联取消 | never_spawned 只记 meta |
 | `gate_timer.py` | timer | 三闸门超时 | 方向写死，不给配置 |
 | `gc_helper.py` | timer | GC-1..GC-6 | 幂等键三元组；GC-6 回收前查租约；**撞上占用是「延后」(rc=3) 不是失败** |
 | `metrics_collector.py` | timer | 八指标 | **比率用万分比整数** |
 | `constitution_check.py` | timer | K1–K9 | 便宜、可高频；K4 窗口有链上终点 |
-| `spec_lint.py` | 人工/CI | S001–S020 | S019 查三证完整性；S020 真跑相对账本 report；mutation 验证过 |
+| `spec_lint.py` | 人工/CI | S001–S024 | S019 查三证完整性；S020 真跑相对账本 report；S024 执行体能力注册表对账（声明不能自己为真）；mutation 验证过 |
 | `migrate_vx_to_vy.py` | system | 五步迁移 | 源版本不符拒绝猜；切主失败按相反顺序回滚 + E38 |
 | `mg_gate.py` | 被 import | **MG 四分支闸门（纯判定）** | 缺 `statuses`/`commands` 时降级，不许"没证据=通过" |
 | `secret_scan.py` | submit | 六面密钥扫描 + alerts | 只扫新增行；命中只告警；给行号不给全文 |
@@ -352,6 +353,51 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 > 效果：`PowerShell` 里 `bootstrap.py` 的 git 检查由红转绿，`toolchain --selftest` 11/11；
 > 全量回归 round138 `passed 116 / failed 0 / ALL PASS`（`evidence/round138_full.txt`），
 > 同一份 `tests/test_toolchain.py` 在 PowerShell 与 Git bash 两个 shell 里都 `PASS (0 failed)`。
+>
+> **2026-11-15 round139（阶段 2 执行体能力注册表）补上一个「规则写了但没有实现物」的洞**：
+> 方案 §6.2 的升级判定第 2 条是「执行体能力注册表标注该执行体不具备所需能力标签」——
+> 但工作台里从来没有这张表：外部 5 家的能力在 `executors/ext_ai_subagent.py` 的
+> `PROVIDERS`，内部 4 类执行体（`harness_subagent` / `local_process` / `human_cli` /
+> `external_ai`）一个字都没有。没有表，那条触发条件**恒不成立**，写进方案等于写了
+> 一条永不触发的规则。现在补成两件：`spec/executor_registry.json` 是**声明**
+> （由 `gen_spec.py` 单一生成、自动进可信根），`executor_registry.py` 是**对账**
+> （把声明逐条对着 `PROVIDERS` 与 `roles/agents.json` 核一遍）。分工的关键是
+> 「声明不能自己为真」—— 只把 spec 里的某家 `available` 涂成 `True`，对账立刻 E10 报红。
+>
+> 三个设计选择值得记住：
+> ①**`harness_subagent` 的能力不是它自己的**，是角色声明的 provider 的能力
+> （`roles.<role>.model.provider → PROVIDERS[...].strengths`）。声明里把它写成 `None`
+> 加一条推导规则，而不是写死一份清单 —— 写死就等于断言「所有角色都用同一个模型」，
+> 而 `agents.json` 允许逐角色指定，那时清单会变成一句过期的话。
+> ②**「未声明能力」与「声明了不具备」必须分桶**。`--supports TAG` 输出三组
+> （能做 / 不能 / 未声明），把前者当拒绝理由等于拿空白做判决。
+> ③**`external_ai.consult` 必须是 `read`**（E7）。consult 若持写权，
+> `ext_ai_subagent` 那句「consult 的 `changed` 恒为空、绝不声称改过文件」就只剩口头承诺。
+>
+> 新增 `spec_lint` 规则 **S024**（`S001–S023` → `S024`）把对账接进每次 lint。
+> 两次自己踩的坑都写进了代码：①首版 `live()` 里 `os.path.join(WB, ".workbench", ep)`
+> —— **`WB` 本身就是 `.workbench`**，多拼一层后 verifier 与 human 的入口明明存在却被判
+> `unavailable`；这类误判比漏判更坏，它会让人去装一个根本不缺的东西。②S024 首版按 dict
+> 写 `_f.get("code")`，而 `reconcile()` 返回的 findings 是 `(code, detail)` **元组**，
+> 于是任何一条 finding 都抛 `AttributeError` 被收成一句含糊的「对账失败: 'tuple' object
+> has no attribute 'get'」—— **对所有错误都红，红的原因却是自己崩了**，看起来像抓到了
+> 篡改，实际一条也没抓到。改法：取字段前先认容器类型；并给 `local_process` /
+> `human_cli` 的固定能力清单补 **E11**（原来 E9 只核外部 provider，这两类的声明怎么改都是绿）。
+> 负向验证：5 种篡改（涂 `available` / 加能力 / 给 consult 开写权 / 删一类执行体 /
+> 删整个声明文件）全部报红且**报出的 E 码正确**（E10 / E11 / E7 / E4 / E2），
+> 无一是崩溃式假红；再故意改坏 E11 判断，`test_executor_registry` 立刻红 —— 证明对抗层
+> 真的在跑，不是空转。
+>
+> **2026-11-15 round140（同一阶段的收尾）删掉了 round139 的结论**：
+> round139 全绿之后我又改了 `executor_registry.py` 的 `declaration()` ——
+> `audit_static` 把它记成「静默吞异常」（`silent: [{... "src": "except Exception:\n    return None"}]`），
+> 它说得对：那个 `None` 会被 E2 报出来，但「文件没了」和「JSON 写坏了」长得一模一样，
+> 而这两件事的修法完全不同（前者重跑 `gen_spec`，后者先查是谁手改的）。
+> 改法是加 `_LAST_ERROR`，解析失败时把异常文本带进 E2（实测坏 JSON →
+> `[E2] …；解析错误 JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`）。
+> **代码改了，就不能再拿改之前的证据当背书** —— 所以重跑一轮全量，
+> 并删掉 `evidence/round139_full.txt`：它是修复前的中间轮次，留着等于用旧证据为最终代码担保。
+> round140 `passed 117 / failed 0 / ALL PASS`（`evidence/round140_full.txt`）。
 
 前四个问"对不对"，`audit_closure` 问的是**"有没有人管"**。
 一条规则最危险的失效形态不是写错，是没有任何执行点读它 ——
@@ -364,7 +410,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 116 项：78 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 117 项：79 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1013,7 +1059,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 78 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **116 项 / 116 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 79 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **117 项 / 117 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
