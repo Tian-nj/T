@@ -1,7 +1,7 @@
 {
   "blocked_count": 2,
   "criterion": "joint_acceptance_v1",
-  "headline": "1/3 项就绪，2 项阻塞 —— 现在**不能**宣布整套验收完成",
+  "headline": "1/3 项就绪，2 项阻塞 —— 现在**不能**宣布整套验收完成；其中 1 项是本机终态（要另一台机器，不是再等时间）",
   "items": [
     {
       "acceptance": {
@@ -29,48 +29,55 @@
       "acceptance": null,
       "actions_ran": false,
       "actions_ran_reason": "缺少 CI 产物 linux.json（尚未 ingest）",
-      "how": "git remote add origin <url> && git push -u origin master；在仓库 Settings 里设 secret WORKBENCH_CI_KEY；跑完把两个 artifact 拉回来 喂给 platform_runner_probe.py ingest",
+      "how": "需要**另一台机器**：一台真 Linux + 一台真 macOS 上跑 platform_runner_probe.py --inspect --write（只读探测，标准库，任何有 python3 的 Linux/macOS 都行），各产一份已验签产物。有托管时也可 git remote add origin <url> && git push -u origin master、在仓库 Settings 里设 secret WORKBENCH_CI_KEY、跑完把两个 artifact 拉回来喂给 platform_runner_probe.py ingest",
       "id": "actions",
       "ready": false,
       "remote_configured": false,
+      "terminal": true,
+      "terminal_why": "本机无 WSL 发行版、非管理员、无虚拟化，装不出真 Linux；Windows 上 platform_runner_probe 只登记 NOT_APPLICABLE，不写 linux.json/macos.json。所以要推进它，投入的不是时间",
       "title": "GitHub Actions 真跑",
       "verify": "python .workbench/scripts/ci_narrow_probe.py --check",
-      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED",
+      "why": "git remote -v 为空，且本机没有真 Linux/macOS 可跑探测：workflow 从未真跑过，平台矩阵只能停在 UNTESTED。这是本机终态，不是待办 —— 换机器才能变，等时间不会变",
       "workflow_contract_passed": true
     },
     {
       "acceptance": null,
-      "covered_hours": 85.473,
-      "eta": "2026-11-18T14:35:37Z",
+      "covered_hours": 89.223,
+      "eta": "2026-11-18T14:33:35Z",
       "how": "等。这个不能加速：横轴是真实时间，补数据只会造假",
       "id": "window",
-      "points": 947,
+      "points": 1001,
       "ready": false,
       "target_hours": 168,
       "title": "7 天观察窗口",
       "verify": "python .workbench/scripts/scheduler_observe.py --check",
-      "why": "观察跨度 85.473/168 小时，ETA 2026-11-18T14:35:37Z；此时任何「日级结论」都是单点外推"
+      "why": "观察跨度 89.223/168 小时，ETA 2026-11-18T14:33:35Z；此时任何「日级结论」都是单点外推"
     }
   ],
   "next_actions": [
     {
-      "how": "git remote add origin <url> && git push -u origin master；在仓库 Settings 里设 secret WORKBENCH_CI_KEY；跑完把两个 artifact 拉回来 喂给 platform_runner_probe.py ingest",
+      "how": "需要**另一台机器**：一台真 Linux + 一台真 macOS 上跑 platform_runner_probe.py --inspect --write（只读探测，标准库，任何有 python3 的 Linux/macOS 都行），各产一份已验签产物。有托管时也可 git remote add origin <url> && git push -u origin master、在仓库 Settings 里设 secret WORKBENCH_CI_KEY、跑完把两个 artifact 拉回来喂给 platform_runner_probe.py ingest",
       "id": "actions",
+      "terminal": true,
+      "terminal_why": "本机无 WSL 发行版、非管理员、无虚拟化，装不出真 Linux；Windows 上 platform_runner_probe 只登记 NOT_APPLICABLE，不写 linux.json/macos.json。所以要推进它，投入的不是时间",
       "title": "GitHub Actions 真跑",
       "verify": "python .workbench/scripts/ci_narrow_probe.py --check",
-      "why": "git remote -v 为空：workflow 从未真跑过，Linux/macOS 平台矩阵只能停在 UNTESTED"
+      "why": "git remote -v 为空，且本机没有真 Linux/macOS 可跑探测：workflow 从未真跑过，平台矩阵只能停在 UNTESTED。这是本机终态，不是待办 —— 换机器才能变，等时间不会变"
     },
     {
       "how": "等。这个不能加速：横轴是真实时间，补数据只会造假",
       "id": "window",
+      "terminal": false,
+      "terminal_why": null,
       "title": "7 天观察窗口",
       "verify": "python .workbench/scripts/scheduler_observe.py --check",
-      "why": "观察跨度 85.473/168 小时，ETA 2026-11-18T14:35:37Z；此时任何「日级结论」都是单点外推"
+      "why": "观察跨度 89.223/168 小时，ETA 2026-11-18T14:33:35Z；此时任何「日级结论」都是单点外推"
     }
   ],
-  "note": "就绪与验收是两件事：就绪回答「能不能跑」，验收回答「跑得对不对」。任何一项没就绪时 verdict 最高只有 JOINT_BLOCKED —— 因为「没跑」与「跑过且通过」在输出上必须不同形。就绪但 acceptance 非 True（含 None／没出结论）按 JOINT_PARTIAL 计，绝不并入 JOINT_PASS。",
+  "note": "就绪与验收是两件事：就绪回答「能不能跑」，验收回答「跑得对不对」。任何一项没就绪时 verdict 最高只有 JOINT_BLOCKED —— 因为「没跑」与「跑过且通过」在输出上必须不同形。就绪但 acceptance 非 True（含 None／没出结论）按 JOINT_PARTIAL 计，绝不并入 JOINT_PASS。阻塞项里标了 terminal 的是**本机终态**：本机做到头了，再推进它需要的不是时间而是另一台机器；没标的是「还欠着」，等时间或等人工就能变。两者必须分开读，否则会把「做不到」当成「还没做」，一直等一个不会到的东西。",
   "ready_count": 1,
   "schema": 1,
+  "terminal_count": 1,
   "unverified_count": 0,
   "verdict": "JOINT_BLOCKED",
   "w4_participates": false

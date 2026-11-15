@@ -182,11 +182,21 @@ def _probe_actions():
         "id": "actions",
         "title": "GitHub Actions 真跑",
         "ready": False,
-        "how": ("git remote add origin <url> && git push -u origin master；"
-                "在仓库 Settings 里设 secret %s；跑完把两个 artifact 拉回来 "
-                "喂给 platform_runner_probe.py ingest" % CI_KEY_ENV),
+        "how": ("需要**另一台机器**：一台真 Linux + 一台真 macOS 上跑 "
+                "platform_runner_probe.py --inspect --write（只读探测，标准库，"
+                "任何有 python3 的 Linux/macOS 都行），各产一份已验签产物。"
+                "有托管时也可 git remote add origin <url> && git push -u origin master、"
+                "在仓库 Settings 里设 secret %s、跑完把两个 artifact 拉回来喂给 "
+                "platform_runner_probe.py ingest" % CI_KEY_ENV),
         "verify": "python .workbench/scripts/ci_narrow_probe.py --check",
         "acceptance": None,
+        # 本机终态：这一格不需要「更多时间」，需要的是「另一台机器」。
+        # 与 window 那一格（等 168h 自己到点）必须不同形 —— 否则读的人
+        # 会以为两件事都在等，于是两件都不做。
+        "terminal": True,
+        "terminal_why": ("本机无 WSL 发行版、非管理员、无虚拟化，装不出真 Linux；"
+                         "Windows 上 platform_runner_probe 只登记 NOT_APPLICABLE，"
+                         "不写 linux.json/macos.json。所以要推进它，投入的不是时间"),
     }
     try:
         import ci_narrow_probe as ci
@@ -203,8 +213,9 @@ def _probe_actions():
         # PASS」——验收那侧从证据重新核，没有产物时 acceptance 恒 False。
         out["ready"] = out["remote_configured"]
         if not out["ready"]:
-            out["why"] = ("git remote -v 为空：workflow 从未真跑过，"
-                          "Linux/macOS 平台矩阵只能停在 UNTESTED")
+            out["why"] = ("git remote -v 为空，且本机没有真 Linux/macOS 可跑探测："
+                          "workflow 从未真跑过，平台矩阵只能停在 UNTESTED。"
+                          "这是本机终态，不是待办 —— 换机器才能变，等时间不会变")
         else:
             out["acceptance"] = {
                 "passed": out["actions_ran"] and out["workflow_contract_passed"],
@@ -275,10 +286,17 @@ def evaluate_items(items):
                   if not isinstance(i.get("acceptance"), dict)
                   or i["acceptance"].get("passed") is not True]
 
+    # 「本机终态」与「还欠着」在输出上必须不同形：前者换机器才能变，
+    # 后者等时间/等人工就能变。混成同一句话，读的人就无法判断该不该动手。
+    terminal = [i for i in blocked if i.get("terminal")]
+
     if blocked:
         verdict = BLOCKED
         headline = ("%d/%d 项就绪，%d 项阻塞 —— 现在**不能**宣布整套验收完成"
                     % (len(ready), len(items), len(blocked)))
+        if terminal:
+            headline += ("；其中 %d 项是本机终态（要另一台机器，不是再等时间）"
+                         % len(terminal))
     elif failed:
         verdict = PARTIAL
         headline = "三项就绪，但 %d 项验收没过" % len(failed)
@@ -295,7 +313,9 @@ def evaluate_items(items):
     # 不擅自 remote add、不伪造证据；但让人不用翻三份输出自己拼。
     next_actions = [{"id": i.get("id"), "title": i.get("title"),
                      "how": i.get("how"), "verify": i.get("verify"),
-                     "why": i.get("why")}
+                     "why": i.get("why"),
+                     "terminal": bool(i.get("terminal")),
+                     "terminal_why": i.get("terminal_why")}
                     for i in items if not i.get("ready")]
 
     return {
@@ -306,6 +326,7 @@ def evaluate_items(items):
         "w4_participates": False,
         "ready_count": len(ready),
         "blocked_count": len(blocked),
+        "terminal_count": len(terminal),
         "unverified_count": len(unverified),
         "items": items,
         "next_actions": next_actions,
@@ -313,7 +334,11 @@ def evaluate_items(items):
                  "任何一项没就绪时 verdict 最高只有 JOINT_BLOCKED —— "
                  "因为「没跑」与「跑过且通过」在输出上必须不同形。"
                  "就绪但 acceptance 非 True（含 None／没出结论）按 "
-                 "JOINT_PARTIAL 计，绝不并入 JOINT_PASS。"),
+                 "JOINT_PARTIAL 计，绝不并入 JOINT_PASS。"
+                 "阻塞项里标了 terminal 的是**本机终态**：本机做到头了，"
+                 "再推进它需要的不是时间而是另一台机器；没标的是「还欠着」，"
+                 "等时间或等人工就能变。两者必须分开读，否则会把「做不到」"
+                 "当成「还没做」，一直等一个不会到的东西。"),
     }
 
 
@@ -353,6 +378,8 @@ def readiness(now_ms=None):
             "missing": p.get("missing", []),
             "why": p.get("why"),
             "provider_kind": p.get("provider_kind"),
+            "terminal": bool(p.get("terminal")),
+            "terminal_why": p.get("terminal_why"),
         } for p in probes],
     }
 
@@ -368,6 +395,9 @@ def human(rep):
             L.append("    为什么：%s" % (it.get("why") or "未取值"))
             L.append("    怎么解：%s" % (it.get("how") or "未取值"))
             L.append("    解完跑：%s" % (it.get("verify") or "未取值"))
+            if it.get("terminal"):
+                L.append("    本机终态：%s"
+                         % (it.get("terminal_why") or "需要外部条件，本机推进不了"))
         else:
             acc = it.get("acceptance")
             if acc is None:
@@ -512,6 +542,13 @@ def selftest():
         ck("阻塞项数 = 总项 - 就绪项",
            rep["blocked_count"], len(rep["items"]) - rep["ready_count"])
         ck("headline 明确写「不能宣布完成」", "不能" in rep["headline"], True)
+        # 本机终态必须与「还欠着」不同形：只改措辞，但措辞是可断言的行为。
+        _acts = next(i for i in rep["items"] if i["id"] == "actions")
+        ck("actions 项标了本机终态", _acts.get("terminal"), True)
+        ck("本机终态给出理由", bool(_acts.get("terminal_why")), True)
+        ck("终态项在 next_actions 里也带标记",
+           [a.get("terminal") for a in rep["next_actions"]
+            if a["id"] == "actions"], [True])
         ck("三项都在清单里", sorted(i["id"] for i in rep["items"]),
            ["actions", "model", "window"])
 
