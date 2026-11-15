@@ -29,14 +29,14 @@
       "capability_evidence/ledger.json": "sha256:5b3698b1db161e40dcf7b8ac139088b8731f9d2def85e7aa4634d13dd5a83c3e",
       "scripts/agent_runner.py": "sha256:fd44455711144d40ac4a9ff0576764aeba623983a60a7de6c94490de1bd9a1c6",
       "scripts/job_object_probe.py": "sha256:c7d480fa868c3c0c8edb1fbc16c692fafe4b1797e0a515467f426f328081d45b",
-      "scripts/platform_ops.py": "sha256:fc8cdce284edb24733a9aef63084cce524c5d50848d4dd7c58e798a7ab571c9a",
+      "scripts/platform_ops.py": "sha256:a5cbcd8ab483d584f39abb1dc72cafcc310450a1eee00f1826763ae00503839a",
       "scripts/worker_shim/sitecustomize.py": "sha256:29d2580e52a9ab76876d0642b4ee77997483c926173bc625b5d2280db0d1a54d"
     },
     "w4_ledger_participates": false,
     "wired": true,
     "worker_shim_no_kernel_job": true
   },
-  "generated_at": "2026-11-13T07:24:58.261605+08:00",
+  "generated_at": "2026-11-15T09:54:41.520949+08:00",
   "isolation_gaps": {
     "filesystem_isolation_observed": "NOT_ISOLATED",
     "gaps_proven": true,
@@ -59,5 +59,5 @@
   "reason": "进程数/kill 遏制成立；网络与文件未隔离（见 isolation_gaps）",
   "schema": 1,
   "verdict": "JOB_OBJECT_PROCESS_CONTAINMENT_ONLY",
-  "windows_version": "sys.getwindowsversion(major=10, minor=0, build=26200, platform=2, service_pack='')"
+  "windows_version": "sys.getwindowsversion(major=10, minor=0, build=19045, platform=2, service_pack='')"
 }

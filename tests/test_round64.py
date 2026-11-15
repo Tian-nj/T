@@ -302,7 +302,10 @@ def t_runner_true_run():
     env = dict(os.environ)
     env.pop("WB_REF_MODEL_ENDPOINT", None)
     env.pop("WB_REF_MODEL_KEY", None)
-    env.pop("WB_CRED_FILE", None)
+    # 指向一份不存在的凭据文件：让子进程里的 readiness() 与「本机配没配凭据」
+    # 彻底解耦。否则这条断言会因为开发机真配了 .git/info/model_credentials.json
+    # 而变红 —— 那是测试依赖环境，不是依赖行为。
+    env["WB_CRED_FILE"] = os.path.join(tmp, "no-such-credentials.json")
     env["PYTHONIOENCODING"] = "utf-8"
     env.setdefault("WORKBENCH_ROOT_KEY", "dev-root-key-2026-please-replace")
     try:

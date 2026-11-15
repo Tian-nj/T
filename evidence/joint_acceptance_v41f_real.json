@@ -15,7 +15,7 @@
     "WB_REF_MODEL_ENDPOINT": "<set len=41>",
     "WB_REF_MODEL_KEY": "<set len=35>"
   },
-  "generated_at_ms": 1794624923641,
+  "generated_at_ms": 1794705516591,
   "honest_boundary": {
     "real_vendor_verified": true,
     "real_vendor_verified_means": "非占位符 ∧ 端点非回环 ∧ 模型回路真成功，三者同时成立",
@@ -44,15 +44,15 @@
       "id": "window",
       "provider_kind": null,
       "ready": false,
-      "why": "观察跨度 60.357/168 小时，ETA 2026-11-18T14:33:57Z；此时任何「日级结论」都是单点外推"
+      "why": "观察跨度 82.69/168 小时，ETA 2026-11-18T14:37:11Z；此时任何「日级结论」都是单点外推"
     }
   ],
   "joint_verdict": "JOINT_BLOCKED",
   "mode": "credential_file",
   "model_roundtrip": {
     "backend": "model",
-    "doc_summary": "参考执行体 model 回路：deepseek-flash 返回 140 字",
-    "elapsed_ms": 2287,
+    "doc_summary": "参考执行体 model 回路：deepseek-flash 返回 144 字",
+    "elapsed_ms": 2369,
     "has_model_output": true,
     "key_not_in_sentinel": true,
     "model_name": "deepseek-flash",
@@ -90,7 +90,7 @@
         "provider_kind": null,
         "ready": false,
         "title": "7 天观察窗口",
-        "why": "观察跨度 60.357/168 小时，ETA 2026-11-18T14:33:53Z；此时任何「日级结论」都是单点外推"
+        "why": "观察跨度 82.69/168 小时，ETA 2026-11-18T14:37:04Z；此时任何「日级结论」都是单点外推"
       }
     ],
     "mode": "readiness",

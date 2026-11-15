@@ -268,7 +268,17 @@ def kill_tree(pid: int, grace_sec: int = 5, expect_creation: str | None = None) 
         return {"killed": True, "method": "noop", "pid_reused": None, "detail": "pid<=0"}
     if expect_creation and IS_WIN:
         cur, _ = _win_creation_date(pid)
-        if cur is not None and cur != expect_creation:
+        if cur is None:
+            # 取不到当前 creation_date 时**不许往下杀**。旧版写的是
+            # `if cur is not None and cur != expect_creation`，于是 WMI 抖动
+            # 或 powershell 冷启动失败时，防护被静默跳过、照样 taskkill ——
+            # 「防误杀的唯一手段」在最需要它的那一瞬失效，而输出看不出异常。
+            # 调用方传了 expect_creation 就是想防误杀，那就 fail-closed：
+            # 宁可不杀让人来看，也不要杀错。
+            return {"killed": False, "method": "refused", "pid_reused": None,
+                    "detail": "creation_date unavailable; refusing to kill "
+                              "because expect_creation was given"}
+        if cur != expect_creation:
             return {"killed": False, "method": "refused", "pid_reused": True,
                     "detail": "creation_date mismatch: expect %r got %r" % (expect_creation, cur)}
 
@@ -751,7 +761,15 @@ def _selftest() -> int:
     p2 = spawn_group([sys.executable, "-c", "import time; time.sleep(30)"])
     time.sleep(0.4)
     res2 = kill_tree(p2.pid, grace_sec=1, expect_creation="19990101000000.000000+000")
-    chk("kill_tree refuses pid reuse", (res2["pid_reused"] is True and res2["killed"] is False), str(res2))
+    # 断言的是「拒杀」这条不变量，不是某一种拒法：
+    #   - 拿得到 creation_date 且不符 → method=refused, pid_reused=True
+    #   - 拿不到（powershell 不在 PATH / WMI 抖动）→ 也必须 refused，
+    #     只是 pid_reused=None、detail 说不可用。
+    # 旧断言要求 pid_reused is True，于是把「取不到时间」这条合法拒法判成红，
+    # 反而逼着实现去「默默放行」才绿 —— 那是把 fail-closed 当缺陷。
+    chk("kill_tree refuses pid reuse",
+        (res2["killed"] is False and res2["method"] == "refused"
+         and pid_alive(p2.pid)), str(res2))
     kill_tree(p2.pid, grace_sec=1)
 
     # 7 archive 分卷

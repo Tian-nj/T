@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794703737288,
-  "digest": "hmac-sha256:fa5fd2b4e1b9523c0a8f32c72f76c54bf35814762395129a0faff79beb020eb7",
+  "created_ms": 1794707682110,
+  "digest": "hmac-sha256:f3b0b96b032c5920d67f8c5ddc1c4305f8e11882904a368e3004ab7fd379f762",
   "entries": [
     {
       "bytes": 3315,
@@ -121,7 +121,7 @@
     {
       "bytes": 3611,
       "path": "capability_evidence/native_isolation.json",
-      "sha256": "sha256:a760bf3c5ddada4869980dbc0f7eb304beea54fc69d61b6aa78f81bb6b22aa29"
+      "sha256": "sha256:66628420577b39c6c73d7453adfe796ddc3ee398a99916d67077c0eefb54700a"
     },
     {
       "bytes": 815,
@@ -369,9 +369,9 @@
       "sha256": "sha256:c7d480fa868c3c0c8edb1fbc16c692fafe4b1797e0a515467f426f328081d45b"
     },
     {
-      "bytes": 36734,
+      "bytes": 37851,
       "path": "scripts/joint_acceptance.py",
-      "sha256": "sha256:a099c44ab9f56d77f381fdcd3fb53916c34e14aab3d2fd76d569d6a964eb38c4"
+      "sha256": "sha256:9a85863c17bcfb68c82a03a2f986eefc835ae84ff677dd764177182eac1be7f1"
     },
     {
       "bytes": 76225,
@@ -424,9 +424,9 @@
       "sha256": "sha256:0eb2766c10bef0749a354d1facf5b92409b94c1edae2091848cd87bc305a2161"
     },
     {
-      "bytes": 36509,
+      "bytes": 37790,
       "path": "scripts/platform_ops.py",
-      "sha256": "sha256:fc8cdce284edb24733a9aef63084cce524c5d50848d4dd7c58e798a7ab571c9a"
+      "sha256": "sha256:a5cbcd8ab483d584f39abb1dc72cafcc310450a1eee00f1826763ae00503839a"
     },
     {
       "bytes": 33785,
@@ -606,7 +606,7 @@
   ],
   "entry_count": 120,
   "manifest_version": 1,
-  "sig": "hmac-sha256:fa5fd2b4e1b9523c0a8f32c72f76c54bf35814762395129a0faff79beb020eb7",
+  "sig": "hmac-sha256:f3b0b96b032c5920d67f8c5ddc1c4305f8e11882904a368e3004ab7fd379f762",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

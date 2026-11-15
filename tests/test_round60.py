@@ -302,10 +302,20 @@ def t_joint_next_actions():
     ok("每项带 how / verify / why",
        all(a.get("how") and a.get("verify") and a.get("why")
            for a in rep["next_actions"]), True, rep["next_actions"])
-    ok("不替 YG 填值（三项仍阻塞）",
+    # 这里原本硬写 ["actions","model","window"]，等于把「本机没配凭据」当成
+    # 永久事实：真配了 .git/info/model_credentials.json 的机器会红。改成核
+    # 不变量 —— next_actions 点名的正好是当前所有阻塞项，一个不多一个不少。
+    ok("blocked_count 与就绪项互补",
+       rep["blocked_count"], len(rep["items"]) - rep["ready_count"], rep)
+    ok("next_actions 点名的正好是当前阻塞项",
        sorted(a["id"] for a in rep["next_actions"]),
-       ["actions", "model", "window"],
+       sorted(i["id"] for i in rep["items"] if not i.get("ready")),
        [a["id"] for a in rep["next_actions"]])
+    # actions / window 这两项在本机结构上不可能就绪（无 remote、窗口未到点），
+    # 所以它们仍阻塞是硬结论，可以照旧点死。
+    ok("actions 与 window 仍阻塞",
+       [i["id"] for i in rep["items"] if not i.get("ready") and
+        i["id"] in ("actions", "window")], ["actions", "window"])
     ok("不参与 W4", rep["w4_participates"], False)
 
     src = _src(".workbench/scripts/joint_acceptance.py")

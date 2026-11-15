@@ -69,6 +69,11 @@ UNREADABLE = "JOINT_UNREADABLE"
 # 全新 clone 没有凭据就不该宣布验收通过，这是诚实而非缺陷。
 MODEL_CRED_REL = os.path.join(".git", "info", "model_credentials.json")
 MODEL_EVIDENCE_REL = os.path.join("evidence", "joint_acceptance_v41f_real.json")
+# 与 tests/run_joint_acceptance_fixture.py 的 CRED_FILE_ENV 同名：让「凭据在哪」
+# 可被注入复核。默认不设 = 上面那条相对路径（生产口径一字未改）。
+# 存在的理由：就绪口径自本轮起读的是文件，测试若只能读真实 .git/info，
+# 「本机配没配凭据」就会变成测试的隐藏输入 —— 配了就红，是测试依赖环境而非依赖行为。
+MODEL_CRED_FILE_ENV = "WB_CRED_FILE"
 EXPECTED_MODEL = "deepseek-flash"
 MODEL_EVIDENCE_MAX_AGE_MS = 14 * 24 * 3600 * 1000   # 两周内的一次真跑
 MODEL_EVIDENCE_FUTURE_TOLERANCE_MS = 60 * 1000       # 时间戳不许越过现在 1 分钟
@@ -411,8 +416,10 @@ def selftest():
             fails.append("%s: got=%r want=%r" % (name, got, want))
 
     saved = {k: os.environ.get(k) for k in (MODEL_ENDPOINT_ENV, MODEL_KEY_ENV,
-                                            "GIT_DIR")}
+                                            MODEL_CRED_FILE_ENV, "GIT_DIR")}
     try:
+        # 自测要造自己的凭据文件，不能被外面注入的路径带偏
+        os.environ.pop(MODEL_CRED_FILE_ENV, None)
         import tempfile as _tf
         import shutil as _sh
         # [1] 证据链口径：空 root（无凭据无证据）-> 不就绪，说清缺什么
@@ -644,6 +651,20 @@ def main(argv=None):
         3 if rep["verdict"] == BLOCKED else 1)
 
 
+def _cred_path(base):
+    """凭据文件的实际路径：$WB_CRED_FILE 覆盖，否则 <base>/.git/info/model_credentials.json。
+
+    只影响「去哪儿找」，不改就绪/验收的任何判据 —— 覆盖后占位符、缺文件、
+    字段不全仍然一律如实回落。
+    """
+    env = (os.environ.get(MODEL_CRED_FILE_ENV) or "").strip()
+    if not env:
+        return os.path.join(base, MODEL_CRED_REL)
+    if os.path.isabs(env):
+        return env
+    return os.path.join(base, env)
+
+
 def _model_evidence(root=None, now_ms=None):
     """只读地核对 model 格的凭据 + 真跑证据，返回结构化事实。绝不写文件。
 
@@ -667,7 +688,7 @@ def _model_evidence(root=None, now_ms=None):
         "model_roundtrip": {}, "generated_at_ms": None, "fresh": False,
         "endpoint_kind": None, "real_vendor_verified": False, "error": None,
     }
-    cred_path = os.path.join(base, MODEL_CRED_REL)
+    cred_path = _cred_path(base)
     r["cred_present"] = os.path.isfile(cred_path)
     if r["cred_present"]:
         try:

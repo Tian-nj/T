@@ -334,8 +334,8 @@
   "dead": []
  },
  "joint_acceptance.py": {
-  "loc": 716,
-  "funcs": 14,
+  "loc": 737,
+  "funcs": 15,
   "silent": [],
   "dead": []
  },
@@ -494,7 +494,7 @@
   "dead": []
  },
  "platform_ops.py": {
-  "loc": 795,
+  "loc": 813,
   "funcs": 24,
   "silent": [],
   "dead": []

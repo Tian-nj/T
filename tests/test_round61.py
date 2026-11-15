@@ -126,7 +126,15 @@ def t_joint_pass_branch():
     prod = ja.evaluate()
     ok("生产 evaluate() 仍如实 BLOCKED（fixture 没替换生产口径）",
        prod["verdict"], ja.BLOCKED)
-    ok("生产 blocked_count 是 3", prod["blocked_count"], 3, prod)
+    # 原本硬写「blocked_count 是 3」，等于断言「本机永远没配凭据」。
+    # 第六十七轮起 model 格读凭据文件 + 证据链，配了就不是 3。改成核不变量：
+    # 阻塞项数 = 全部项 - 就绪项，且 actions / window 结构上仍必须阻塞。
+    ok("blocked_count 与就绪项互补",
+       prod["blocked_count"], len(prod["items"]) - prod["ready_count"], prod)
+    ok("actions / window 仍阻塞",
+       sorted(i["id"] for i in prod["items"]
+              if not i.get("ready") and i["id"] in ("actions", "window")),
+       ["actions", "window"], prod)
 
     src = _src(".workbench/scripts/joint_acceptance.py")
     ok("evaluate 是 evaluate_items 的薄壳",
