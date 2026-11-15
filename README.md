@@ -288,6 +288,7 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 
 ## 8. 改这个仓库之前
 
+0. **本仓库只保证在 Windows 上跑通**（用户 2026-11-15 15:49 定的最高级规定：运行环境只考虑 Windows，不为其他平台适配，不换系统）。所以：不要为「Linux/macOS 上会怎样」而改代码或加分支、不要把跨 OS 平台证据的 `UNTESTED` 当成待办（`platform_runner_probe.py` 与 `.github\workflows\` 是历史产物，留着只因删了会让 6 项回归变红）、不要提议 WSL / 虚拟机 / 容器方案。**仍要保证在 Windows 内部可搬**（换盘符、换用户目录、无管理员权限都能跑）——那是可移植，不是跨系统。
 1. 改 `spec/` 里的任何文件 → 必须改 `gen_spec.py` 再重跑，否则 `--check` 报漂移
 2. 改 `scripts/` 或 `roles/` 或 `config.yaml` → 必须重签 manifest，否则 C.C1 失败
 3. 改 `agents.json` → spec_lint 会检查 entrypoint 存在性与写域覆盖
