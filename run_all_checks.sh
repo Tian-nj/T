@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
-# run_all_checks.sh —— 一键回归：81 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = 119 项
-#   81 测试（for 清单）/ 5 audit / 29 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
+# run_all_checks.sh —— 一键回归：82 测试 + 5 审计 + 33 校验 + 覆盖率 + e2e = 121 项
+#   82 测试（for 清单）/ 5 audit / 30 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
 #   覆盖率段单独打印，不走 run()，因此不计入 PASSED（别把两个数字混成一个）。
 #
 # 为什么要有这个脚本：
@@ -576,6 +576,38 @@ _slow_reusable() {
 #   test_merge_gate_base —— 第四十轮 ⑤ 续：闸门基线用 merge-base(主干, 任务)，
 #                    合并目标仍用主干 tip；证伪「主干分叉后新增文件被读成任务删除」，
 #                    真删文件仍由 NEVER_WAIVE/file_delete 拦住。
+#   test_memory_roots —— 第一百四十三轮：记忆落点只能有一个。同一条链上曾同时
+#                    存在两个根 —— memory_store / dream / purpose 写仓库根
+#                    `memory/`，而 gc_helper 扫 `.workbench/memory/`（永远空），
+#                    lead.py 的 memory-write 也往那儿写。于是 GC-1/GC-3/GC-4
+#                    三条规则恒绿（扫不到 = 没有可清理的），人敲 CLI 写的条目
+#                    进了 recall() 看不见的那一半。每个模块单跑都正常，错的是
+#                    它们对同一个概念给出了不同答案 —— 所以判据是跨模块比对：
+#                    ①四个模块算出的根归一后必须相等 ②不许落在 .workbench 下
+#                    ③生产布局下放一条超期 working，GC-1 必须真捡到它
+#                    ④反例：同一份放 .workbench/memory 下不许被捡到
+#                    ⑤源码里不许再出现以 WB 为根的 memory 路径。
+#                    （同轮的 19.9：test_scheduler 的真 JOBS 会跑真 dream / gc，
+#                    这道守护就是为那件事设的 —— 见下 prod_drift_guard。）
+# ---------------------------------------------------------------------------
+# 生产内容文件守卫：开跑前拍快照，跑完比对。
+#
+# 为什么加在入口而不是逐个测试去改：`tests/test_scheduler.py` 的 isolate() 只
+# 换了 sidecar 路径，没换 `sch.JOBS` 的执行体，于是 `tick(force=True)` 真的跑了
+# `dream_consolidation`（写 growth.md / state/dream / 主链三条）和 `gc_helper`
+# （真会删文件）—— 而**测试是绿的、回归也是绿的**。§18.4 那次往主链塞 4 行
+# 垃圾是手工查出来清掉的；同类第二次发生，说明缺的不是细心，是一道门。
+#
+# 判据只认「内容文件」（persona / memory / diary / state/dream / events 的
+# jsonl），不认可重算的瞬时状态（hb / lock_telemetry / *.lock / scheduler.json
+# / alerts.jsonl …）。划分依据是**谁有权改它**：那批文件的权威是人 + dream +
+# 记忆引擎，测试不在名单里。
+#
+# 快照缺失必须判红而不是放行 —— 「没拍快照」不等于「没漂移」。
+# ---------------------------------------------------------------------------
+PROD_SNAP=".workbench/state/prod_drift.snap.json"
+"$PY" .workbench/scripts/prod_drift_guard.py snap "$PROD_SNAP" >/dev/null 2>&1
+
 for t in test_mg_gate test_gate_integration test_actor_and_freeze \
          test_log_repair_event test_deps_order test_round4_entrypoints \
          test_round5_alerts_snapshot test_contract_registry \
@@ -605,7 +637,7 @@ for t in test_mg_gate test_gate_integration test_actor_and_freeze \
          test_memory_layers test_memory_lifecycle test_memory_ledger_audit \
          test_round60 test_round61 test_round62 test_round63 test_round64 \
          test_toolchain test_executor_registry test_tool_registry \
-         test_connector_registry; do
+         test_connector_registry test_memory_roots; do
     # 慢件按有效期复用（见本文件 §一·补 的说明）：演练 80s / 其余亚秒。
     # 复盘结论：跳过的是「重复证明同一件结构性不变量」，不是跳过验收。
     if _slow_reusable "$t"; then
@@ -626,6 +658,11 @@ for t in test_mg_gate test_gate_integration test_actor_and_freeze \
         fi
     fi
 done
+
+# 测试段跑完立刻比一次：这一步只证明「测试没写生产」，
+# 不证明后面的审计/校验也没写 —— 把它们也纳入会让这道门同时在守两件事，
+# 一旦红了分不清是谁动的手。
+run "check prod_drift (测试不得写生产)" "$PY" .workbench/scripts/prod_drift_guard.py check "$PROD_SNAP"
 
 
 # ---------------------------------------------------------------------------

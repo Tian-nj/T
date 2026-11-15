@@ -84,11 +84,25 @@ def ck(name, cond, detail=""):
 # ---------------------------------------------------------------- 隔离
 
 def isolate():
-    """把 sidecar 与包装文件都赶到临时目录。
+    """把 sidecar、包装文件**和 job 执行体**都赶到测试这一侧。
 
     不这么做的话，测试会写到真实的 `.workbench/state/scheduler.json`，
     把生产侧的 "我上次几点 tick 的" 抹掉 —— 那正是上一轮 test_run_task
     往主链塞了四行垃圾的同一种形态。
+
+    第一百四十三轮补上漏掉的那一半（`JOBS` 的执行体）：
+    原来只换了 STATE / SCHED_FILE，`sch.JOBS` 仍然指向**真实模块**。
+    而 `tick(force=True)` 按定义是「不管 due 不 due，JOBS 里每个都跑」——
+    于是 `test_scheduler.py` 每跑一遍就真的执行一次 `dream_consolidation`
+    （写 `persona/growth.md` + `state/dream/<date>.json`，并往主链追加
+    E51/E52 三条事件）和一次 `gc_helper`（真的会删文件）。
+    实测证据：2026-11-16 00:07:56 跑本文件 → growth.md 多一条 pending
+    候选、链路 seq 1580/1581/1582 出现 system:dream；而调度器 sidecar 里
+    `dream.ok_ms` 仍是 11-15 12:41 —— 说明那不是调度器干的，是本测试。
+
+    修法：把每个 job 的 `modname` 换成一个空转桩模块，**job 名保留**。
+    保留名字是必须的：`status()` 的 `enabled` / `bad` 判据要从 JOBS 派生，
+    把 JOBS 清空会让「所有 enabled job 都逾期」变成对空集成立的空话。
     """
     d = _mkdtemp(prefix="wb_sched_")
     sch.STATE = d
@@ -96,7 +110,23 @@ def isolate():
     si.STATE = d
     si.SCHED_FILE = sch.SCHED_FILE
     si.WRAPPER = os.path.join(d, "sched_tick.cmd")
+    _stub_jobs()
     return d
+
+
+_NOOP_MOD = "wb_sched_noop_mod"
+
+
+def _stub_jobs():
+    """把 JOBS 里每个 job 的执行体替换成空转桩，只做一次。"""
+    if _NOOP_MOD in sys.modules:
+        return
+    stub = types.ModuleType(_NOOP_MOD)
+    stub.main = lambda argv=None: 0
+    sys.modules[_NOOP_MOD] = stub
+    for name, spec in list(sch.JOBS.items()):
+        # 只改执行体，留住 argv 与描述：argv 参与 `--backlog` 那条判据。
+        sch.JOBS[name] = (_NOOP_MOD, spec[1], spec[2])
 
 
 CFG = {"tick_sec": 30, "stale_factor": 4,

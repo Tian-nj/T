@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.join(WB, "scripts"))
 import agent_runner as ar          # noqa: E402
 import boss_report as br           # noqa: E402
 import persona_loader as pl        # noqa: E402
+from _memiso import TempMemCopy    # noqa: E402
 
 fails = []
 oks = []
@@ -63,15 +64,25 @@ def _brief(tid, role):
     注意 write_brief 的返回值是**文件路径**不是正文（第三十七轮这里踩过一次：
     把路径当正文，`"## 神魂" in txt` 恒假，看起来像"契约没注入"，实际是
     "读错了东西"）。所以这里必须再读一次盘。
+
+    ★ 第一百四十三轮：这里原来只换 `ar.TASKS_DIR`，**没换记忆根**。
+      而 `write_brief` 会走 `assemble_report → build_recall → memory_store.recall()`，
+      后者在返回前回写被召回条目的 `last_recall_ms` / `recall_count` / 升一档 `status`
+      （`memory_store.py:854-857`）。于是每跑一次本文件就改一次真记忆 ——
+      被新加的 `prod_drift_guard` 抓到（`M memory/project/... 503 -> 503`，
+      大小不变内容变）。用 `TempMemCopy` 把记忆指到副本：brief 与记忆双双隔离，
+      而「召回真的有内容」那几条断言照旧成立。
     """
     saved = ar.TASKS_DIR
     tmp = tempfile.mkdtemp()
+    iso = TempMemCopy(tag="bossseat_mem")
     try:
         ar.TASKS_DIR = tmp
         path = ar.write_brief(tid, role, _spec(), tmp, "HEAD", "工位探针")
         with io.open(path, encoding="utf-8") as fh:
             return fh.read()
     finally:
+        iso.restore()
         ar.TASKS_DIR = saved
         shutil.rmtree(tmp, ignore_errors=True)
 

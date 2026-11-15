@@ -394,9 +394,20 @@ def t_dream_tristate():
     # run_backlog 的四键必须区分「没跑」与「没素材」：
     #   dates 空 + ran=0 + skipped 空 = 没有待办日（都已完成）
     #   dates 空 + skipped 有值       = 有日但素材不足
-    # 生产当前应为前者（11-10..11-12 done，11-13 skipped 已记账）。
-    import time
-    now = int(time.time() * 1000)
+    #
+    # 第一百四十三轮修一处**日历脆弱**：这段原来用 `time.time()` 当 now，
+    # 却断言 `2026-11-12` / `2026-11-13` 两个写死的日期。`stats()` 的窗口是
+    # 滚动 3 天（`range(1, days+1)` 从今天往回数），所以 11-15 当天窗口是
+    # 11-14/11-13/11-12（绿），过了零点窗口变成 11-15/11-14/11-13 —— 11-12
+    # 掉出窗口，断言拿到 None 而非 'done'，整轮回归红。
+    # 实测证据：同一份代码在 2026-11-15 23:5x 绿、2026-11-16 00:0x 红；
+    # `git status` 显示本文件未被改动（最后提交 ca6f750）。
+    #
+    # 判据不能依赖「今天是哪天」：把 now 钉在断言所依据的那一天，窗口就固定了。
+    # 这不改变被测行为（stats 照旧按 now 算窗口），只是不再让日历决定红绿。
+    import datetime
+    pinned = int(datetime.datetime(2026, 11, 15, 23, 0, 0).timestamp() * 1000)
+    now = pinned
     rep = dc_mod.pending_dates(now)
     ok("pending_dates 返回 list", isinstance(rep, list), True, type(rep).__name__)
     # 已完成的日子不能重新出现在待办里
@@ -415,8 +426,9 @@ def t_dream_tristate():
     ok("有 stats()", "def stats(" in dc, True)
     ok("stats 有 CLI 子命令", 'sub.add_parser("stats",' in dc, True)
     st = dc_mod._open_store()
-    import time as _t
-    srep = dc_mod.stats(int(_t.time() * 1000), 3, st)
+    # 一律用上面那个钉住的 now，不要再用 time.time()：窗口是滚动的，
+    # 用真实时钟会让「11-12 在不在窗口里」由当天日期决定（见上面的说明）。
+    srep = dc_mod.stats(now, 3, st)
     ok("stats 返回 days 明细", len(srep["days"]) == 3, True, len(srep["days"]))
     ok("stats 计数之和 = 窗口天数",
        sum(srep["counts"].values()), 3, srep["counts"])
@@ -433,7 +445,8 @@ def t_dream_tristate():
        [x["usable"] for x in srep["days"] if x["date"] == "2026-11-13"], [0],
        [x for x in srep["days"] if x["date"] == "2026-11-13"])
     # run_backlog 现在带 window，让「全做完」与「没跑」不再同形
-    r = dc_mod.run_backlog(st, int(_t.time() * 1000), 3, True)
+    # dry_run=True，且 now 钉住 —— 这个用例只验形状，不该真写一份 state/dream
+    r = dc_mod.run_backlog(st, now, 3, True)
     ok("run_backlog 带 window", "window" in r, True, sorted(r))
     ok("window 里有 counts", "counts" in (r.get("window") or {}), True,
        r.get("window"))

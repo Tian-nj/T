@@ -176,7 +176,7 @@
     },
     "scripts/gc_helper.py": {
       "tier": "destructive",
-      "loc": 358
+      "loc": 368
     },
     "scripts/gen_spec.py": {
       "tier": "write_local",
@@ -200,7 +200,7 @@
     },
     "scripts/lead.py": {
       "tier": "write_local",
-      "loc": 1614
+      "loc": 1621
     },
     "scripts/lock_calibrate.py": {
       "tier": "destructive",
@@ -245,6 +245,10 @@
     "scripts/platform_runner_probe.py": {
       "tier": "destructive",
       "loc": 736
+    },
+    "scripts/prod_drift_guard.py": {
+      "tier": "write_local",
+      "loc": 231
     },
     "scripts/purpose_store.py": {
       "tier": "write_local",
@@ -316,10 +320,10 @@
     }
   },
   "counts": {
-    "tools": 64,
+    "tools": 65,
     "by_tier": {
       "outbound": 5,
-      "write_local": 32,
+      "write_local": 33,
       "destructive": 15,
       "read_only": 12
     },

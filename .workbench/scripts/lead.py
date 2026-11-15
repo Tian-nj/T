@@ -1166,9 +1166,16 @@ def cmd_memory_write(a):
     """写一条记忆。四层之一，四类之一。
 
     v3.2 §12 定义了四层记忆（working/task/project/longterm）+ 白名单四类
-    （决策/约束/偏好/踩坑）+ 三要素判定（可复用判别句 + 适用场景 + 来源事件 seq），
-    但仓里 `.workbench/memory/` 是 **0 个文件** —— 没有任何写入路径，
-    `gc_helper` 只是在扫一个永远空的目录。
+    （决策/约束/偏好/踩坑）+ 三要素判定（可复用判别句 + 适用场景 + 来源事件 seq）。
+
+    落点是**仓库根** `memory/<layer>/`，与 `memory_store`（JSON 权威）、
+    `dream_consolidation.ARCHIVE`、`purpose_store.PURPOSE` 以及 `spec/paths.yaml`
+    的 `memory/**` 一致。第 143 轮之前这里写的是 `.workbench/memory/<layer>/`，
+    造成同一条记忆链上有**两个落点**：人敲 `memory-write` 写的 Markdown 落在
+    `.workbench` 下，记忆引擎写的 JSON 落在仓库根 —— 于是 `gc_helper`（当时也
+    错写成 `.workbench`）只看得见前者那半个世界，`recall()` 只看得见后者。
+    两边都「有文件」，但都不是全部。`tests/test_memory_roots.py` 把这条一致性
+    钉成判据。
 
     三要素不是形式主义：只写"结论"的记忆无法判断什么时候该用，
     只写"场景"的记忆无法复述。缺 source_seq 的记忆无法回溯到是哪次
@@ -1187,7 +1194,7 @@ def cmd_memory_write(a):
         if a.source_seq not in seqs:
             raise SystemExit("source_seq %d 不在链上" % a.source_seq)
         src = a.source_seq
-    d = os.path.join(WB, "memory", a.layer)
+    d = os.path.join(ROOT, "memory", a.layer)
     os.makedirs(d, exist_ok=True)
     name = a.task if a.layer == "task" and a.task else "general"
     p = os.path.join(d, name + ".md")

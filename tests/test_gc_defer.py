@@ -81,11 +81,17 @@ def ck(name, cond, detail=""):
 # ---------------------------------------------------------------- 隔离
 
 def isolate():
-    d = _mkdtemp(prefix="wb_gc_defer_")
+    # 与生产同构：记忆在**仓库根** `memory/`，WB（=.workbench）在它下面。
+    # 第 143 轮之前这里把 MEM 指到 `d/memory`（同一层），恰好与真实的
+    # `.workbench/memory` 不同 —— 于是 gc_helper 的 MEM 错位在生产里是
+    # 「扫一个永不存在的目录」，在测试里却是「扫一个我们自己造出来的目录」，
+    # 测试永远绿。布局对齐之后，MEM 写错会在这里就炸。
+    root = _mkdtemp(prefix="wb_gc_defer_")
+    d = os.path.join(root, ".workbench")
     gc.WB = d
     gc.STATE = os.path.join(d, "state")
     gc.LEDGER = os.path.join(gc.STATE, "gc_ledger.jsonl")
-    gc.MEM = os.path.join(d, "memory")
+    gc.MEM = os.path.join(os.path.dirname(d), "memory")
     return d
 
 

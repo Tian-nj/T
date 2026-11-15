@@ -43,12 +43,17 @@ def ok(name, cond, detail=""):
 
 
 def build(tmp):
-    """复制一份最小可用工作台到 tmp。"""
+    """复制一份最小可用工作台到 tmp。
+
+    注意 `.workbench` 下**没有** memory 子目录：记忆落点在仓库根 `memory/`
+    （与 paths.yaml 的 `memory/**`、memory_store.MEM 一致）。这里以前建了
+    `.workbench/memory`，于是 R5 的断言在验证一个错误落点也照样绿。
+    """
     wb = os.path.join(tmp, ".workbench")
     for sub in ("spec", "roles", "state", "events", "tasks", "wt", "metrics",
-                "notify", "archive", "templates", "contracts", "memory",
-                "sidecar"):
+                "notify", "archive", "templates", "contracts", "sidecar"):
         os.makedirs(os.path.join(wb, sub), exist_ok=True)
+    os.makedirs(os.path.join(tmp, "memory"), exist_ok=True)
     for sub in ("spec", "roles"):
         shutil.rmtree(os.path.join(wb, sub), ignore_errors=True)
         shutil.copytree(os.path.join(ROOT, ".workbench", sub),
@@ -172,12 +177,15 @@ def main():
         # （不真造 rejected —— 那需要完整 verify 失败链，见 run.sh 端到端）
 
         # ---------- R5 memory-write ----------
+        # 落点是**仓库根** memory/（= dirname(wb)），不是 .workbench/memory/。
+        # 第 143 轮之前这里断言的是后者的位置，于是测试在验证一个错误实现。
+        memroot = os.path.join(os.path.dirname(wb), "memory")
         rc, out = cli("memory-write", "--layer", "project", "--kind", "pitfall",
                       "--text", "冻结态必须落盘，否则重启即解冻",
                       "--scenario", "进程崩溃后重启",
                       "--source-seq", str(snap_seq))
         ok("R5 写记忆成功", rc == 0, out[-200:])
-        mp = os.path.join(wb, "memory", "project", "general.md")
+        mp = os.path.join(memroot, "project", "general.md")
         ok("R5 文件生成", os.path.exists(mp), mp)
         if os.path.exists(mp):
             txt = open(mp, encoding="utf-8").read()
@@ -190,13 +198,17 @@ def main():
         rc, out = cli("memory-write", "--layer", "longterm", "--kind", "pitfall",
                       "--text", "无来源条目")
         ok("R5 无 source_seq 允许但标注缺失", rc == 0, out[-160:])
-        mp2 = os.path.join(wb, "memory", "longterm", "general.md")
+        mp2 = os.path.join(memroot, "longterm", "general.md")
         if os.path.exists(mp2):
             ok("R5 无来源被标出", "未经链验证" in open(mp2, encoding="utf-8").read())
         rc, out = cli("memory-write", "--layer", "task", "--task", "T-R2",
                       "--kind", "decision", "--text", "d")
         ok("R5 task 层按任务分文件",
-           os.path.exists(os.path.join(wb, "memory", "task", "T-R2.md")), out[-160:])
+           os.path.exists(os.path.join(memroot, "task", "T-R2.md")), out[-160:])
+        # 反例：不许再往 .workbench/memory/ 里写 —— 那正是第 143 轮修掉的第二个落点
+        ok("R5 不写 .workbench/memory/（单落点）",
+           not os.path.isdir(os.path.join(wb, "memory")),
+           os.path.join(wb, "memory"))
 
         # ---------- R3 task-archive ----------
         # 先造一个 done：走完整链太长，这里直接验"非 done/cancelled 被拒"

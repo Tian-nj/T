@@ -14,9 +14,12 @@
   3. 预留额度真起作用 —— 否则恒定的人格段把预算吃满，易变的记忆永远垫底
   4. 预留**挤掉**人格时必须可见（那是配置装不下，不是取舍）
 """
+import atexit
 import io
 import os
+import shutil
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -26,6 +29,44 @@ sys.path.insert(0, os.path.join(WB, "scripts"))
 import agent_runner as ar          # noqa: E402
 import memory_store as ms          # noqa: E402
 import persona_loader as pl        # noqa: E402
+
+
+class TempMemCopy:
+    """把 ms.MEM 指到真记忆的一份**临时副本**上。
+
+    ★ 第一百四十三轮：本文件原先直接对着仓库根的真 `memory/` 跑 recall。
+      `memory_store.recall()` 在返回结果前会逐条回写
+      `last_recall_ms` / `recall_count` / 升一档 `status`
+      （`memory_store.py:854-857`），**写的是召回这件事本身**，不是召回结果。
+      所以每跑一遍这个测试就改一次真记忆：大小不变、内容变，正是最难发现的那种。
+
+      2026-11-16 那轮全量回归里，新加的 `prod_drift_guard` 第一次运行就抓到了它：
+      `M memory/project/m-3705e96e148c2d21.json 503 -> 503` 等 4 个文件。
+
+    为什么不直接指到空目录：本文件有两条断言要求「召回真的有内容」
+    （`显忆段有内容行` / `显忆与人格同时在场`），空目录会让它们变红 ——
+    那不是修好，是把断言改弱。所以复制副本：行为照旧，写只落在副本上。
+    """
+
+    def __init__(self):
+        self.dir = tempfile.mkdtemp(prefix="recallinj_mem_")
+        atexit.register(shutil.rmtree, self.dir, True)
+        if os.path.isdir(ms.MEM):
+            for name in os.listdir(ms.MEM):
+                src = os.path.join(ms.MEM, name)
+                dst = os.path.join(self.dir, name)
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst)
+                else:
+                    shutil.copy2(src, dst)
+        self.saved = ms.MEM
+        ms.MEM = self.dir
+
+    def restore(self):
+        ms.MEM = self.saved
+
+
+_TEMPMEM = None
 
 FAILED = []
 
@@ -189,6 +230,15 @@ def t_assemble_backward_compatible():
 
 
 def main():
+    global _TEMPMEM
+    _TEMPMEM = TempMemCopy()
+    try:
+        return _run_cases()
+    finally:
+        _TEMPMEM.restore()
+
+
+def _run_cases():
     for fn in (t_recall_query_title_from_chain,
                t_recall_query_shape,
                t_recall_section_reaches_brief,

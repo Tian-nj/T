@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 153 个文件的 HMAC 清单
+  root.manifest            # 154 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 62 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 63 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（62 个 .py / 35314 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（63 个 .py / 35562 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 119 项：81 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 121 项：82 测试 + 5 审计 + 33 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 81 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **119 项 / 119 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 82 测试 + 5 审计 + 33 校验 + 覆盖率 + e2e = **121 项 / 121 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1236,3 +1236,222 @@ dream run                       → events 19 / condensed 16 / stored 0 / candid
   `candidate_id / candidate / evidence_seqs`，**不记 review 状态**——提出与采纳是两件事，采纳走 E53。
 - 记忆召回是**关键词 + hashing 向量双路**（第十八轮）：向量是 `blake2b` 落桶的字面近似投影，**不是语义模型**，近义词映射不上是已知代价；实测门槛 0.12 由 `完全无关 0.000-0.105 / 近义改写 0.237 / 标识符 0.397` 定出，配置在 `memory.vector`。
 - `worker_shim` 的**逃逸清单**（`capability_evidence/escapes/summary.json`）逐条记录 7 种已知手法，其中 6 条实测 BLOCKED、1 条（子进程）标 `allowed_by_design`；清单**不参与 enforced 判定**，且带 shim 指纹——改了 shim 没重跑会被 `--check` 判过期。
+
+### 19.8 第一百四十三轮：同一层记忆曾经有两个落点
+
+§19.2 写着「内容目录在仓库根，不在 `.workbench` 下」，`paths.yaml` 的 allow_write 也写的是
+`memory/**`（仓库相对）。**但代码有两个地方没照这句话写**：
+
+```
+memory_store.MEM            = <root>/memory              ← 记忆引擎写的 JSON（对）
+dream_consolidation.ARCHIVE = <root>/memory/archive      ← 整理产物（对）
+purpose_store.PURPOSE       = <root>/memory/purpose.json ← 心念台账（对）
+gc_helper.MEM               = <wb>/memory                ← GC 扫的（错，永远空）
+lead.py cmd_memory_write    = <wb>/memory/<layer>/        ← 人敲 CLI 写的 Markdown（错）
+```
+
+后果不是报错，是**四个地方各自都「正常工作」**：
+
+- GC-1（working 超 7 天 drop）、GC-3（project 超 90 天 archive）、GC-4（longterm 只报告）
+  三条规则扫的是一个**不存在**的目录。扫不到 = 没有可清理的 = 三条规则恒绿。
+  而「真的没有可清理的」在输出上长得一模一样，退出码也一样是 0。
+- `memory-write` 写的条目落在 `recall()` 看不见的那一半；`recall()` 里的条目 GC 也看不见。
+
+这个缺陷活了很久，因为它同时躲过了三层检查：
+
+1. **每个模块的自测都是绿的** —— `memory_store selftest 43/43`、`gc_helper` 的干跑也是 0 退出。
+   错不在单个模块内部，错在它们对「记忆在哪」这个**同一概念**给出了不同答案。
+2. **测试把错误照抄了一遍** —— `test_gc_defer.isolate()` 把 `MEM` 指到 `d/memory`，而 `WB` 是 `d`，
+   于是测试里的布局恰好与生产中那个错的布局不同，测出来的永远是「它能扫到我自己造的目录」。
+   `test_round4_entrypoints.build()` 还主动 `mkdir` 了 `.workbench/memory`，让断言的错误落点
+   有东西可查 —— 测试在验证一个错误实现。
+3. **文档与代码各说各话** —— §19.2 写对了，没人去核代码。
+
+修法与判据：
+
+- 两个落点都改回仓库根：`gc_helper.MEM = os.path.join(os.path.dirname(WB), "memory")`、
+  `lead.py` 的 `d = os.path.join(ROOT, "memory", a.layer)`（`ROOT` 本来就是 `dirname(WB)`，
+  同一个文件里早就有这个常量 —— 说明约定一直在，只是那两行没跟上）。
+- 测试的隔离布局改成**与生产同构**（`<tmp>/.workbench` + `<tmp>/memory`），MEM 写错会当场炸。
+- 新增 `tests/test_memory_roots.py`，判据是**跨模块比对**而不是各自自测：
+  ①四个模块算出的记忆根归一后必须相等 ②不许落在 `.workbench` 下
+  ③生产布局下放一条超期 working，`GC-1` 必须真捡到它（比对常量不够 —— 常量对但
+  `_iter_layer` 用了别的变量，一样扫不到）④反例：同一份放 `.workbench/memory` 下不许被捡到
+  ⑤源码里不许再出现 `os.path.join(WB, "memory"` 这种写法。
+- 负向验证：把 `gc_helper.MEM` 退回旧写法，测试必须变红，且红的必须是**判据**（
+  `四个记忆根归一后只有一个取值` / `没有以 WB 为根的 memory 路径`），不能是崩溃栈；
+  恢复后字节 sha256 一致并转绿。
+- 隔离探针（临时副本 + `WB_HOME`）修复前后对照：修复前 `acts` 里只有 `.workbench\memory`
+  下那条 decoy，仓库根那条真记忆**完全没被扫到**；修复后扫到的是 `memory\working\m-oldentry.json`。
+- `05-docs` 的定稿表里「`.workbench/memory/` 五层」一并订正为「仓库根 `memory/`，4 层 +
+  archive 是 status 终态」（另一半错误：`memory_store.py:243` 的报错文案自己就写着
+  「archive 是 status 终态，不是 layer」）。
+
+**这条留下的教训不是「改个路径」**：一个概念若在多个模块里各算一遍，它就有多个真相。
+「恒绿」比「报错」难查，因为报错会喊，恒绿只会安静地什么都不做。判据必须建在
+**跨实现的一致性**上 —— 单模块自测永远抓不到「两个模块对同一个词理解不同」。
+
+### 19.9 第一百四十三轮续：测试自己把真的 dream 跑了一遍
+
+19.8 修完之后重跑全量回归，`persona/growth.md` 与 `state/dream/` 多出了东西。查下去是
+`tests/test_scheduler.py` —— 不是它断言错了，是它**真的执行了生产任务**。
+
+`isolate()` 原来只换 `sch.STATE` / `sch.SCHED_FILE` / `si.STATE` / `si.SCHED_FILE` /
+`si.WRAPPER`，**没换 `sch.JOBS` 里的执行体**。而 `tick(force=True)` 按定义是
+「不管 due 不 due，JOBS 里每个都跑」（`:241` `:255` `:273` `:285` `:293` `:305` 六处），
+`scheduler.py:351 modname, argv, _desc = JOBS[name]` → `:358 mod = __import__(modname)`
+拿到的仍是真实模块。于是本文件每跑一遍就真跑一次 `dream_consolidation`
+（写 `persona/growth.md` + `state/dream/<date>.json` + 主链 E51/E52 三条）和一次
+`gc_helper`（**真的会删文件**）。
+
+**证据链（两条独立判据排除调度器）**：
+
+- `2026-11-16 00:07:56` 的产物：`persona/growth.md` 尾部多一条
+  `g-b6877cb3d805` / `反复出现的情形（3 次）：root.manifest` / `evidence_seqs [1575,1576,1577]`；
+  `state/dream/2026-11-15.json` 新建（`events 5 / condensed 2 / stored 1 / candidates 1`）；
+  主链 `seq 1580` `memory_remember`（`layer=longterm`、`importance=86`）、
+  `seq 1581` `persona_growth`、`seq 1582` `dream_consolidation`，`actor` 全是 `system:dream`。
+- ①调度器 sidecar `.workbench/state/scheduler.json` 里 `dream.ok_ms` / `dream.try_ms`
+  **仍是 `2026-11-15 12:41:51`** —— 若真是调度器跑的，会推进到 00:07:56。
+  ②`config.yaml:102 dream: {interval_sec: 86400, run_time: "04:00"}`，而
+  `scheduler.py:295 due()` 对带 `run_time` 的 job 用 `any(now_ms >= t and last < t for t in targets)`，
+  00:07 未到 04:00，`due` 为 False。实测 `scheduler.py --once --quiet` 只点
+  `[health gate_timer]`，`not due: decay dream gc metrics observe settle`。
+- 逐项排除法定位（mtime+size 快照工具，扫 `.workbench/state` / `.workbench/events` /
+  `persona` / `memory` / `diary`）：`dream_consolidation.py selftest` → CLEAN；
+  `test_round63 + test_dream_backlog + test_memory_roots` → CLEAN；`test_scheduler.py`
+  → `M .workbench\state\dream\2026-11-14.json`。
+
+**为什么一直被忽略**：`CFG`（`:102`）只列 `health/gate_timer/metrics/gc:enabled False`
+四个 job，看起来「只跑这四个」。但 `tick` 遍历的是 `sch.JOBS`（生产九项），
+`due()` 对 CFG 里没列的 job 走 `j.get("enabled", True)` 默认分支 —— **夹具没配 ≠ 不跑**。
+测试与 `18.4` 那次「塞 4 行垃圾进主链」同型，只是这次写在内容文件上，而且写入的还是
+**唯一只有人能裁定的那张表**（`growth.md` 第 5 条规则：「已采纳的候选只标 accepted，不删除」）。
+
+**修法**：`isolate()` 末尾调 `_stub_jobs()`，把每个 job 的 `modname` 换成空转桩模块
+`wb_sched_noop_mod`（`main` 恒返回 0），**job 名与 argv 保留**。保留名字是必须的 ——
+`status()` 的 `enabled`/`bad` 判据从 `JOBS` 派生，清空 `JOBS` 会让「所有 enabled job 都逾期」
+变成对空集成立的空话。
+
+**验证**（三层，缺一层都不算数）：
+
+| 层 | 做法 | 实测 |
+|---|---|---|
+| 修好后不污染 | 快照 → 跑 `test_scheduler.py` → 快照 diff | `CLEAN: 无变化（74 files）`（快照已把 `.workbench/events` 纳进来） |
+| 负向验证 | 去掉 `_stub_jobs()` 调用再跑 | 测试**仍然** `89/89 passed`，但快照 `DIFF`：`M .workbench\state\dream\2026-11-14.json` |
+| 判据自纠 | 首版负向验证把「快照缺失 return 2」当成污染、把 `RESULT: FAIL — /tr 长度 311 > 261`（**故意的反向测试**）当成测试失败 | 改为只认 `DIFF neg:` + rc=1、只认 `scheduler: PASS (89/89)` 结论行 |
+
+第三层值得单说：负向验证的第一版**判据本身是坏的** —— `"CLEAN" not in diff` 会在
+「快照缺失」时也成立（那是另一个失败状态，不是我要证明的那件事）；
+`"FAIL " not in out` 会把设计如此的反向测试判成坏了。两个误判方向相反，
+根因相同：**用「不是 A」代替「是 B」**。
+
+**清理的处置（不自己签发 E55）**：链上 `seq 1580/1581/1582` 是 dream **真的跑过**的记录，
+`growth.md` 里那条候选也确实存在 —— `tests/test_persona_growth_integrity.py` 现在
+`PASS (12/12)`，链与文件**是自洽的**。所以这里没有「悬空声明」要修。
+`E55 persona_growth_void` 的入口 `human_cli.py:315` 明确拒绝「候选还在 growth.md 里」
+的情形（「它该走 review 入核流程，不是作废」），而 `OPS` 表里这张表**只有 `human:*` 能动**
+（`growth_candidates` 判据、`core.md` 变更同理）。**我不能同时当写候选的机器和裁定候选的人** ——
+自己签一条 E55 去抹掉自己的产出，正是本系统一直在清理的「自我确认」。
+因此处置留给 BOSS：`review.status` 改 `accepted`/`rejected`，或按流程走 E55。
+本轮的职责边界只到「不让它继续发生」+「把它写清楚」。
+
+### 19.10 第一百四十三轮再续：那道门第一次上线就抓到了两个「测试写生产」
+
+19.9 里新加的 `prod_drift_guard` 本来是给未来准备的 —— 结果它在**第一次全量回归**里
+就判红了两次，抓到的都不是 19.9 修的那个洞。
+
+#### 第三个洞：`test_recall_injection.py` 每跑一遍就改一次真记忆
+
+`check prod_drift` 报：
+
+```
+prod_drift_guard: FAIL — 回归期间生产内容文件被改动
+  M memory/project/m-3705e96e148c2d21.json  503 -> 503
+  M memory/task/m-fa9d06778e87c2a9.json  431 -> 431
+```
+
+**大小不变、内容变** —— 这是最难发现的一种漂移。逐测试二分（`_find_mem_writer.py`：
+每个测试跑完比对 sha256，然后从备份还原再跑下一个）定位到 `test_recall_injection.py`。
+
+根因不在测试的写法，在 `memory_store.recall()` 的语义：
+
+```python
+# memory_store.py:854-857
+e["last_recall_ms"] = now_ms
+e["recall_count"] = int(e.get("recall_count") or 0) + 1
+e["status"] = new_status
+_write_atomic(_entry_path(e["layer"], e["id"]), e)
+```
+
+**「召回」这件事本身会改记忆**。在生产里这是对的（想起来一次就该记一次，否则
+`score()` 的 recency 与 count 永远是初始值）；但任何「只是读一下人格 / 造一份 brief」
+的测试路径都会顺带写真记忆。本文件直接对着真根调 `assemble_report(query=...)`，
+于是每跑一遍就改一次。实测被污染条目的 `recall_count` 已涨到 **439 / 157 / 467 / 668**。
+
+修法是 `TempMemCopy`：把 `ms.MEM` 指到真记忆的一份**临时副本**，退出时还原。
+
+**为什么不是指到空目录**：本文件有两条断言要求「召回真的有内容」
+（`显忆段有内容行`、`显忆与人格同时在场`）。指到空目录会让它们变红 ——
+**那不是修好，是把断言改弱**。这跟 19.8 里「测试照抄了错误的根」是同一类诱惑的对立面：
+一个是让测试配合错误实现，一个是让断言迁就隔离手段。两个都不行。
+
+#### 第四个洞：`test_boss_seat.py` 的 `_brief()` 换了任务目录，没换记忆根
+
+同一个门禁在下一轮又报了两条，这次是 `test_boss_seat.py`：
+
+```
+    <- test_boss_seat.py:71 _brief
+    <- agent_runner.py:448 write_brief
+    <- persona_loader.py:369 assemble_report
+    <- persona_loader.py:263 build_persona_sections
+    <- persona_loader.py:257 <lambda>
+    <- persona_loader.py:204 build_recall
+    <- memory_store.py:857 recall
+```
+
+（栈是用「把 `memory_store._write_atomic` 换成带路径检查的版本」抓的 ——
+不打桩就看不出是谁写的，因为两层调用之后错误已经离开了测试文件。）
+
+`_brief()` 早就把 `ar.TASKS_DIR` 换到临时目录了，所以 brief 落盘是隔离的；
+但它**没换记忆根**，而 `write_brief → assemble_report → build_recall → recall`
+这条链照样写真的。修法同样是 `TempMemCopy`，并在 docstring 里写明这条链。
+
+#### 顺带修掉的第五个：本地桩不读请求体 → 报成「闸门坏了」
+
+同一轮回归里 `test_connector_registry` 的 `[4] 执行点真的挂了闸门` 报：
+
+```
+FAIL 本地桩地址真的发出去了（证明发送路径没坏）
+  {'channel': 'webhook', 'error': 'ConnectionAbortedError: [WinError 10053]
+    你的主机中的软件中止了一个已建立的连接。'}
+```
+
+这条断言的方向**正好相反于它想证明的事**：它想说「闸门没把正常请求也拦掉」，
+结果红成了「发送路径坏了」。根因是桩：`do_POST` 从不读请求体就 `send_response(200)`，
+而 `_send_webhook` 发的是 POST + JSON body —— 服务端直接回响应并关连接，
+Windows 上客户端还没写完就被 RST（10053）。
+
+修法两条一起上：①桩先按 `Content-Length` 读完 body 再回响应 ②改用
+`ThreadingHTTPServer` + `protocol_version = "HTTP/1.1"` 并带 `Content-Length`，
+让响应帧完整。**这条没有降低任何断言强度** —— 它修的是桩，不是判据。
+
+#### 这一轮真正学到的
+
+**加门的第一天就被自己的门抓到两次，说明之前那些「回归 121/0 全绿」里，
+「绿」覆盖的范围比以为的小。** 三个洞的共同形状：
+
+| 洞 | 绿的是什么 | 没被覆盖的是什么 |
+|---|---|---|
+| `recall()` 回写 | 每条记忆功能测试都过 | 「测试有没有写生产」 |
+| `_brief()` 换了一半 | brief 正文断言都过 | 记忆根仍在生产 |
+| 桩不读 body | 闸门拦截断言都过 | 「放行路径还通不通」 |
+
+第三个尤其值得记：**一条断言红了，不一定是它测的东西坏了，也可能是它自己坏了。**
+`ConnectionAbortedError` 长得像「出站失败」，实际是「桩没读完请求」。
+分清这两者需要看栈，而不是看错误信息的第一行。
+
+**新增文件**：`tests/_memiso.py`（`TempMemCopy` 的共享实现，三个测试文件共用；
+放在 `tests/` 而不是 `scripts/`，因为它是测试基础设施，不该进可信根）。
+`doc_numbers` 的 `test_count` 只数 `for t in` 清单里的名字，`_memiso.py` 不在清单里，
+所以计数不受影响。

@@ -46,7 +46,17 @@ sys.path.insert(0, HERE)
 import wb_core  # noqa: E402
 import sign_manifest  # noqa: E402
 
-MEM = os.path.join(WB, "memory")
+# 记忆在**仓库根** `memory/`，不在 `.workbench/memory/`（第 143 轮修）。
+# 这里曾经写成 `os.path.join(WB, "memory")`，而 `WB` 就是 `.workbench` ——
+# 于是 GC-1/GC-3/GC-4 三条规则一直在扫一个**永远不存在**的目录：
+# 扫不到 = 没有可清理的 = 三条规则恒绿。判据看起来在跑，实际上什么也没管。
+# 谁是权威不由这里决定：`memory_store.MEM` / `dream_consolidation.ARCHIVE` /
+# `purpose_store.PURPOSE` / `spec/paths.yaml` 的 `memory/**` 全部以仓库根为准
+# （paths.yaml 的 allow_write 是仓库相对路径，写进 `.workbench` 会让
+# 「策略说能写」和「实际写到哪」变成两个地方）。所以这里向它们对齐。
+# `tests/test_memory_roots.py` 会直接断言三个模块算出的 MEM 是同一个字符串 ——
+# 光靠注释对齐不住，得有一条会红的判据。
+MEM = os.path.join(os.path.dirname(WB), "memory")
 STATE = os.path.join(WB, "state")
 LEDGER = os.path.join(STATE, "gc_ledger.jsonl")
 

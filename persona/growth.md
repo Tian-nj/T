@@ -60,3 +60,8 @@
 {"candidate_id": "g-initial-core", "candidate": "首次设定神魂内核（名号小桂子 / 三条带反例的性格底色 / 说话方式 / 价值观两条 / 关系分寸 / 硬边界四条）", "evidence_seqs": [], "source": "boss_initial", "approval_ref": "human:yg", "review": {"status": "accepted", "by": "human:yg", "ts_ms": 1794325000000}, "status": "accepted"}
 ```
 
+## 2026-11-15 的候选（dream 产出，待 BOSS 复核）
+
+```json
+{"candidate_id": "g-b6877cb3d805", "candidate": "反复出现的情形（3 次）：root.manifest", "evidence_seqs": [1575, 1576, 1577], "review": {"status": "pending", "by": null, "ts_ms": 0}, "status": "pending"}
+```

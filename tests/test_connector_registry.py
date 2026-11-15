@@ -167,15 +167,32 @@ def t_execution_point():
     import threading
 
     class H(http.server.BaseHTTPRequestHandler):
+        # ★ 第一百四十三轮修一处「桩自己坏了却报成闸门坏了」：
+        #   round143 第 3 次回归里这条断言报
+        #   `ConnectionAbortedError: [WinError 10053] 你的主机中的软件中止了一个已建立的连接`。
+        #   根因不是闸门，是这个桩不读请求体就回响应：`_send_webhook` 发的是
+        #   POST + JSON body，服务端直接 `send_response(200)` 就关，Windows 上
+        #   客户端还没写完就被 RST。改成先读完 body 再回，并把响应帧写完整。
+        protocol_version = "HTTP/1.1"
+
         def do_POST(self):
+            try:
+                n = int(self.headers.get("Content-Length") or 0)
+            except (TypeError, ValueError):
+                n = 0
+            if n:
+                self.rfile.read(n)      # 不读就回 → 客户端被 RST（10053）
+            body = b'{"ok":true}'
             self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(b'{"ok":true}')
+            self.wfile.write(body)
 
         def log_message(self, *a):
             pass
 
-    srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), H)
     th = threading.Thread(target=srv.serve_forever, daemon=True)
     th.start()
     os.environ["W4_WEBHOOK"] = "http://127.0.0.1:%d/alert" % srv.server_port
