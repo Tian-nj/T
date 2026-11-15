@@ -19,6 +19,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import types
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -272,6 +273,86 @@ def t_defer_semantics():
         sch.JOBS.pop("fake_defer", None)
 
 
+# ---------------------------------------------------------------- 3.6 超时
+def t_timeout_cap():
+    print("[4c] 超时上限：卡住的 job 必须被掐断，而不是把整轮拖死")
+    isolate()
+    slow = types.ModuleType("fake_slow_mod")
+
+    def _slow(argv=None):
+        time.sleep(0.6)
+        print("slow job finished")
+        return 0
+    slow.main = _slow
+    stuck = types.ModuleType("fake_stuck_mod")
+
+    def _stuck(argv=None):
+        time.sleep(1.5)
+        return 0
+    stuck.main = _stuck
+    sys.modules["fake_slow_mod"] = slow
+    sys.modules["fake_stuck_mod"] = stuck
+    sch.JOBS["fake_slow"] = ("fake_slow_mod", [], "test")
+    sch.JOBS["fake_stuck"] = ("fake_stuck_mod", [], "test")
+    try:
+        # ① timeout_cap=0 保持旧语义：不设上限，等它自己跑完
+        r0 = sch.run_job("fake_slow", 0)
+        ck("不设上限时照常等完", r0["rc"] == 0, r0["rc"])
+        ck("不设上限时收到 job 的输出",
+           "slow job finished" in "\n".join(r0["out"]), r0["out"])
+
+        # ② 给 0.15s 上限：立刻返回 124，而不是陪着卡 0.6 秒
+        t0 = time.time()
+        r1 = sch.run_job("fake_slow", 0.15)
+        spent = time.time() - t0
+        ck("超时返回 TIMEOUT_RC", r1["rc"] == sch.TIMEOUT_RC, r1["rc"])
+        ck("124 与 POSIX timeout 同码", sch.TIMEOUT_RC == 124, sch.TIMEOUT_RC)
+        ck("超时不等满（0.15s 上限 vs 0.6s 睡眠）", spent < 0.45, round(spent, 3))
+        ck("超时在 err 里写清楚", "timeout after" in (r1["err"] or ""),
+           (r1["err"] or "")[:60])
+
+        # ③ 上限的唯一读取点
+        ck("配置写了 timeout_sec 就用写的",
+           sch.job_timeout_sec(
+               "fake_slow", {"jobs": {"fake_slow": {"timeout_sec": 7}}}) == 7, 7)
+        ck("没配置回落 DEFAULT_JOB_TIMEOUT_SEC",
+           sch.job_timeout_sec("fake_slow", None) == sch.DEFAULT_JOB_TIMEOUT_SEC,
+           sch.DEFAULT_JOB_TIMEOUT_SEC)
+        # ④ sched_cfg 把上限一路收到 jobs（tick 从这里取）
+        sc = sch.sched_cfg()
+        ck("sched_cfg 收出 timeout_sec",
+           sc["jobs"]["health"].get("timeout_sec") == sch.DEFAULT_JOB_TIMEOUT_SEC,
+           sc["jobs"]["health"])
+
+        # ⑤ 接上 tick：死参数变成活参数，超时要被记成一次真失败
+        sch.cfg = lambda: {"scheduler": {"tick_sec": 30, "stale_factor": 4,
+                                         "jobs": {"fake_stuck": {
+                                             "enabled": True,
+                                             "interval_sec": 60,
+                                             "timeout_sec": 1}}}}
+        r2 = sch.tick(now_ms=1000, only="fake_stuck", force=True)
+        st = sch.load_state()["runs"]["fake_stuck"]
+        ck("tick 把超时的 job 算进 failed", "fake_stuck" in r2["failed"],
+           r2["failed"])
+        ck("sidecar 记 rc=TIMEOUT_RC", st["rc"] == sch.TIMEOUT_RC, st["rc"])
+        ck("sidecar 留了超时说明", "timeout" in (st.get("last_error") or ""),
+           (st.get("last_error") or "")[:70])
+        ck("超时也涨 fail_streak", int(st.get("fail_streak") or 0) == 1,
+           st.get("fail_streak"))
+        ck("超时不推进 ok_ms", int(st.get("ok_ms") or 0) == 0, st.get("ok_ms"))
+        ck("status 暴露每个 job 的上限",
+           all(j.get("timeout_sec") for j in sch.status(now_ms=2000)["jobs"]),
+           [j.get("timeout_sec") for j in sch.status(now_ms=2000)["jobs"]])
+    finally:
+        sch.JOBS.pop("fake_slow", None)
+        sch.JOBS.pop("fake_stuck", None)
+
+    # 被掐断的那两个线程还在后台睡：等它们结束再往下跑，否则它们从
+    # redirect_stdout 的 with 块里出来时会换掉 sys.stdout，让后续测试的
+    # 输出采集错位。（这是「线程 + join」这个实现方式的真实代价。）
+    time.sleep(1.6)
+
+
 # ---------------------------------------------------------------- 4 status
 def t_status():
     print("[5] status：新鲜度 + 逐个 job 健康度")
@@ -369,7 +450,8 @@ def t_tr_length_guard():
 if __name__ == "__main__":
     for fn in (t_stale_window, t_due_semantics, t_run_time_semantics,
                t_run_time_passthrough, t_overdue,
-               t_tick_records_success_only, t_defer_semantics, t_status,
+               t_tick_records_success_only, t_defer_semantics,
+               t_timeout_cap, t_status,
                t_scheduler_never_writes_chain, t_wrapper_is_self_contained,
                t_tr_length_guard):
         fn()

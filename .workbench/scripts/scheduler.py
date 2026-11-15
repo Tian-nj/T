@@ -54,6 +54,7 @@ import io
 import json
 import os
 import sys
+import threading
 import time
 import traceback
 from contextlib import redirect_stdout
@@ -115,6 +116,14 @@ DEFAULT_STALE_FACTOR = 4
 # 它不是成功（没做完），也不是失败（不是这条路走不通）。
 # 调度器对它的处理必须与两者都不同，见 tick()。
 DEFER_RC = 3
+# job 用这个退出码表示「跑超时了，已被本轮掐断」。
+# 124 与 POSIX timeout(1) 同码 —— 运维看到 124 就知道是被上限掐掉的，
+# 不是 job 自己选的退出码，也不是它崩了。
+TIMEOUT_RC = 124
+# 单个 job 的默认墙钟上限（秒）；配置 scheduler.jobs.<name>.timeout_sec 可覆盖。
+# 历史实测（sidecar ticks=7329）：8 个 job 最慢 metrics 223ms，其余全在 100ms 内，
+# 所以这个数是纯兜底 —— 正常路径永远碰不到，碰到就是真的卡住了。
+DEFAULT_JOB_TIMEOUT_SEC = 300
 
 
 # ---------------------------------------------------------------- 配置
@@ -155,6 +164,22 @@ def job_interval_sec(name, sc=None):
     return int(DEFAULT_JOB_INTERVAL_SEC.get(name, 60))
 
 
+def job_timeout_sec(name, sc=None):
+    """job 的墙钟上限唯一读取点。
+
+    与 job_interval_sec 分开两个函数，是因为它们回答的是两个不同的问题：
+    interval 是「隔多久跑一次」，cap 是「跑多久算卡死」。合成一个函数的话，
+    把 interval 从 60 调到 3600 会顺手把超时上限也放大 60 倍 —— 而调大 interval
+    的动机通常是「它太吵」，跟「它可能卡住」毫无关系。
+    """
+    if sc is not None:
+        node = (sc.get("jobs") or {}).get(name) or {}
+        v = node.get("timeout_sec")
+        if isinstance(v, int) and not isinstance(v, bool) and v > 0:
+            return v
+    return int(DEFAULT_JOB_TIMEOUT_SEC)
+
+
 def sched_cfg(wb=None):
     """读 scheduler 段；缺失时给一套保守默认值并留痕。
 
@@ -180,7 +205,9 @@ def sched_cfg(wb=None):
         j = (s.get("jobs") or {}).get(name) or {}
         jobs[name] = {"enabled": bool(j.get("enabled", True)),
                       "interval_sec": int(j.get("interval_sec")
-                                          or job_interval_sec(name))}
+                                          or job_interval_sec(name)),
+                      "timeout_sec": int(j.get("timeout_sec")
+                                         or job_timeout_sec(name))}
         # run_time 只在配置里写了才透传：没写时保持 None，让 due() 走 interval 分支。
         # 不能默认填一个 "04:00" —— 那会让「没配置」变成「每天都跑」。
         if j.get("run_time"):
@@ -309,21 +336,53 @@ def run_job(name, timeout_cap=0):
     收输出的两个理由：① `--json` 模式下调度器要吐干净 JSON；② 成功的 job
     不该在日志里留一堆行 —— 一个每天说 1438 次「我没事」的看门狗，会让人
     在真出事那天也照样滑过去。
+
+    timeout_cap（秒；<=0 表示不设上限）：这个形参曾经是死的 —— 全仓没有一处
+    传过它，于是「job 卡住」这件事没有任何上限。真实事故：一次 `--once` 卡了
+    8 分钟，而计划任务是 MultipleInstances=IgnoreNew，后续每一分钟的 tick 全被
+    系统拒掉（0x800710E0），调度器静默停摆 —— 一个不设上限的循环，卡住就等于
+    停摆，而且停得完全没有声音。
+
+    实现用线程 + join，不用子进程：`redirect_stdout` 只捕获本进程的输出，换成
+    子进程会让 sidecar 里的 out 变成空，而 out 是排障时唯一能看出「它跑到哪
+    一步」的东西。代价是线程杀不掉，超时只能「不再等它」——所以 rc 记
+    TIMEOUT_RC 而不是假装它失败了。这是把一个静默的死换成一个响亮的坏。
     """
     modname, argv, _desc = JOBS[name]
     buf = io.StringIO()
     t0 = time.time()
-    rc, err = 0, ""
-    try:
-        mod = __import__(modname)
-        with redirect_stdout(buf):
-            rc = int(mod.main(argv) or 0)
-    except SystemExit as exc:            # argparse 出错
-        rc = int(getattr(exc, "code", 1) or 1)
-        err = "SystemExit(%s)" % rc
-    except Exception:
-        rc = 1
-        err = traceback.format_exc(limit=4)
+    box = {"rc": 0, "err": ""}
+
+    def _call():
+        try:
+            mod = __import__(modname)
+            with redirect_stdout(buf):
+                box["rc"] = int(mod.main(argv) or 0)
+        except SystemExit as exc:        # argparse 出错
+            box["rc"] = int(getattr(exc, "code", 1) or 1)
+            box["err"] = "SystemExit(%s)" % box["rc"]
+        except Exception:
+            box["rc"] = 1
+            box["err"] = traceback.format_exc(limit=4)
+
+    if timeout_cap and timeout_cap > 0:
+        real_out = sys.stdout
+        th = threading.Thread(target=_call, name="sched-job-%s" % name)
+        th.daemon = True
+        th.start()
+        th.join(timeout_cap)
+        if th.is_alive():
+            rc = TIMEOUT_RC
+            err = ("timeout after %ss（本轮记失败；该 job 的线程仍挂在后台，"
+                   "Python 无法强杀线程，它跑完就结束了）" % (timeout_cap,))
+            # redirect_stdout 是进程级替换：卡住的线程还留在它的 with 块里，
+            # 不抢回来，后续所有 print 都会掉进那个 StringIO 里看不见。
+            sys.stdout = real_out
+        else:
+            rc, err = box["rc"], box["err"]
+    else:
+        _call()
+        rc, err = box["rc"], box["err"]
     dt = int((time.time() - t0) * 1000)
     out = buf.getvalue()
     return {"name": name, "rc": rc, "ms": dt,
@@ -359,7 +418,7 @@ def tick(now_ms=None, only=None, force=False):
 
     results = []
     for name in picked:
-        res = run_job(name)
+        res = run_job(name, job_timeout_sec(name, sc))
         r = st["runs"].get(name) or {}
         r["try_ms"] = now_ms
         r["try_count"] = int(r.get("try_count") or 0) + 1
@@ -422,6 +481,9 @@ def status(now_ms=None):
             "ok_ms": int(r.get("ok_ms") or 0),
             "age_ms": (now_ms - int(r["ok_ms"])) if r.get("ok_ms") else None,
             "interval_sec": job_interval_sec(name, sc),
+            # 上限也要在 status 里可见：看不到它，就看不出「这个 job 已经被
+            # 掐过一次」——rc 只记最后一次，而最后一次可能已经恢复了。
+            "timeout_sec": job_timeout_sec(name, sc),
             "fail_streak": int(r.get("fail_streak") or 0),
             # 延后是第三种状态，必须单独可见：否则「一直在等别人让开」
             # 会在 status 里长得跟「刚刚成功」一模一样。
@@ -446,7 +508,9 @@ def _print_once(r):
     if r["failed"]:
         for res in r["results"]:
             if res["rc"] != 0:
-                print("  !! %-11s rc=%d %dms" % (res["name"], res["rc"], res["ms"]))
+                print("  !! %-11s rc=%d %dms%s"
+                      % (res["name"], res["rc"], res["ms"],
+                         "  TIMEOUT" if res["rc"] == TIMEOUT_RC else ""))
                 if res["err"]:
                     for line in res["err"].strip().splitlines()[-4:]:
                         print("     %s" % line)
@@ -469,10 +533,11 @@ def _print_status(s):
              s["age_ms"], s["stale_after_ms"],
              "FRESH" if s["fresh"] else "STALE"))
     for j in s["jobs"]:
-        print("  %-11s %-7s ok_age=%-10s interval=%4ds rc=%s streak=%d%s"
+        print("  %-11s %-7s ok_age=%-10s interval=%4ds cap=%4ds rc=%s "
+              "streak=%d%s"
               % (j["name"], "enabled" if j["enabled"] else "off",
                  ("%dms" % j["age_ms"]) if j["age_ms"] is not None else "never",
-                 j["interval_sec"], j["rc"], j["fail_streak"],
+                 j["interval_sec"], j["timeout_sec"], j["rc"], j["fail_streak"],
                  "  OVERDUE" if j["overdue"] else ""))
     if s["bad"]:
         print("  bad: %s" % " ".join(s["bad"]))

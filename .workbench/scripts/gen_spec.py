@@ -839,16 +839,29 @@ def _gen_config_schema(now_ms=None):
                 "jobs": {"type": T["map"], "required": True, "children": {
                     "health": {"type": T["map"], "required": True, "children": {
                         "enabled": {"type": T["bool"]},
-                        "interval_sec": {"type": T["int"], "min": 10}}},
+                        "interval_sec": {"type": T["int"], "min": 10},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
                     "gate_timer": {"type": T["map"], "required": True, "children": {
                         "enabled": {"type": T["bool"]},
-                        "interval_sec": {"type": T["int"], "min": 10}}},
+                        "interval_sec": {"type": T["int"], "min": 10},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
                     "metrics": {"type": T["map"], "required": True, "children": {
                         "enabled": {"type": T["bool"]},
-                        "interval_sec": {"type": T["int"], "min": 10}}},
+                        "interval_sec": {"type": T["int"], "min": 10},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
                     "gc": {"type": T["map"], "required": True, "children": {
                         "enabled": {"type": T["bool"]},
-                        "interval_sec": {"type": T["int"], "min": 60}}},
+                        "interval_sec": {"type": T["int"], "min": 60},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
+                    # observe（长期自运转观察）：它从第三十一轮起就写在
+                    # config.yaml 里、也真的是 JOBS 里的一项，却一直没有进过
+                    # schema —— 配置写了 spec 不知道，这条配置就不在任何一处
+                    # 被检查。与第五十一轮 decay 缺调度入口是同一种病：
+                    # 东西在、以为在管、其实没人管。
+                    "observe": {"type": T["map"], "children": {
+                        "enabled": {"type": T["bool"]},
+                        "interval_sec": {"type": T["int"], "min": 10},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
                     # decay（第五十一轮）：记忆的降档与衰减。
                     # 加这条不只是"补个 schema"：`memory_store.decay()` 有实现、
                     # 有 selftest、有 CLI 子命令，却从来没有调度入口 ——
@@ -857,7 +870,8 @@ def _gen_config_schema(now_ms=None):
                     # 那种"多出来的键"没人会因为它的存在去做检查。
                     "decay": {"type": T["map"], "children": {
                         "enabled": {"type": T["bool"]},
-                        "interval_sec": {"type": T["int"], "min": 60}}},
+                        "interval_sec": {"type": T["int"], "min": 60},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
                     # settle（第五十二轮）：working 层的出口。
                     # 上一轮给了 working 写入者却没给出口，这一层只进不出，
                     # 于是"最近在做什么"会随时间变成"历史上做过的一切"。
@@ -865,7 +879,8 @@ def _gen_config_schema(now_ms=None):
                     # decay 看 idle_days（时间），settle 看链上状态机（事实）。
                     "settle": {"type": T["map"], "children": {
                         "enabled": {"type": T["bool"]},
-                        "interval_sec": {"type": T["int"], "min": 60}}},
+                        "interval_sec": {"type": T["int"], "min": 60},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400}}},
                     # dream：W4 的梦境整合。它是唯一按"每天一次"节奏跑的 job，
                     # 所以除了 enabled/interval_sec 还要 run_time（本地时刻 HH:MM）。
                     # 只给 interval_sec 的话，它会在某个随机小时开始整理昨天的事，
@@ -873,6 +888,7 @@ def _gen_config_schema(now_ms=None):
                     "dream": {"type": T["map"], "children": {
                         "enabled": {"type": T["bool"]},
                         "interval_sec": {"type": T["int"], "min": 300},
+                        "timeout_sec": {"type": T["int"], "min": 1, "max": 86400},
                         # 允许逗号分隔多个时刻（"04:00,16:00"）：一天只整理一次，
                         # 下午发生的事要等到次日 04:00 才被提炼。
                         # 每次整理仍只处理**当天**，幂等键是 (date, action, sha)。

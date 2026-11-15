@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（54 个 .py / 31050 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（54 个 .py / 31131 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -830,6 +830,11 @@ demo.sh: 19 行链 / MERGED T-0001 / reconcile grep -c = 1 / DEMO OK
 - 八个 job：`health` `gate_timer` `metrics` `gc` `dream` `observe` `decay` `settle`。
   判定「新鲜」看 `sched_install.py status` 的 `freshness : FRESH` 一行，
   别看 `registered: YES` —— 注册了不等于在跑。
+- 每个 job 还有 `timeout_sec`（这一次最多跑多久）。跑超就记 `rc=124`
+  （与 POSIX `timeout(1)` 同码）并算一次失败，`scheduler.py --status` 里能看到
+  每行的 `cap=` 与 `TIMEOUT` 标记。没有它的时候，一个卡住的 job 会把整轮拖死
+  而且**没有任何输出**：曾经 `--once` 卡了 8 分钟，计划任务 `IgnoreNew` 把后面
+  每分钟的 tick 全拒掉（`0x800710E0`），调度器静默停摆。
 - 迁移到新机器后必须先手动跑一次 `scheduler.py`（或 `sched_install.py once`），
   否则 `state/scheduler.json` 里从源机带过来的 `fail_streak` 会让
   `scheduler_observe --check` 永久判红。

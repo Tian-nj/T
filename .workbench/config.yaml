@@ -71,24 +71,29 @@ agents:
 # 在 scheduler.py 出现之前，这段配置并不存在，而那四个脚本的 main()
 # 只被人手工敲过 —— 于是"闸门 240 分钟超时"和"worker 死了要报"
 # 这两条规则都写在代码里、跑在文档里、从没跑在机器上。
+# 每个 job 除 interval_sec 外还有 timeout_sec：它是「这一次最多跑多久」的
+# 墙钟上限，跑超就记 TIMEOUT_RC(124) 并算一次失败。历史实测最慢的 job 是
+# metrics 223ms，所以下面这些数字全是兜底 —— 碰到它们就说明真的卡住了。
+# 曾经没有这个上限：一次 --once 卡了 8 分钟，计划任务 IgnoreNew 把后面
+# 每一分钟的 tick 全拒掉（0x800710E0），调度器静默停摆。
 scheduler:
   tick_sec: 30
   stale_factor: 4
   jobs:
-    health:      {enabled: true, interval_sec: 60}
-    gate_timer:  {enabled: true, interval_sec: 60}
-    metrics:     {enabled: true, interval_sec: 300}
-    gc:          {enabled: true, interval_sec: 3600}
+    health:      {enabled: true, interval_sec: 60, timeout_sec: 60}
+    gate_timer:  {enabled: true, interval_sec: 60, timeout_sec: 60}
+    metrics:     {enabled: true, interval_sec: 300, timeout_sec: 90}
+    gc:          {enabled: true, interval_sec: 3600, timeout_sec: 300}
     # dream：唯一按「每天一次」跑的 job。run_time 是本地时刻 HH:MM，
     # 不是 interval —— 用 interval 会让"整理哪一天"取决于它什么时候被唤醒。
-    dream:       {enabled: true, interval_sec: 86400, run_time: "04:00"}
+    dream:       {enabled: true, interval_sec: 86400, run_time: "04:00", timeout_sec: 900}
     # observe（第三十一轮候选 3）：长期自运转观察。它每 300 秒追加一个趋势点，
     # 不是因为调度器需要被观察得这么密，而是因为 7 天窗口要「自己长出来」就必须
     # 由机器在无人值守时持续记录 —— 之前 trend 只有 3~5 个点，全靠人手工敲
     # record，于是 maturity 永远是 0.3h / ready=false。
     # 300s 而不是 30s：一个点就是一行 JSONL，30s 会给 7 天攒 20 万行，
     # 而趋势要回答的是「小时级/天级是否稳定」，分钟级噪声只会让 p95 变胖。
-    observe:     {enabled: true, interval_sec: 300}
+    observe:     {enabled: true, interval_sec: 300, timeout_sec: 60}
     # decay（第五十一轮）：记忆的降档与衰减。
     # 它一直有实现（memory_store.decay）也有 selftest，但**没有调度入口** ——
     # forget_after_days / fuzzy_after_days / 降档 / 归档全部永不发生，
@@ -96,11 +101,11 @@ scheduler:
     # 代码在、入口没有，而且不会报错，只会让 everything 一直是「刚记住」。
     # 3600s 而不是每天一次：衰减按 idle_days 算，跑得勤不会多降档
     # （一天最多降一档，且 fuzzy_after_days 内不动），但恢复得快。
-    decay:       {enabled: true, interval_sec: 3600}
+    decay:       {enabled: true, interval_sec: 3600, timeout_sec: 300}
     # 结算比衰减快一档：任务状态在链上随时会走到 done，
     # 而 working 层的意义就是「最近在做什么」，晚一小时搬走不算错，
     # 但没必要等到一小时 —— 这一步只读状态、只搬文件，很便宜。
-    settle:      {enabled: true, interval_sec: 1800}
+    settle:      {enabled: true, interval_sec: 1800, timeout_sec: 120}
 
 digests:
   contracts_index: "contracts/index.json"

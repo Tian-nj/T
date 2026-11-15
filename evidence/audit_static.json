@@ -254,7 +254,7 @@
   "dead": []
  },
  "gen_spec.py": {
-  "loc": 1150,
+  "loc": 1166,
   "funcs": 16,
   "silent": [
    {
@@ -538,11 +538,11 @@
   "dead": []
  },
  "scheduler.py": {
-  "loc": 538,
-  "funcs": 16,
+  "loc": 603,
+  "funcs": 18,
   "silent": [
    {
-    "line": 220,
+    "line": 247,
     "bare": false,
     "type": "(OSError, ValueError)",
     "body": [
@@ -551,7 +551,7 @@
     "src": "except (OSError, ValueError):\n    pass"
    },
    {
-    "line": 256,
+    "line": 283,
     "bare": false,
     "type": "(ValueError, AttributeError)",
     "body": [
