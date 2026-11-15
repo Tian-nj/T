@@ -1,7 +1,13 @@
 # 控制面运行态：不入 Git（真相在 events/*.jsonl 与 tasks/ 的产物里，
 # 但它们是运行时状态而非源码，提交进 Git 只会让每次 append 都变成 diff 噪声）
 .workbench/events/
-.workbench/state/
+# 注意用 state/* 而不是 state/：Git 不允许 include 一个「父目录已被排除」
+# 路径下的文件，所以只要写成整目录 state/，下面第 13 行的
+# !.workbench/state/members.json 就是一句空话（check-ignore 会证明它仍被忽略）。
+# 后果不是「少提交一个文件」而是：checkout 出来的仓里 members.json 不存在，
+# 而它恰好在 root.manifest COVER 内 —— 验签直接报 DRIFT (missing)，
+# 也就是说这道备份/回滚点本身恢复不出一个能跑的仓。第 136 轮修。
+.workbench/state/*
 .workbench/tasks/
 .workbench/wt/
 .workbench/metrics/

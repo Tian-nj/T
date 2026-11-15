@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "members": [
+    {
+      "principal": "yg",
+      "role": "owner",
+      "key_id": "human/yg/v1",
+      "active": true,
+      "created_ms": 1794236541978,
+      "revoked_ms": null,
+      "perms": [
+        "human_approve",
+        "human_override",
+        "human_amend_task",
+        "gate_open",
+        "escalate_resolve",
+        "human_reject",
+        "reopen",
+        "split_requested",
+        "human_timeout",
+        "acceptance_approve",
+        "persona_upgrade",
+        "persona_growth_void",
+        "memory_import"
+      ]
+    }
+  ]
+}

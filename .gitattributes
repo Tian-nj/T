@@ -1,0 +1,15 @@
+# .gitattributes — 第 136 轮新增
+#
+# 为什么必须存在：root.manifest 的 digest 是对**磁盘原始字节**算的
+# （hmac-sha256-v1），而这个仓里几乎所有文本文件都是 LF 行尾。
+# Git 的 core.autocrlf 在 checkout 时会把 LF 换成 CRLF，于是克隆出来的
+# 同一份文件字节数变了、digest 全变 —— 实测 clone 后
+# `sign_manifest.py --verify` 报 `PROBLEM 116 file(s) drifted`。
+#
+# 也就是说：没有这个文件，**备份/回滚点恢复出来的仓必然验签失败**，
+# 「回滚」这件事只有形式没有实质。第 136 轮回滚演练第一次发现它。
+#
+# `-text` 关掉一切行尾转换（不做 CRLF/LF 归一化），保证 clone 出的字节
+# 与源仓逐字节一致，digest 才对得上。代价是跨平台编辑时不自动统一行尾，
+# 但这正是本仓想要的：字节即证据，转换即篡改。
+* -text
