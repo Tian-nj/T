@@ -174,7 +174,7 @@ def _probe_model(root=None, now_ms=None):
 
 
 def _probe_actions():
-    """GitHub Actions。就绪 = 有 remote（能不能跑）；验收 = 有已验签 CI 产物且契约过（跑过且验过）。
+    """GitHub Actions。就绪 = 配了 remote（跑得起来的前提有了）；验收 = 有已验签 CI 产物且契约过（跑过且验过）。
 
     判断依据必须是**证据文件**里的 `actions_ran`，不是「我看过 workflow 了」。
     """

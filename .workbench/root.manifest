@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794714291351,
-  "digest": "hmac-sha256:a0144bb01df83ce77c667469135d0a45850fbe3515c396083461ebf5cf1a7efb",
+  "created_ms": 1794714987287,
+  "digest": "hmac-sha256:ed8dd3ee8effc6c3cc720ea03126612eb61887d2377bd53118453cb27fb66bc5",
   "entries": [
     {
       "bytes": 3315,
@@ -369,9 +369,9 @@
       "sha256": "sha256:c7d480fa868c3c0c8edb1fbc16c692fafe4b1797e0a515467f426f328081d45b"
     },
     {
-      "bytes": 38151,
+      "bytes": 38169,
       "path": "scripts/joint_acceptance.py",
-      "sha256": "sha256:deafb251faa88faff58acd4fd1c628030546d45016d76f2f881ccdc8eebcfbb5"
+      "sha256": "sha256:eed4f55783fc11dc9d8324edfc19bfc69da0298a529b6bbce001a329de25c02c"
     },
     {
       "bytes": 76225,
@@ -606,7 +606,7 @@
   ],
   "entry_count": 120,
   "manifest_version": 1,
-  "sig": "hmac-sha256:a0144bb01df83ce77c667469135d0a45850fbe3515c396083461ebf5cf1a7efb",
+  "sig": "hmac-sha256:ed8dd3ee8effc6c3cc720ea03126612eb61887d2377bd53118453cb27fb66bc5",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }
