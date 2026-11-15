@@ -1,0 +1,19 @@
+{
+  "connector": "message_im_push",
+  "criterion": "grep 仓库执行面 + 环境探测",
+  "evidence": {
+    "hit_files": [],
+    "hits": {},
+    "needles": [
+      "slack",
+      "feishu",
+      "lark",
+      "smtplib",
+      "requests"
+    ]
+  },
+  "evidence_sha256": "4b8ca4c3b93c87bec7e519ea2cc380744603cc50e70e7246f395b8064eb73095",
+  "next_step": "等真有租户时：把域名写进 allow_hosts、把令牌走 env、补三证（real 用该平台的测试工作区真发一条，bypass 用未白名单的域名验拒），再改 state。",
+  "state": "unavailable",
+  "why_absent": "Slack / 飞书 / 企微推送需要该平台的凭据与端点，本机都没有（也没有租户）。通用的 http_post webhook 已经覆盖「能推一条 HTTP 通知」这个真实需求 —— 告警通道用的就是它。平台 SDK 那一层不做假实现：一个标成 implemented、实际从没连过的连接器，比一条标成 unavailable 的更危险，因为前者会让后续的人以为这条通道有人维护。"
+}

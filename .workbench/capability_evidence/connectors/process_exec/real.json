@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport platform_ops\np = platform_ops.spawn_group([sys.executable, '-c', 'print(\"CHILD_OK\")'],\n                             cwd=os.path.dirname(WB),\n                             stdout=-1, stderr=-1)\nout, err = p.communicate(timeout=60)\ntext = (out or b'').decode('utf-8', 'replace')\nprint('rc=%s stdout=%r' % (p.returncode, text.strip()))\nassert 'CHILD_OK' in text, 'real: 子进程没跑出预期输出'\nprint('OK')\n",
+  "connector": "process_exec",
+  "evidence_sha256": "b28bd14f6e1af5b258a71bdba720b58188e03ed72964c894878a6e01686dbad8",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "rc=0 stdout='CHILD_OK'\r\nOK\r\n"
+}

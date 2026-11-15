@@ -60,11 +60,11 @@
   "tools": {
     "executors/ext_ai_subagent.py": {
       "tier": "outbound",
-      "loc": 778
+      "loc": 810
     },
     "executors/ref_subagent.py": {
       "tier": "outbound",
-      "loc": 356
+      "loc": 380
     },
     "scripts/acc_edit.py": {
       "tier": "write_local",
@@ -109,6 +109,18 @@
     "scripts/ci_narrow_probe.py": {
       "tier": "destructive",
       "loc": 617
+    },
+    "scripts/connector_absence.py": {
+      "tier": "write_local",
+      "loc": 229
+    },
+    "scripts/connector_evidence.py": {
+      "tier": "write_local",
+      "loc": 481
+    },
+    "scripts/connector_registry.py": {
+      "tier": "read_only",
+      "loc": 664
     },
     "scripts/constitution_check.py": {
       "tier": "write_local",
@@ -168,7 +180,7 @@
     },
     "scripts/gen_spec.py": {
       "tier": "write_local",
-      "loc": 1369
+      "loc": 1583
     },
     "scripts/health.py": {
       "tier": "write_local",
@@ -252,7 +264,7 @@
     },
     "scripts/secret_scan.py": {
       "tier": "outbound",
-      "loc": 360
+      "loc": 376
     },
     "scripts/sign_manifest.py": {
       "tier": "write_local",
@@ -272,7 +284,7 @@
     },
     "scripts/spec_lint.py": {
       "tier": "write_local",
-      "loc": 714
+      "loc": 758
     },
     "scripts/team_protocol.py": {
       "tier": "read_only",
@@ -304,12 +316,12 @@
     }
   },
   "counts": {
-    "tools": 61,
+    "tools": 64,
     "by_tier": {
       "outbound": 5,
-      "write_local": 30,
+      "write_local": 32,
       "destructive": 15,
-      "read_only": 11
+      "read_only": 12
     },
     "derivable_tiers": 4,
     "override_only_tiers": 2

@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nsys.path.insert(0, os.path.join(WB, 'executors'))\nimport ext_ai_subagent as ext\nos.environ[ext.ENDPOINT_ENV] = 'http://127.0.0.1:9/v1/chat/completions'\nos.environ.pop(ext.KEY_ENV, None)\n# 供应商目录里的 key 字段也要清，否则会回落到它\nr = ext.call_provider('qianwen_unconfigured', 'consult', {})\nprint('result=%s' % r)\nassert not r.get('ok'), 'injection: 没密钥却报成功'\nprint('DENIED')\n",
+  "connector": "ext_ai_call",
+  "evidence_sha256": "20c38916fc362eef15a6b58bee2d2a6ee40ee61ed0743d6044c53b00edaffdde",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "result={'ok': False, 'error': \"'qianwen_unconfigured' 没有可用密钥（试过 env:WB_EXT_AI_KEY 与它自己的配置）；拒绝假装模型跑过\"}\r\nDENIED\r\n"
+}

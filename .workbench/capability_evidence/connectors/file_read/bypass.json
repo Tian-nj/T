@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\n# 已知边界：deny_absolute_prefix 只挡写不挡读。\n# 这里如实测「读一个被禁前缀下的文件」，成功就写 BYPASS_OK ——\n# 不是判它该失败，而是让这个缺口在证据里有一行，而不是只写在注释里。\nimport persona_loader\np = os.path.join('C:' + chr(92), 'Windows', 'win.ini')\nok = os.path.isfile(p)\nprint('target_exists=%s' % ok)\nif not ok:\n    print('BYPASS_BLOCKED')\nelse:\n    text = persona_loader._read(p, 'win.ini')\n    print('read_chars=%d' % len(text))\n    print('BYPASS_OK' if text else 'BYPASS_BLOCKED')\n",
+  "connector": "file_read",
+  "evidence_sha256": "90155e86de062bfd817b0a63c567cabac9bd4efdd077a902e0fe8a895dfd6b7c",
+  "exit_code": 0,
+  "marker": "BYPASS_OK",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "target_exists=True\r\nread_chars=257\r\nBYPASS_OK\r\n"
+}

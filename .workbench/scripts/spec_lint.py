@@ -688,6 +688,50 @@ def lint() -> list:
     except Exception as _exc:
         bad("S025", "工具档位对账失败: %s" % _exc)
 
+    # S026 连接器登记表必须与代码事实一致（阶段 5）。
+    #
+    # 这一条与 S024/S025 的区别在于它检查的东西**有运行期消费者**：
+    # connector_registry.authorize() 被 secret_scan._send_webhook 与三个
+    # 执行体在发起连接之前真的调用。所以这里对不上，不只是文档不同步，
+    # 是「出站闸门的白名单与代码实际会连的主机不一致」—— 那种不一致
+    # 会让一次本该被拦的外发通过，或者一次本该放行的调用被误挡。
+    #
+    # 同样不接受「声明里写了就算」：必须由 reconcile() 现算，任一 C 码算红。
+    # 取 reconcile() 返回的行时先认容器类型：它是 (code, detail) 二元组，
+    # 不是 dict —— S024 第一版就在这里踩过，把二元组当 dict 取 .get，
+    # 结果每条 finding 都抛 AttributeError，被收成一句含糊的「对账失败」，
+    # 对所有错误都红、而且红的原因是自己崩了。
+    try:
+        import connector_registry as _cr
+        # reconcile() 返回的是 **(findings, table) 二元组**，不是 findings 列表。
+        # 第一次接的时候漏了这层，把整个元组当 findings 遍历，于是先撞上
+        # 那对 (list, dict) 本身 —— 打印出 `C? []` 与 `None None` 两条
+        # 谁读都不懂的 finding。判据没错，错在我把返回值当成了我记住了的
+        # 那个形状，而不是它现在返回的那个形状。
+        _res = _cr.reconcile()
+        if isinstance(_res, tuple) and len(_res) == 2:
+            _findings, _table = _res[0], _res[1]
+        else:
+            _findings, _table = _res, None
+            bad("S026", "reconcile() 返回形状变了（期望 (findings, table)）：%r"
+                        % (type(_res).__name__,))
+        if not (_table or {}).get("connectors"):
+            bad("S026", "连接器对账表为空（声明空了，或者扫不到任何连接器）")
+        for _f in (_findings or []):
+            if isinstance(_f, (tuple, list)) and len(_f) >= 2:
+                _code, _detail = _f[0], _f[1]
+            elif isinstance(_f, dict):
+                _code, _detail = _f.get("code"), _f.get("detail")
+            else:
+                _code, _detail = "C?", repr(_f)
+            bad("S026", "%s %s" % (_code, _detail))
+    except ImportError as _exc:
+        bad("S026", "无法 import connector_registry: %s" % _exc)
+    except FileNotFoundError as _exc:
+        bad("S026", "spec/connector_registry.json 缺失（先跑 gen_spec.py）: %s" % _exc)
+    except Exception as _exc:
+        bad("S026", "连接器对账失败: %s" % _exc)
+
     return out
 
 

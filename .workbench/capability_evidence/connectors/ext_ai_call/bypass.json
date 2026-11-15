@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nsys.path.insert(0, os.path.join(WB, 'executors'))\nimport ext_ai_subagent as ext\nos.environ[ext.ENDPOINT_ENV] = 'http://198.51.100.9/v1/chat/completions'\nos.environ[ext.KEY_ENV] = 'test-key-not-real'\nr = ext.call_provider('kimi', 'consult', {'task': 'T', 'role': 'coder'})\nprint('result=%s' % r)\ndenied = (not r.get('ok')) and r.get('denied_by') == 'connector_registry'\nprint('DENIED' if denied else 'BYPASS_OK')\nassert denied, 'bypass: 未白名单的端点没有被拦'\n",
+  "connector": "ext_ai_call",
+  "evidence_sha256": "966f18ae3937c0ce3fb4be681bfb56357625392d0c6c834f82e014e3e0ae653c",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "result={'ok': False, 'error': \"出站被拦：拒绝：ext_ai_call 的目标主机 198.51.100.9 不在 allow_hosts ['api.deepseek.com', 'agent-gw.kimi.com'] 里 —— 加新外站要改声明并重签可信根，不能运行时悄悄连\", 'denied_by': 'connector_registry'}\r\nDENIED\r\n"
+}

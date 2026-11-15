@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\n# 没配 url_env：必须报 skipped，不许假装发成功\nimport json, secret_scan\nos.environ.pop('W4_CONN_MISSING', None)\nr = secret_scan._send_webhook({'url_env': 'W4_CONN_MISSING'}, {'kind': 'x'})\nprint('result=%s' % json.dumps(r))\nassert r and r[0].get('skipped'), 'injection: 没配地址却报成了成功'\nprint('DENIED')\n",
+  "connector": "http_post",
+  "evidence_sha256": "f8384ff66114eb4027b2becf108fdbc67282d5c1050228cead1dda16666edf75",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "result=[{\"channel\": \"webhook\", \"skipped\": \"env W4_CONN_MISSING not set\"}]\r\nDENIED\r\n"
+}

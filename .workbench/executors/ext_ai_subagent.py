@@ -394,6 +394,33 @@ def _parse_ai_json(text):
     return None
 
 
+def _authorize_outbound(connector, target):
+    """出站闸门（阶段 5）。返回 (allowed, reason)。
+
+    为什么执行体要自己问一遍：登记表写在 spec 里，但 spec 不是运行时。
+    一个供应商的端点可能来自 `WB_EXT_AI_ENDPOINT`（env），那是**运行期**
+    才确定的值 —— 光看 spec 谁也不知道这次要连哪。所以判据必须在发请求
+    之前现问一次。
+
+    为什么闸门模块 import 失败要 fail-closed：拿不到判据时，「放行」和
+    「没判」在日志里长得一样，而前者的代价是一条数据真的出去了。
+
+    为什么回环放行：本仓所有自证探针都用本地桩（`test_ref_subagent_model_e2e`
+    与 capability_probes 都是 127.0.0.1），要求回环也进白名单，等于让
+    「证明闸门有效」这件事本身过不了闸门。
+    """
+    try:
+        scripts = os.path.join(ROOT, "scripts")
+        if scripts not in sys.path:
+            sys.path.insert(0, scripts)
+        import connector_registry
+        allowed, why, _info = connector_registry.authorize(connector, target)
+        return allowed, why
+    except Exception as exc:                       # noqa: BLE001
+        return False, ("connector_registry 不可用（%s: %s）；出站动作按 fail-closed 拒绝"
+                       % (type(exc).__name__, exc))
+
+
 def call_provider(name, mode, job, timeout=DEFAULT_TIMEOUT_SEC):
     """调供应商的 OpenAI 兼容端点。缺配置直接失败，不降级。
 
@@ -407,6 +434,11 @@ def call_provider(name, mode, job, timeout=DEFAULT_TIMEOUT_SEC):
     if not key:
         return {"ok": False, "error": "%r 没有可用密钥（试过 env:%s 与它自己的配置）；"
                                      "拒绝假装模型跑过" % (name, KEY_ENV)}
+
+    # 先过闸门再动手：连 endpoint 都没问过就发请求，等于闸门写在事后。
+    allowed, why = _authorize_outbound("ext_ai_call", endpoint)
+    if not allowed:
+        return {"ok": False, "error": "出站被拦：%s" % why, "denied_by": "connector_registry"}
 
     brief = _brief_text(job) or ("task %s / role %s"
                                  % (job.get("task"), job.get("role")))

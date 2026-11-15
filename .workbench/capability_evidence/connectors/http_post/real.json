@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport json, threading\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\nimport secret_scan\ngot = []\nclass H(BaseHTTPRequestHandler):\n    def do_POST(self):\n        n = int(self.headers.get('Content-Length') or 0)\n        got.append(self.rfile.read(n))\n        self.send_response(200); self.send_header('Content-Length', '2')\n        self.end_headers(); self.wfile.write(b'ok')\n    def log_message(self, *a):\n        pass\nsrv = HTTPServer(('127.0.0.1', 0), H)\nth = threading.Thread(target=srv.serve_forever, daemon=True); th.start()\nurl = 'http://127.0.0.1:%d/alert' % srv.server_address[1]\nos.environ['W4_CONN_WEBHOOK'] = url\ntry:\n    r = secret_scan._send_webhook({'url_env': 'W4_CONN_WEBHOOK'},\n                                  {'kind': 'secret_detected', 'count': 1})\nfinally:\n    srv.shutdown(); th.join(timeout=3)\nprint('result=%s posts=%d' % (json.dumps(r), len(got)))\nassert any(x.get('status') == 200 for x in r), 'real: 本地桩没收到 200'\nprint('OK')\n",
+  "connector": "http_post",
+  "evidence_sha256": "9dc4b8ed06e254626e9b65b0fe52150852d535d662b1a6971df0f1dfff50d555",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "result=[{\"channel\": \"webhook\", \"status\": 200}] posts=1\r\nOK\r\n"
+}

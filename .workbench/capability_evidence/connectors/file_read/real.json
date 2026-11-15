@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport persona_loader\np = os.path.join(os.path.dirname(WB), 'persona', 'core.md')\ntext = persona_loader._read(p, 'persona/core.md')\nprint('read_chars=%d' % len(text))\nassert text, 'real: 真文件读出来是空的'\nprint('OK')\n",
+  "connector": "file_read",
+  "evidence_sha256": "d50b28630dd98087a6d56e95a4402856d280fa87f770fe2394c822b741f8ab64",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "read_chars=1606\r\nOK\r\n"
+}

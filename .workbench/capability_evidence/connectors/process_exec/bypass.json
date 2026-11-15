@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\n# 隔离态下往 worktree 外写：shim 必须拒绝\nimport platform_ops, tempfile\noutside = tempfile.mkdtemp(prefix='wb-outside-')\ntarget = os.path.join(outside, 'escape.txt')\ncode = ('open(%r, \"w\").write(\"x\")' % target)\np = platform_ops.spawn_group(\n    [sys.executable, '-c', code], cwd=os.path.dirname(WB),\n    env={'PYTHONIOENCODING': 'utf-8', 'PATH': os.environ.get('PATH', ''),\n         'SYSTEMROOT': os.environ.get('SYSTEMROOT', ''),\n         'TEMP': os.environ.get('TEMP', ''), 'TMP': os.environ.get('TMP', ''),\n         'WB_ISOLATE': '1', 'WB_WORKTREE': os.path.dirname(WB)},\n    stdout=-1, stderr=-1)\nout, err = p.communicate(timeout=60)\nerr_text = (err or b'').decode('utf-8', 'replace')\nwrote = os.path.isfile(target)\nprint('rc=%s wrote_outside=%s' % (p.returncode, wrote))\nprint('stderr_tail=%r' % err_text[-200:])\nprint('BYPASS_OK' if wrote else 'BYPASS_BLOCKED')\n",
+  "connector": "process_exec",
+  "evidence_sha256": "472f388b347c30330275fa5976e5a94e32e4f9698a77d84d00f4545e5d49438a",
+  "exit_code": 0,
+  "marker": "BYPASS_BLOCKED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "rc=1 wrote_outside=False\r\nstderr_tail=\", line 60, in _deny_path\\r\\n    raise PermissionError(\\r\\nPermissionError: WB_ISOLATE path_isolation: write outside scope denied 'C:\\\\\\\\Users\\\\\\\\admin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\wb-outside-wsr1w4e6\\\\\\\\escape.txt'\\r\\n\"\r\nBYPASS_BLOCKED\r\n"
+}

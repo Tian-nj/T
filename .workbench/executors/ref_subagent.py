@@ -138,6 +138,25 @@ def run_mock(job):
             "selfcheck": {"cmd": cmd, "exit": rc, "tail": tail[0][:200]}}
 
 
+def _authorize_outbound(connector, target):
+    """出站闸门（阶段 5）。返回 (allowed, reason)。
+
+    判据在 `connector_registry.authorize()`，这里只负责在发请求**之前**问一次。
+    闸门模块不可用时 fail-closed：拿不到判据时「放行」与「没判」在日志里
+    长得一样，而前者的代价是一条数据真的出去了。
+    """
+    try:
+        scripts = os.path.join(ROOT, "scripts")
+        if scripts not in sys.path:
+            sys.path.insert(0, scripts)
+        import connector_registry
+        allowed, why, _info = connector_registry.authorize(connector, target)
+        return allowed, why
+    except Exception as exc:                       # noqa: BLE001
+        return False, ("connector_registry 不可用（%s: %s）；出站动作按 fail-closed 拒绝"
+                       % (type(exc).__name__, exc))
+
+
 def run_model(job, timeout=DEFAULT_TIMEOUT_SEC):
     """OpenAI 兼容 chat/completions。缺配置直接失败，不降级。"""
     endpoint = (os.environ.get(ENDPOINT_ENV) or "").strip()
@@ -148,6 +167,11 @@ def run_model(job, timeout=DEFAULT_TIMEOUT_SEC):
     if not key:
         return {"ok": False, "error": "%s not set; refusing to pretend a model ran"
                                       % KEY_ENV}
+
+    allowed, why = _authorize_outbound("ref_model_call", endpoint)
+    if not allowed:
+        return {"ok": False, "error": "outbound denied: %s" % why,
+                "denied_by": "connector_registry"}
 
     brief = ""
     brief_path = job.get("brief") or ""

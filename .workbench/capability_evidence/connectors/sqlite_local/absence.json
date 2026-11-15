@@ -1,0 +1,15 @@
+{
+  "connector": "sqlite_local",
+  "criterion": "grep 仓库执行面 + stdlib 可用性实测",
+  "evidence": {
+    "hit_files": [],
+    "hits": {},
+    "needles": [
+      "sqlite3"
+    ]
+  },
+  "evidence_sha256": "ac26314c5e4bad395fb1597b4d910216bb8482fe842593fe28a48d83551425e8",
+  "next_step": "若记忆量真的涨到 JSON 读不动：先在 memory_store 里加一个 `--backend sqlite` 的等价实现并让两套后端跑同一份 selftest，再切默认值 —— 直接换掉会让历史记忆与链上追溯对不上。",
+  "state": "designed",
+  "why_absent": "方案 §阶段 5 的最后一步是「数据库/本地知识库」。本机 stdlib 自带 sqlite3（实测 3.53.1 可用），但工作台代码里 0 处使用 —— 目前的持久化是 `memory/**` 的 JSON 文件 + 主链 events（追加式 JSONL）。换成 SQLite 会引入一套新的真相来源，而现有 JSON + 链的组合已经满足「小规模、可 diff、可签字」三个要求。"
+}

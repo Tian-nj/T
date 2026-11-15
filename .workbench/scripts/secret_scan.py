@@ -244,11 +244,27 @@ def _send_webhook(ch, rec):
 
     没有网络库依赖（stdlib 只有 urllib），也没有重试 ——
     重试归 notify 层，不在扫描器里做，否则一次扫描能挂十分钟。
+
+    阶段 5：发之前先问 `connector_registry.authorize()`。这是出站闸门的
+    **真执行点**，不是查询接口 —— 被拒就不发，并且如实记下「被谁拒的」。
+    顺序上先判 env（没配就 skipped，那不是被拦下，是没打算发），
+    再判闸门。两件事混成一个返回值，运维就看不出「配置漏了」还是
+    「边界挡住了一个新域名」。
     """
     env = ch.get("url_env")
     url = os.environ.get(env or "", "").strip()
     if not url:
         return [{"channel": "webhook", "skipped": "env %s not set" % env}]
+    try:
+        import connector_registry
+        allowed, why, _info = connector_registry.authorize("http_post", url)
+    except Exception as exc:                 # 闸门本身坏了也必须 fail-closed
+        return [{"channel": "webhook",
+                 "denied": "connector_registry 不可用（%s: %s）"
+                           % (type(exc).__name__, exc)}]
+    if not allowed:
+        # 被拦下不等于发失败：重试它一万次也不会变成放行，所以不当 error。
+        return [{"channel": "webhook", "denied": why}]
     try:
         import urllib.request
         body = json.dumps(rec, ensure_ascii=False).encode("utf-8")

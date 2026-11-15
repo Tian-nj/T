@@ -1226,6 +1226,219 @@ def _gen_tool_registry():
     }
 
 
+def _gen_connectors():
+    """连接器边界登记表（阶段 5）。
+
+    为什么这张表必须存在
+
+        方案 §阶段 5 要求「每个连接器提交 real / bypass / injection 三证」。
+        但在建表之前先确认了一件事：本仓库原先**没有任何「连接器」概念**
+        （全仓 `grep -i connector` = 0 命中）。从零建一层时最容易犯的错，
+        是再写一张「声明得很漂亮、运行时没人查」的表 —— 本仓库对这种东西
+        有专门的叫法：声明悬空。阶段 3 的 `tool_registry` 已经补上了「档位」
+        那一栏，但它自己也只被 `spec_lint` 与测试读，`TIER_GATE` 在全仓
+        没有运行期消费者。
+
+        所以这张表不是终点。它配套 `connector_registry.authorize()`，
+        而 `authorize()` 被 `secret_scan._send_webhook` 与
+        `ext_ai_subagent.call_provider` 在**发起连接之前**真的调用。
+        只有表是文档，表 + 闸门才是护栏。
+
+    为什么闸门判据是「目标主机白名单」
+
+        出站动作发生在无人值守的时候（scheduler 每 300 秒 tick 一次）。
+        在这种场景下问「有没有人批准」永远得到「没有」，于是只剩两个
+        坏答案：全拒（工作台停摆）或全放（闸门形同虚设）。可选的是
+        「新目标默认拒绝、已登记目标放行」—— 与 `spec/paths.yaml` 的
+        `default: deny` + `allow_write` 白名单同一条思路。
+
+    为什么有 designed / unavailable 两态而不是全标 implemented
+
+        真做不出三证的东西标 implemented，等于逼下一个人替它补一份假证据。
+        方案 §阶段 5 的第四、五步（HTTP API 之外的「文档/表格/消息」与
+        「数据库/本地知识库」）在本机就是做不出 real 的：仓库零第三方依赖
+        （`openpyxl` / `docx` / `sqlite3` / `requests` / `slack` 在
+        `.workbench`、`tests`、`src` 里全部 0 命中），也没有 Slack/飞书
+        的凭据与端点。这些一律登记成 designed / unavailable 并附
+        `absence_evidence`，与 `ext_ai_subagent.PROVIDERS` 里
+        workbuddy / doubao / qianwen 的处理方式一致。
+
+        第三种状态必须留下**证明它不行的证据**，而不是留一个空槽位：
+        「我没做」和「我做了但没验」在证据上必须是两种形状。
+    """
+    ev_root = "capability_evidence/connectors"
+
+    def ev(name):
+        return {s: "%s/%s/%s.json" % (ev_root, name, s)
+                for s in ("real", "injection", "bypass")}
+
+    connectors = {
+        # ---- 一、文件/目录 ---------------------------------------------
+        "file_read": {
+            "boundary": "filesystem",
+            "direction": "in",
+            "state": "implemented",
+            "tier": "read_only",
+            "gate": "auto",
+            "why": ("读本仓文件不需要审批；真正的防线在调用方拿它读什么"
+                    "（persona_loader 只读 persona/*.md，memory_store 只读"
+                    "memory/**）。注意 deny_absolute_prefix 只挡写不挡读，"
+                    "这是已知边界，见 data_flow 的 bypass 证据。"),
+            "impl": "scripts/persona_loader.py",
+            "impl_symbols": ["def _read"],
+            "evidence": ev("file_read"),
+        },
+        "file_write": {
+            "boundary": "filesystem",
+            "direction": "out",
+            "state": "implemented",
+            "tier": "write_local",
+            "gate": "path_policy",
+            "why": ("写盘受 spec/paths.yaml 的 allow_write 约束，"
+                    "执行点在 diff_sandbox_check 与 agent_runner 的写域校验；"
+                    "越界拒（--deny/--deny-abs 从 paths.yaml 取默认值）。"),
+            "impl": "scripts/diff_sandbox_check.py",
+            "impl_symbols": ["_abs_prefix_check", "def check"],
+            "evidence": ev("file_write"),
+        },
+        # ---- 二、命令执行（复用隔离）------------------------------------
+        "process_exec": {
+            "boundary": "process",
+            "direction": "out",
+            "state": "implemented",
+            "tier": "write_local",
+            "gate": "isolation_shim",
+            "gate_point": ("platform_ops.spawn_group + worker_shim/sitecustomize.py"
+                           " + platform_ops.scrub_env"),
+            "why": ("起子进程受两道约束：spawn_group 一律过 scrub_env（剔密钥），"
+                    "WB_ISOLATE=1 时注入 worker_shim。它不走网络闸，所以这里"
+                    "在 allowlist 之外单独记闸门种类 —— 把三种闸门写成同一个"
+                    "名字，等于说「我有一道闸」却说不出它在哪一行。"),
+            "impl": "scripts/platform_ops.py",
+            "impl_symbols": ["def spawn_group", "def scrub_env"],
+            "evidence": ev("process_exec"),
+        },
+        # ---- 三、HTTP / API --------------------------------------------
+        "http_post": {
+            "boundary": "network",
+            "direction": "out",
+            "state": "implemented",
+            "tier": "outbound",
+            "gate": "allowlist",
+            "why": ("告警 webhook。目标由 config 的 url_env 在运行时提供，"
+                    "站点随部署变，所以白名单为空 —— 空表 = 只允许回环，"
+                    "外站必须显式写进 allow_hosts 并重签可信根。"),
+            "impl": "scripts/secret_scan.py",
+            "impl_symbols": ["def _send_webhook", "urllib.request"],
+            "allow_hosts": [],
+            "allow_hosts_empty_why": (
+                "webhook 站点由部署决定（env url_env），仓库不能替用户预先"
+                "写死一个域名，否则「改目标」就变成改代码。空表的效果是："
+                "回环放行、外站一律拒，直到有人把域名写进这里并重签。"),
+            "evidence": ev("http_post"),
+        },
+        "ext_ai_call": {
+            "boundary": "network",
+            "direction": "out",
+            "state": "implemented",
+            "tier": "outbound",
+            "gate": "allowlist",
+            "why": ("调外部 AI 供应商的 OpenAI 兼容端点。当前实测可用的只有"
+                    "两家（kimi / deepseek），其余三家的可用性证据在"
+                    "ext_ai_subagent.PROVIDERS 里。"),
+            "impl": "executors/ext_ai_subagent.py",
+            "impl_symbols": ["def call_provider", "urlopen"],
+            "allow_hosts": ["api.deepseek.com", "agent-gw.kimi.com"],
+            "evidence": ev("ext_ai_call"),
+        },
+        "ref_model_call": {
+            "boundary": "network",
+            "direction": "out",
+            "state": "implemented",
+            "tier": "outbound",
+            "gate": "allowlist",
+            "why": ("复核者模型调用。与 ext_ai_call 是两条独立通道："
+                    "ref_subagent 只做复核，但它的端点同样来自 env，"
+                    "所以白名单同样为空。"),
+            "impl": "executors/ref_subagent.py",
+            "impl_symbols": ["def run_model", "urlopen"],
+            "allow_hosts": [],
+            "allow_hosts_empty_why": (
+                "端点由 env WB_REF_MODEL_ENDPOINT 提供。测试与自证都指向"
+                "127.0.0.1 的本地桩，所以空表覆盖了全部真实用法；"
+                "真要连外站必须显式加这里。"),
+            "evidence": ev("ref_model_call"),
+        },
+        # ---- 四、文档/表格/消息（做不出 real，诚实登记）-----------------
+        "doc_export_office": {
+            "boundary": "filesystem",
+            "direction": "out",
+            "state": "designed",
+            "tier": "write_local",
+            "gate": "path_policy",
+            "why": ("导出 xlsx/docx/pptx 的三件库在本机**是有的**（DSH 运行时"
+                    "自带的 site-packages 里有 openpyxl / python-docx /"
+                    " python-pptx，实测 import 成功），但工作台代码里 0 处使用。"
+                    "换句话说：这不是环境不具备，是**刻意不引**——工作台的"
+                    "生成器、校验器、审计脚本全部只 import stdlib，可信根里"
+                    "没有一处外部代码。要多引一个依赖，得先说服『为什么值得"
+                    "让可信根多一段别人写的代码』，而不是顺手 import 一下。"),
+            "absence_evidence": "%s/doc_export_office/absence.json" % ev_root,
+        },
+        "message_im_push": {
+            "boundary": "message",
+            "direction": "out",
+            "state": "unavailable",
+            "tier": "outbound",
+            "gate": "human_gate",
+            "why": ("Slack / 飞书 / 企微推送需要该平台的凭据与端点，本机都没有。"
+                    "通用的 http_post webhook 已覆盖「能推一条 HTTP 通知」"
+                    "这个真实需求；平台 SDK 那一层不做假实现。"),
+            "allow_hosts": [],
+            "allow_hosts_empty_why": (
+                "连端点都未确定（没有凭据、没有租户），写任何域名都是编的。"
+                "这一条要等真有租户时再填。"),
+            "absence_evidence": "%s/message_im_push/absence.json" % ev_root,
+        },
+        # ---- 五、数据库 / 本地知识库 -----------------------------------
+        "sqlite_local": {
+            "boundary": "database",
+            "direction": "both",
+            "state": "designed",
+            "tier": "write_local",
+            "gate": "path_policy",
+            "why": ("本地 SQLite 知识库在方案里是最后一步。本机 stdlib 有"
+                    " sqlite3（3.53.1），但仓库里 0 处使用 —— 声明 implemented"
+                    " 会逼出假证据。设计意图与缺口见 absence 证据。"),
+            "absence_evidence": "%s/sqlite_local/absence.json" % ev_root,
+        },
+    }
+
+    by_state = {}
+    for name in sorted(connectors):
+        st = connectors[name]["state"]
+        by_state[st] = by_state.get(st, 0) + 1
+
+    return {
+        "schema": 1,
+        "criterion": "connector_registry_v1",
+        "note": ("连接器的边界由本表登记，出站由 connector_registry.authorize()"
+                 " 在连接之前判。加新外站 = 改 allow_hosts + 重签可信根。"
+                 "state 三态见 schema：implemented 必须三证成套，"
+                 "designed/unavailable 必须附 absence 证据，两者不许互换。"),
+        "evidence_root": ev_root,
+        "connectors": connectors,
+        "counts": {
+            "connectors": len(connectors),
+            "by_state": by_state,
+            "by_boundary": {
+                b: sum(1 for e in connectors.values() if e["boundary"] == b)
+                for b in sorted({e["boundary"] for e in connectors.values()})
+            },
+        },
+    }
+
+
 def _gen_lock_semantics():
     """跨平台锁语义对照表（第三十六轮）。
 
@@ -1334,6 +1547,7 @@ def build():
         "lock_semantics.json": enc(_gen_lock_semantics()),
         "executor_registry.json": enc(_gen_executor_registry()),
         "tool_registry.json": enc(_gen_tool_registry()),
+        "connector_registry.json": enc(_gen_connectors()),
         "changelog.json": enc({"schema": 1, "entries": CHANGELOG}),
     }
 

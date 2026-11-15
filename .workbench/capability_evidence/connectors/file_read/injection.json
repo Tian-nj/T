@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport persona_loader\np = os.path.join(os.path.dirname(WB), 'persona', '__no_such_file__.md')\ntext = persona_loader._read(p, 'persona/__no_such_file__.md')\n# 期望：返回空串 + WARN，而不是抛栈，也不是编一段内容\nassert text == '', 'injection: 缺文件时应当返回空串'\nprint('returned_empty=%r' % text)\nprint('OK')\n",
+  "connector": "file_read",
+  "evidence_sha256": "a2d9dbe02c75b03ac81a635fd2cfb972603aa043de95b51c0ad3bfd5cc9ff8d1",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "injection",
+  "stderr": "WARN persona/__no_such_file__.md 不存在；本轮不注入该段\r\n",
+  "stdout": "returned_empty=''\r\nOK\r\n"
+}

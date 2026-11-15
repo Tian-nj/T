@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport platform_ops\n# WB_ISOLATE=1 时拒绝 -S/-E/-I：换解释器参数绕过 shim 这条路必须堵死\ndenied = False\ndetail = ''\ntry:\n    platform_ops.spawn_group([sys.executable, '-S', '-c', 'pass'],\n                             cwd=os.path.dirname(WB),\n                             env=dict(os.environ, WB_ISOLATE='1'))\nexcept RuntimeError as exc:\n    denied = True\n    detail = str(exc)\nprint('denied=%s detail=%r' % (denied, detail[:120]))\nassert denied, 'injection: -S 被放行了'\nprint('DENIED')\n",
+  "connector": "process_exec",
+  "evidence_sha256": "0a8bd18abf07987879f5ef658878ee6fb7322c2e61c5436663be2905cd26acba",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "denied=True detail=\"WB_ISOLATE refuses interpreter flags that disable sitecustomize: ['-S']\"\r\nDENIED\r\n"
+}

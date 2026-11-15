@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nsys.path.insert(0, os.path.join(WB, 'executors'))\nimport ref_subagent as ref\nos.environ[ref.ENDPOINT_ENV] = 'http://127.0.0.1:9/v1/chat/completions'\nos.environ.pop(ref.KEY_ENV, None)\nr = ref.run_model({'task': 'T', 'role': 'verifier'})\nprint('result=%s' % r)\nassert not r.get('ok'), 'injection: 没密钥却报成功'\nprint('DENIED')\n",
+  "connector": "ref_model_call",
+  "evidence_sha256": "2d8a533868337de2558232e03034f613d9a6b1c87da502d43081723dd2342ba8",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "result={'ok': False, 'error': 'WB_REF_MODEL_KEY not set; refusing to pretend a model ran'}\r\nDENIED\r\n"
+}

@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport json, threading\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\nsys.path.insert(0, os.path.join(WB, 'executors'))\nimport ext_ai_subagent as ext\ngot = []\nclass H(BaseHTTPRequestHandler):\n    def do_POST(self):\n        n = int(self.headers.get('Content-Length') or 0)\n        body = json.loads(self.rfile.read(n).decode('utf-8'))\n        got.append(body)\n        resp = json.dumps({'choices': [{'message': {'content': 'PONG'}}]}).encode()\n        self.send_response(200)\n        self.send_header('Content-Type', 'application/json')\n        self.send_header('Content-Length', str(len(resp)))\n        self.end_headers(); self.wfile.write(resp)\n    def log_message(self, *a):\n        pass\nsrv = HTTPServer(('127.0.0.1', 0), H)\nth = threading.Thread(target=srv.serve_forever, daemon=True); th.start()\nos.environ[ext.ENDPOINT_ENV] = 'http://127.0.0.1:%d/v1/chat/completions' % srv.server_address[1]\nos.environ[ext.KEY_ENV] = 'test-key-not-real'\ntry:\n    r = ext.call_provider('kimi', 'consult', {'task': 'T', 'role': 'coder'})\nfinally:\n    srv.shutdown(); th.join(timeout=3)\nprint('result=%s posts=%d' % (json.dumps(r, ensure_ascii=False)[:300], len(got)))\nassert r.get('ok') and r.get('text') == 'PONG', 'real: 本地桩没走通'\nprint('OK')\n",
+  "connector": "ext_ai_call",
+  "evidence_sha256": "d4acb089c21b00d79e30008b5d55342e1fea33cd433e89bf08a92c8716730659",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "result={\"ok\": true, \"text\": \"PONG\", \"provider\": \"kimi\"} posts=1\r\nOK\r\n"
+}

@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport json, threading\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\nsys.path.insert(0, os.path.join(WB, 'executors'))\nimport ref_subagent as ref\ngot = []\nclass H(BaseHTTPRequestHandler):\n    def do_POST(self):\n        n = int(self.headers.get('Content-Length') or 0)\n        got.append(self.rfile.read(n))\n        resp = json.dumps({'choices': [{'message': {'content': 'REVIEWED'}}]}).encode()\n        self.send_response(200)\n        self.send_header('Content-Length', str(len(resp)))\n        self.end_headers(); self.wfile.write(resp)\n    def log_message(self, *a):\n        pass\nsrv = HTTPServer(('127.0.0.1', 0), H)\nth = threading.Thread(target=srv.serve_forever, daemon=True); th.start()\nos.environ[ref.ENDPOINT_ENV] = 'http://127.0.0.1:%d/v1/chat/completions' % srv.server_address[1]\nos.environ[ref.KEY_ENV] = 'test-key-not-real'\ntry:\n    r = ref.run_model({'task': 'T', 'role': 'verifier'})\nfinally:\n    srv.shutdown(); th.join(timeout=3)\nprint('result=%s posts=%d' % (json.dumps(r, ensure_ascii=False)[:300], len(got)))\nassert r.get('ok') and 'REVIEWED' in (r.get('model_output') or ''), 'real: 本地桩没走通'\nprint('OK')\n",
+  "connector": "ref_model_call",
+  "evidence_sha256": "a7812c1d9f2d8c769ecef2640b711b7756fc45ee7b647292f868e1e215ab55bd",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "result={\"ok\": true, \"summary\": \"参考执行体 model 回路：gpt-4o-mini 返回 8 字\", \"changed\": [], \"selfcheck\": {\"cmd\": \"(model)\", \"exit\": 0}, \"model_output\": \"REVIEWED\"} posts=1\r\nOK\r\n"
+}

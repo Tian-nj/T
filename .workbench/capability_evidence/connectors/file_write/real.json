@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport diff_sandbox_check as ds\nimport tempfile, shutil, json\ntmp = tempfile.mkdtemp(prefix='wb-conn-');\ntry:\n    r = ds.check(['src/**'], ['src/x.py'], allow_write=['src/**'],\n                 deny=['.workbench/spec/**'],\n                 deny_absolute_prefix=['C:/Windows'])\n    print(json.dumps(r, ensure_ascii=False))\n    assert r['ok'], 'real: 允许路径被误拒'\n    print('OK')\nfinally:\n    shutil.rmtree(tmp, ignore_errors=True)\n",
+  "connector": "file_write",
+  "evidence_sha256": "fe196027fcfb29cbc3aa759ad90bc38a1c0001aaf7dd288d519f61005d62c1b0",
+  "exit_code": 0,
+  "marker": "OK",
+  "slot": "real",
+  "stderr": "",
+  "stdout": "{\"ok\": true, \"violations\": [], \"scopes\": [\"src\"]}\r\nOK\r\n"
+}

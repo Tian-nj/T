@@ -159,6 +159,34 @@
   "silent": [],
   "dead": []
  },
+ "connector_absence.py": {
+  "loc": 229,
+  "funcs": 7,
+  "silent": [
+   {
+    "line": 93,
+    "bare": false,
+    "type": "(OSError, SyntaxError)",
+    "body": [
+     "Continue"
+    ],
+    "src": "except (OSError, SyntaxError):\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "connector_evidence.py": {
+  "loc": 481,
+  "funcs": 7,
+  "silent": [],
+  "dead": []
+ },
+ "connector_registry.py": {
+  "loc": 664,
+  "funcs": 17,
+  "silent": [],
+  "dead": []
+ },
  "constitution_check.py": {
   "loc": 777,
   "funcs": 11,
@@ -282,8 +310,8 @@
   "dead": []
  },
  "gen_spec.py": {
-  "loc": 1369,
-  "funcs": 18,
+  "loc": 1583,
+  "funcs": 20,
   "silent": [
    {
     "line": 372,
@@ -616,7 +644,7 @@
   "dead": []
  },
  "secret_scan.py": {
-  "loc": 360,
+  "loc": 376,
   "funcs": 10,
   "silent": [],
   "dead": []
@@ -665,7 +693,7 @@
   "dead": []
  },
  "spec_lint.py": {
-  "loc": 714,
+  "loc": 758,
   "funcs": 11,
   "silent": [
    {

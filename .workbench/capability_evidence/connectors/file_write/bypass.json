@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport diff_sandbox_check as ds, json\n# 绝对路径越界（deny_absolute_prefix 的真执行点）\nr = ds.check(['src/**'], ['C:/Windows/System32/evil.dll'], allow_write=['src/**'],\n             deny=['.workbench/spec/**'],\n             deny_absolute_prefix=['C:/Windows'])\nprint(json.dumps(r, ensure_ascii=False))\nprint('BYPASS_BLOCKED' if not r['ok'] else 'BYPASS_OK')\n",
+  "connector": "file_write",
+  "evidence_sha256": "c326dd91c53d9bd89d279c7d86c81dda9dbae7d19705eb02c3dde19f8b9037ca",
+  "exit_code": 0,
+  "marker": "BYPASS_BLOCKED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "{\"ok\": false, \"violations\": [{\"file\": \"C:/Windows/System32/evil.dll\", \"reason\": \"deny_absolute_prefix: C:/Windows\"}], \"scopes\": [\"src\"]}\r\nBYPASS_BLOCKED\r\n"
+}

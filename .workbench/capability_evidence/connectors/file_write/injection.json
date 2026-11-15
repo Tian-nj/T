@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nimport diff_sandbox_check as ds, json\n# 越权路径：不在 allow_write 里\nr = ds.check(['src/**'], ['src/../../outside.txt'], allow_write=['src/**'],\n             deny=['.workbench/spec/**'],\n             deny_absolute_prefix=['C:/Windows'])\nprint(json.dumps(r, ensure_ascii=False))\nassert not r['ok'], 'injection: 越权路径被放行了'\nprint('DENIED')\n",
+  "connector": "file_write",
+  "evidence_sha256": "eb9d250a9f1c184355bb918f52adcc81be06d0d107628b70feba8657e501dbe8",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "injection",
+  "stderr": "",
+  "stdout": "{\"ok\": false, \"violations\": [{\"file\": \"src/../../outside.txt\", \"reason\": \"path rejected: path escapes root: 'src/../../outside.txt'\"}], \"scopes\": [\"src\"]}\r\nDENIED\r\n"
+}

@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 128 个文件的 HMAC 清单
+  root.manifest            # 153 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 59 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 62 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（59 个 .py / 33666 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（62 个 .py / 35314 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -171,13 +171,16 @@ docs/
 | `toolchain.py` | 被 import / 人工 | 解析 python/git/bash/node/pnpm 的绝对路径并补 PATH | 顺序 env→config→PATH→探测；商店存根按「不存在」处理；找不到回落工具名而非 None |
 | `executor_registry.py` | 被 import / 人工 | 4 类执行体 + 5 家 provider 的能力**对账**（声明 vs 代码/角色表） | 声明在 `spec/executor_registry.json`（gen_spec 生成）里，但它不能自己为真；E1–E11 任一命中即非零；`--supports TAG` 分「能做 / 不能 / 未声明」三桶 |
 | `tool_registry.py` | 被 import / 人工 | 61 个工具的**能力分级**（只读/写本地/外发/删除/凭据/发布）与闸门映射对账 | 档位由 AST **现算**、不是声明的；`overrides` 只能升档（降档报 T4）；删自己 `mkdtemp` 出来的目录不抬到 destructive；T1–T8 任一命中即非零 |
+| `connector_registry.py` | `secret_scan._send_webhook` / `ext_ai_subagent.call_provider` / `ref_subagent.run_model` / 人工 | 9 个连接器的**跨界登记**与出站闸门对账（C1–C9） | 不只是表：`authorize()` 是**执行点**，三个外发调用点在发请求之前真的调它，被拒就不发；回环放行（本地桩要能拿真证据），未白名单外站拒；C7 与 `tool_registry.TIER_GATE` 分叉即红 |
+| `connector_evidence.py` | 人工 / 阶段 5 验收 | 6 个 implemented 连接器的 `real` / `injection` / `bypass` 三证 | 判据不认「文件存在且非空」：逐条比 sha256 指纹 + marker 与 stdout 自洽 + real/injection 必须 rc=0 + bypass 不许 `BYPASS_OK`（唯一例外 `file_read`，理由写在代码里）；18 槽位实测全 PASS |
+| `connector_absence.py` | 人工 | 3 个 designed/unavailable 连接器的 `absence.json` | 「我没做」也要留证据：判据用 **AST 找 import**而不是 grep 名字（grep `requests` 会命中 `server_requests` 这类变量名，得出的结论正好相反）；带指纹，改过就发现 |
 | `health.py` | timer | 看门狗 E06/E43 | 心跳不进主链 |
 | `dep_resolver.py` | 被调 | 依赖级联取消 | never_spawned 只记 meta |
 | `gate_timer.py` | timer | 三闸门超时 | 方向写死，不给配置 |
 | `gc_helper.py` | timer | GC-1..GC-6 | 幂等键三元组；GC-6 回收前查租约；**撞上占用是「延后」(rc=3) 不是失败** |
 | `metrics_collector.py` | timer | 八指标 | **比率用万分比整数** |
 | `constitution_check.py` | timer | K1–K9 | 便宜、可高频；K4 窗口有链上终点 |
-| `spec_lint.py` | 人工/CI | S001–S025 | S019 查三证完整性；S020 真跑相对账本 report；S024 执行体能力注册表对账（声明不能自己为真）；S025 工具档位对账 + 单档占比不得超 70%；mutation 验证过 |
+| `spec_lint.py` | 人工/CI | S001–S026 | S019 查三证完整性；S020 真跑相对账本 report；S024 执行体能力注册表对账（声明不能自己为真）；S025 工具档位对账 + 单档占比不得超 70%；S026 连接器登记表与代码事实对账（这条有运行期消费者：对不上就是出站闸门的白名单与真连的主机不一致）；mutation 验证过 |
 | `migrate_vx_to_vy.py` | system | 五步迁移 | 源版本不符拒绝猜；切主失败按相反顺序回滚 + E38 |
 | `mg_gate.py` | 被 import | **MG 四分支闸门（纯判定）** | 缺 `statuses`/`commands` 时降级，不许"没证据=通过" |
 | `secret_scan.py` | submit | 六面密钥扫描 + alerts | 只扫新增行；命中只告警；给行号不给全文 |
@@ -427,6 +430,57 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 > 保持 destructive 是对的。这条留作反例：**判据放宽时，必须能找到一条「它仍
 > 该红」的例子**，否则放宽的边界画在哪里都不知道。
 
+> **2026-11-15 阶段 5（连接器与外部系统接入）**：`spec/connector_registry.json` +
+> `connector_registry.py` + `connector_evidence.py` + `connector_absence.py` +
+> `tests/test_connector_registry.py` + `spec_lint` **S026**。这一阶段开工前的
+> 实测结果是：全仓 `grep -i connector` **0 命中** —— 方案 §7 写的那一层，一个
+> 字都不存在。
+>
+> 动手前先问了一个问题：**再加一张表，会不会又是「规则写了没人读」？**
+> 查下来 `tool_registry.TIER_GATE` 当时**没有任何运行期消费者** —— 只有它自己、
+> 生成器、S025 和测试读。于是这一阶段的核心决定不是「把 9 个连接器登记下来」，
+> 而是**登记之外必须带一个真的执行点**：`authorize(connector, target)` 被
+> `secret_scan._send_webhook`、`ext_ai_subagent.call_provider`、
+> `ref_subagent.run_model` 在发起连接**之前**真的调用，被拒就不发。
+> 只有登记，这一层就是文档；登记 + 执行点，才是护栏。
+>
+> 行为改变是实打实的：改动之前 `_send_webhook` 会把请求真的发到任何 `W4_WEBHOOK`
+> 指的地址（`http_post` 的 bypass 探针原本就是这么打出去到 198.51.100.9 的）；
+> 改动之后未白名单的外站被拦下，返回 `{"channel":"webhook","denied":...}`。
+> 这是阶段 5 唯一的运行期行为变化，所以必须写在 README 里，而不是只写进提交信息。
+>
+> 三证（`real` / `injection` / `bypass`）沿用了 `capability_evidence` 那套目录约定，
+> 但判据刻意比它更严：`capability_gate._slot_valid` 只要求「文件存在且非空」，
+> 对连接器太弱了 —— 一个空跑的探针同样能写出非空文件。所以 `connector_evidence`
+> 逐条比 sha256 指纹、要求 marker 与 stdout 自洽、real/injection 必须 `rc=0`、
+> bypass 不许出现 `BYPASS_OK`。18 个槽位实测全 PASS。
+> **`bypass` 是三份里最值钱的一份** —— 它是唯一能证明「闸门真的存在」的那份；
+> `real` 只证明通道能通（没闸门也能通），`injection` 只证明假输入没被当成功。
+>
+> 唯一允许 `BYPASS_OK` 的是 `file_read`，理由是它绕的是**已登记的边界**：
+> `deny_absolute_prefix` 只挡写不挡读（这条在 `paths.yaml` 里就是这样定义的），
+> 所以它读到 `C:\Windows\win.ini` 不是漏洞，是设计。但必须允许并在 absence 里
+> 写明，否则「边界已知」与「边界失效」在证据上长得完全一样。
+>
+> 三个 designed/unavailable 的连接器要留 **absence.json**：「我没做」也是结论，
+> 但它和「忘了填」在 JSON 里长得一样。absence 里记判据、记「判据在哪一行」
+> （扫到哪几个文件）、带指纹。判据这里踩过一个坑，值得单独记：
+> **第一版用 grep 数名字，`requests` 命中 7 个文件，看着像在用；逐个看下去
+> 全是 `server_requests` / `self.requests` / 测试里手写的 `requests==2.31.0`
+> 文本 —— 一个都没 import。**「提到一个名字」和「依赖一个模块」是两件事，
+> 用 grep 当判据得出来的结论正好是反的。改成 AST 找 import 后命中归零。
+>
+> 还有一处必须订正的事实：一开始把 `doc_export_office` 判成 **unavailable**
+> （理由「openpyxl/docx/pptx 全 0 命中」）。实测 `import openpyxl` 在本机
+> **成功** —— 它们在 DSH 运行时自带的 site-packages 里。所以那不是「环境不具备」，
+> 是**仓库刻意不引依赖**（`designed`）。`grep 0 命中` 证明的是「仓库没用它」，
+> 不是「机器上没有它」；这两者的处置完全不同（前者改设计，后者改环境），
+> 判错会把一个可用的能力说成不可用的。
+>
+> `authorize()` 里有一处刻意的宽松值得说明：**回环放行**。本仓库所有自证探针
+> 都靠本地桩（`external_alert` 的 real 探针就是起一个 127.0.0.1 的 HTTPServer），
+> 要求回环也进白名单，等于让「证明闸门有效」这件事先过不了闸门。
+
 前四个问"对不对"，`audit_closure` 问的是**"有没有人管"**。
 一条规则最危险的失效形态不是写错，是没有任何执行点读它 ——
 它躺在 spec 里，review 时看得见、出事后翻得到，运行时从来没跑过。
@@ -438,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 118 项：80 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 119 项：81 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1087,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 80 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **118 项 / 118 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 81 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **119 项 / 119 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 

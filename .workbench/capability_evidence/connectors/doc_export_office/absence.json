@@ -1,0 +1,19 @@
+{
+  "connector": "doc_export_office",
+  "criterion": "grep 仓库执行面 + import 实测",
+  "evidence": {
+    "hit_files": [],
+    "hits": {},
+    "needles": [
+      "openpyxl",
+      "docx",
+      "pptx",
+      "xlsxwriter",
+      "pandas"
+    ]
+  },
+  "evidence_sha256": "5eb47874ac94ea27bdbb8034df08cedb7ee115c16dd86f105a964bc7fdce01b3",
+  "next_step": "若真要导出 Office 文件：在 executors/ 下新写一个导出器，把第三方 import 收在函数内部（不在模块顶层），并在 connectors 表里把它从 designed 改成 implemented、补三证。注意三证里的 real 必须真产出一个文件再用 zipfile 读回来校验结构，不能只看「没抛异常」。",
+  "state": "designed",
+  "why_absent": "导出 xlsx/docx/pptx 的三件库在本机**是有的**（DSH 运行时自带的 site-packages：openpyxl / python-docx / python-pptx，实测 import 成功），但工作台代码里 0 处使用。所以这不是「环境不具备」，是**刻意不引依赖**：生成器、校验器、审计脚本全部只 import stdlib，可信根里没有一处外部代码。要多引一个依赖，得先说服为什么值得让可信根多一段别人写的代码。"
+}

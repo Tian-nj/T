@@ -1,0 +1,10 @@
+{
+  "cmd": "import io,json,os,sys\nsys.path.insert(0, os.environ['WB_SCRIPTS'])\nWB = os.environ['WB_HOME']\nsys.path.insert(0, os.path.join(WB, 'executors'))\nimport ref_subagent as ref\nos.environ[ref.ENDPOINT_ENV] = 'http://198.51.100.9/v1/chat/completions'\nos.environ[ref.KEY_ENV] = 'test-key-not-real'\nr = ref.run_model({'task': 'T', 'role': 'verifier'})\nprint('result=%s' % r)\ndenied = (not r.get('ok')) and r.get('denied_by') == 'connector_registry'\nprint('DENIED' if denied else 'BYPASS_OK')\nassert denied, 'bypass: 未白名单的端点没有被拦'\n",
+  "connector": "ref_model_call",
+  "evidence_sha256": "cfab74464b6d6a64469d724c6f5a54bc273706e2c82dfb3a5afae47f4e2dcdce",
+  "exit_code": 0,
+  "marker": "DENIED",
+  "slot": "bypass",
+  "stderr": "",
+  "stdout": "result={'ok': False, 'error': 'outbound denied: 拒绝：ref_model_call 的目标主机 198.51.100.9 不在 allow_hosts [] 里 —— 加新外站要改声明并重签可信根，不能运行时悄悄连', 'denied_by': 'connector_registry'}\r\nDENIED\r\n"
+}
