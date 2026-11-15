@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
-# run_all_checks.sh —— 一键回归：76 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = 114 项
-#   76 测试（for 清单）/ 5 audit / 29 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
+# run_all_checks.sh —— 一键回归：77 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = 115 项
+#   77 测试（for 清单）/ 5 audit / 29 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
 #   覆盖率段单独打印，不走 run()，因此不计入 PASSED（别把两个数字混成一个）。
 #
 # 为什么要有这个脚本：
@@ -539,6 +539,15 @@ _slow_reusable() {
 #                    能证：链路通、请求是 OpenAI 兼容的、密钥真的进了头且没漏进签署、
 #                    HTTP 500 / 端口不通 / 缺端点 / 缺密钥都失败且不签、越界改动拒签。
 #                    不能证：某个具体供应商的响应格式与限流行为 —— 边界写在测试抬头。
+#   test_ext_ai_subagent —— 外部 AI 执行体的契约测试。工作台现在能调度本机的
+#                    其他 AI 软件（Kimi 有 OpenAI 兼容端点；WorkBuddy / 豆包 / 千问
+#                    实测都没有对外接口，如实写进能力表并附证据）。这条测的是
+#                    **控制面与执行体之间的契约**，不是某一家的脾气：write_job 的字段
+#                    它读不读得懂、签署落不落在 done_sentinel、consult 模式是不是
+#                    一个字都没改、越界与过期是不是拒签、不可用 provider 是不是被拒。
+#                    外加复核闭环的判据：只有 verdict=pass 才算过（「基本没问题」
+#                    一律落 rework），以及同家自审必须被拒。
+#                    不能证：外部模型对某次具体改动说得对不对 —— 那只能真跑一次。
 #   test_state_sentinel —— 第三十六轮：`(none)` 哨兵以前是**三个地方各写一份**
 #                    的字面量（gen_spec 的权威定义、spec_lint 的 _NO_STATE、
 #                    wb_core 的 NO_STATE）。改副本的后果是最坏的一种：
@@ -582,6 +591,7 @@ for t in test_mg_gate test_gate_integration test_actor_and_freeze \
          test_platform_runner_probe test_scheduler_observe \
          test_signature_backend test_gc_defer \
          test_from_states test_runner_paths test_ref_subagent \
+         test_ext_ai_subagent \
          test_cross_process_lock test_ref_subagent_model_e2e \
          test_state_sentinel test_lock_timeout_and_contention \
          test_boss_seat test_boss_report_revert \

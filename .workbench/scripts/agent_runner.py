@@ -23,6 +23,10 @@
       · local_process    —— 一条命令（确定性脚本 / 本地模型 CLI）
       · harness_subagent —— 由编排器（DSH / 其他）派出的子代理
       · human_cli        —— 人
+      · external_ai      —— 本机安装的第三方 AI 产品（Kimi / DeepSeek …）。
+                            由 executors/ext_ai_subagent.py 读 job 写 sentinel，
+                            用它自己的凭据与端点干活。哪家有接口、哪家没有，
+                            写在那份执行体的 PROVIDERS 能力表里，可核对。
     三种的**控制面行为完全相同**：同一个写域、同一份 brief、同一套收尾。
     区分只在派遣方式，不在待遇。
 
@@ -103,6 +107,12 @@ WT_DIR = os.path.join(WB, "wt")
 # 一份常量四个读者，改一处不再漏三处。
 SPAWN_ROLES = ("coder", "architect", "lead")
 LEASE_ROLES = SPAWN_ROLES
+
+# 执行体类型。第四种 external_ai 是「本机装着的第三方 AI 产品当 worker」：
+# 它和 harness_subagent / human_cli 一样只写 job 然后等 sentinel，
+# 派发分支不需要为它增加一段代码 —— 控制面照旧不知道对面是谁。
+# 一份常量两处 argparse choices，改一处不再漏一处（spec_lint S013 也认这张表）。
+EXECUTOR_KINDS = ("harness_subagent", "local_process", "human_cli", "external_ai")
 
 # 定稿 §2.3.1（智能工作台-完整方案-v3.2（实现定稿）.md:128）要求 worker 环境
 # 剔除 WORKBENCH_ROOT_KEY。规则与实现只在 platform_ops 一份（scrub_env /
@@ -627,6 +637,54 @@ def dispatch_job(tid: str, role: str, spec: dict, brief: str, wt: str,
                 "sentinel": _read_json(done)}
 
     # harness_subagent / human_cli：只写 job，然后等 sentinel。
+    # 这两种的「谁去把 job 变成 sentinel」在控制面之外——DSH 调度器或人。
+    if ex == "external_ai":
+        # 外部 AI 执行体是本机脚本，控制面可以自己起它，所以这条路能自转：
+        # 派活、等签署都不用人在场。这是它和 harness_subagent 的实际差别。
+        ep_path = os.path.join(WB, "executors", "ext_ai_subagent.py")
+        if not os.path.exists(ep_path):
+            raise RunnerError("executors/ext_ai_subagent.py 不存在（external_ai 无实现）")
+        env = platform_ops.scrub_env(os.environ)
+        env["WB_SENTINEL"] = done
+        env["WB_TASK"] = tid
+        env["WB_ROLE"] = role
+        env["WB_WORKTREE"] = wt
+        env["WB_HOME"] = WB
+        env["PYTHONIOENCODING"] = "utf-8"
+        # 刻意**不**往 env 里放任何供应商密钥：执行体自己去读它所属产品的
+        # 本地凭据（例：Kimi 的 daimon config.json）。密钥根本不经过工作台，
+        # 于是 env_deny 里那串 *_API_KEY / *_TOKEN 也就不必为它开口子。
+        backend = (spec.get("backend") or os.environ.get("WB_EXT_AI_BACKEND")
+                   or "external")
+        mode = spec.get("mode") or "consult"
+        argv = [sys.executable, ep_path, "--job", jobp,
+                "--backend", backend, "--mode", mode]
+        if spec.get("provider"):
+            argv += ["--provider", spec["provider"]]
+        proc = platform_ops.spawn_group(argv, cwd=ROOT, env=env,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, contain=True)
+        # 与 local_process 一样有真实子进程，所以 E05 也在这里补。
+        # 差别只在「子进程里跑的是谁」：那边是我们自己的脚本，这边是
+        # 一个去问第三方 AI 的适配器。控制面记的账是同一笔。
+        creation = ""
+        try:
+            creation = platform_ops.process_creation_date(proc.pid) or ""
+        except Exception as exc:
+            sys.stderr.write("WARN creation_date(%s) unavailable: %s\n"
+                             % (proc.pid, exc))
+        if on_spawn:
+            on_spawn(proc.pid, creation)
+        out, err = proc.communicate(timeout=max(30, int(wait_sec)))
+        return {"mode": "external_ai", "rc": proc.returncode, "pid": proc.pid,
+                "stdout": (out if isinstance(out, str)
+                           else (out or b"").decode("utf-8", "replace"))[-4000:],
+                "stderr": (err if isinstance(err, str)
+                           else (err or b"").decode("utf-8", "replace"))[-4000:],
+                "sentinel": _read_json(done)}
+
+    # harness_subagent / human_cli：只写 job，然后等 sentinel。
+    # 这两种的「谁去把 job 变成 sentinel」在控制面之外——DSH 调度器或人。
     # 控制面不知道对面是谁，也不需要知道。
     deadline = time.time() + wait_sec
     while time.time() < deadline:
@@ -659,7 +717,10 @@ def _record_exit(st, tid: str, result: dict) -> None:
         if row.get("kind") == "spawn" and \
                 ((row.get("payload") or {}).get("task") or row.get("task")) == tid:
             pid = (row.get("payload") or {}).get("pid") or 0
-    if result.get("mode") == "local_process":
+    if result.get("mode") in ("local_process", "external_ai"):
+        # 两条路都有真实子进程与退出码，所以「它退了」这件事有本地证据。
+        # 只有 harness_subagent / human_cli 那种控制面不起进程的情形，
+        # 才退化成 method=sentinel（只能拿签署当"它结束了"的证据）。
         method, rc = "exited", result.get("rc")
     pl = {"task": tid, "pid": int(pid) if isinstance(pid, int) else 0,
           "method": method, "killed": False}
@@ -978,7 +1039,8 @@ def cmd_run(a):
             if keeper and keeper.lost:
                 print("ABORT %s/%s：租约在作业期间丢失（%s）" % (tid, a.role, keeper.error or "superseded"))
                 return 6
-            if res.get("mode") != "local_process" and wants_spawn and not announced["done"]:
+            if res.get("mode") not in ("local_process", "external_ai") \
+                    and wants_spawn and not announced["done"]:
                 print("NOTE %s/%s 由 external executor 执行；E05 需派发方补写："
                       "\n  agent_runner.py announce --task %s --role %s --pid <worker-pid>"
                       % (tid, a.role, tid, a.role))
@@ -1130,7 +1192,7 @@ def main(argv=None):
     p.add_argument("--role", required=True)
     p.add_argument("--base")
     p.add_argument("--objective", default="")
-    p.add_argument("--executor", choices=["harness_subagent", "local_process", "human_cli"])
+    p.add_argument("--executor", choices=list(EXECUTOR_KINDS))
     p.add_argument("--entrypoint")
     p.add_argument("--wait", type=int, default=1800,
                    help="写进 job 文件的 deadline 秒数（prepare 不等待，但截止时间要写下来）")
@@ -1143,7 +1205,7 @@ def main(argv=None):
     p.add_argument("--objective", default="")
     p.add_argument("--wait", type=int, default=1800, help="等待 sentinel 的秒数")
     p.add_argument("--poll", type=float, default=0.5)
-    p.add_argument("--executor", choices=["harness_subagent", "local_process", "human_cli"],
+    p.add_argument("--executor", choices=list(EXECUTOR_KINDS),
                    help="本次运行临时覆盖 agents.json 的 executor（不改可信根）")
     p.add_argument("--entrypoint", help="本次运行临时覆盖 entrypoint（仅 local_process 有意义）")
     p.add_argument("--submit", action="store_true", help="收尾后交回 lead.py task-submit")

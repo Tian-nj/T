@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794717282323,
-  "digest": "hmac-sha256:b475c81f1793e24e55e9873d1b1f87d773163735d2b0683e33bdcd1402312d74",
+  "created_ms": 1794726065166,
+  "digest": "hmac-sha256:37077c58349da513e15fdcdfebd542c4612c301760d2fbf0ec14cd4d420de5d5",
   "entries": [
     {
       "bytes": 3315,
@@ -121,7 +121,7 @@
     {
       "bytes": 3611,
       "path": "capability_evidence/native_isolation.json",
-      "sha256": "sha256:66628420577b39c6c73d7453adfe796ddc3ee398a99916d67077c0eefb54700a"
+      "sha256": "sha256:b73d6c8df74bbe5f7bc8a048cb2dad8240ab544d568fd22b41bc9e91867db7c3"
     },
     {
       "bytes": 815,
@@ -209,6 +209,11 @@
       "sha256": "sha256:99e14dcbb14b2afc8e7f1eab45f48f59a6c53e1680f42cc3aaade6663fc8ffbd"
     },
     {
+      "bytes": 36230,
+      "path": "executors/ext_ai_subagent.py",
+      "sha256": "sha256:4c5b8e74a630f2f12c62986a89bb94f3674ee071d50154436f4afe5d07696377"
+    },
+    {
       "bytes": 15028,
       "path": "executors/ref_subagent.py",
       "sha256": "sha256:a833a5592ec768ede78d1c0373175bb50c62bdf6cef5ec14dd194498835cc402"
@@ -244,9 +249,9 @@
       "sha256": "sha256:f5cd97834d3afd9c0b4b26d25141a900c4ad39e3088e94c8eb7e4d9ef190aeeb"
     },
     {
-      "bytes": 58543,
+      "bytes": 62515,
       "path": "scripts/agent_runner.py",
-      "sha256": "sha256:fd44455711144d40ac4a9ff0576764aeba623983a60a7de6c94490de1bd9a1c6"
+      "sha256": "sha256:5fea3cef545d2cc6dc6c3928284c7a20cac1e4397da6ca0a751b3ca0badc5b50"
     },
     {
       "bytes": 59739,
@@ -337,6 +342,16 @@
       "bytes": 16360,
       "path": "scripts/emotion_engine.py",
       "sha256": "sha256:952e77ae1023f56b7817d657f13591b46edc3eb0a000794e37b606649fd5e411"
+    },
+    {
+      "bytes": 15251,
+      "path": "scripts/ext_review.py",
+      "sha256": "sha256:6078b23f916dd02a7641b6d3ab846c3aeeca8a52b4cf7968a85b10f7e837f7aa"
+    },
+    {
+      "bytes": 10652,
+      "path": "scripts/ext_route.py",
+      "sha256": "sha256:6eddfd25febf84b78ba6c06a2e2f537851df5492f3bf08ac1800b3beeedb12e1"
     },
     {
       "bytes": 4680,
@@ -484,9 +499,9 @@
       "sha256": "sha256:3384684d954472535434aaa105e6b9949dc3f1e2a9f332cb5ebf80517ce112ee"
     },
     {
-      "bytes": 31055,
+      "bytes": 31390,
       "path": "scripts/spec_lint.py",
-      "sha256": "sha256:28798b597e1bdb412fda1bc434bdc25a8391ec7b859bb094454f83f793b0c681"
+      "sha256": "sha256:f5e927ff24042d05081907f9b18a7b8cac3daa3cfa6449c27d6172d2ebc40eac"
     },
     {
       "bytes": 22815,
@@ -604,9 +619,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 120,
+  "entry_count": 123,
   "manifest_version": 1,
-  "sig": "hmac-sha256:b475c81f1793e24e55e9873d1b1f87d773163735d2b0683e33bdcd1402312d74",
+  "sig": "hmac-sha256:37077c58349da513e15fdcdfebd542c4612c301760d2fbf0ec14cd4d420de5d5",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

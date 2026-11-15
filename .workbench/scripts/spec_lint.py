@@ -18,7 +18,7 @@
   S010  changelog 末条版本与 config 一致
   S011  agents.json 的 entrypoint 必须真实存在
   S012  can_emit 必须是已声明事件号
-  S013  executor 必须是已知类型
+  S013  executor 必须是已知类型（harness_subagent / local_process / human_cli / external_ai）
   S014  角色 write_scope 必须被 paths.yaml 兜住
   S015  cross_checks 真的求值（裸标识符按 bindings 取真值，受限 AST）
   S016  rules.json 的 expr / requires 静态可解析 + 标识符白名单核对
@@ -337,7 +337,10 @@ def lint() -> list:
                 bad("S012", "%s.can_emit 引用未声明事件 %r" % (name, eid))
 
         # S013 executor 必须是已知类型
-        known = {"harness_subagent", "local_process", "human_cli"}
+        #     external_ai 是第四种：由本机安装的第三方 AI 产品当 worker。
+        #     它和 harness_subagent 一样只写 job 等 sentinel，区别是
+        #     「对面是谁」由执行体自己挑，控制面不需要知道。
+        known = {"harness_subagent", "local_process", "human_cli", "external_ai"}
         for name, r in (ag.get("roles") or {}).items():
             ex = r.get("executor")
             if ex not in known:

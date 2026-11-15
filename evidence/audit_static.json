@@ -6,7 +6,7 @@
   "dead": []
  },
  "agent_runner.py": {
-  "loc": 1195,
+  "loc": 1257,
   "funcs": 34,
   "silent": [],
   "dead": []
@@ -238,6 +238,28 @@
  "emotion_engine.py": {
   "loc": 411,
   "funcs": 18,
+  "silent": [],
+  "dead": []
+ },
+ "ext_review.py": {
+  "loc": 340,
+  "funcs": 10,
+  "silent": [
+   {
+    "line": 98,
+    "bare": false,
+    "type": "(OSError, ValueError)",
+    "body": [
+     "Continue"
+    ],
+    "src": "except (OSError, ValueError):\n    continue"
+   }
+  ],
+  "dead": []
+ },
+ "ext_route.py": {
+  "loc": 246,
+  "funcs": 8,
   "silent": [],
   "dead": []
  },
@@ -637,11 +659,11 @@
   "dead": []
  },
  "spec_lint.py": {
-  "loc": 626,
+  "loc": 629,
   "funcs": 11,
   "silent": [
    {
-    "line": 546,
+    "line": 549,
     "bare": false,
     "type": "ImportError",
     "body": [

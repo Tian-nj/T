@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 120 个文件的 HMAC 清单
+  root.manifest            # 123 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 54 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 56 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（54 个 .py / 31131 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（56 个 .py / 31782 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -324,7 +324,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 114 项：76 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 115 项：77 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -973,7 +973,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 76 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **114 项 / 114 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 77 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **115 项 / 115 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
