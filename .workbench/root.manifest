@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794752874732,
-  "digest": "hmac-sha256:315fc5ad10c26f3f8d7838c862d4c1f53f0bf13ac5c239e74705aaae1c1ea555",
+  "created_ms": 1794754089664,
+  "digest": "hmac-sha256:c6985ad723fcaaff3123eed3ec054573519b35c36b56a46d9fe4cca3b0b4b22e",
   "entries": [
     {
       "bytes": 3315,
@@ -369,9 +369,9 @@
       "sha256": "sha256:19db56bd537d1a1f4f99d8e69e102b4822f2346a48807d39ba84c373cef4eb2e"
     },
     {
-      "bytes": 80533,
+      "bytes": 86098,
       "path": "scripts/gen_spec.py",
-      "sha256": "sha256:780739859a333f206046381ced44eae807558d02852be4f32ebb275e9b79eddb"
+      "sha256": "sha256:08b1921f2a268e411f3d9058067a7bbfffd297baeb54dd010e49e7410b3b8e49"
     },
     {
       "bytes": 6464,
@@ -504,9 +504,9 @@
       "sha256": "sha256:3384684d954472535434aaa105e6b9949dc3f1e2a9f332cb5ebf80517ce112ee"
     },
     {
-      "bytes": 33999,
+      "bytes": 36596,
       "path": "scripts/spec_lint.py",
-      "sha256": "sha256:4481ed8d3daadf9f135e0242e946b097288ead2a92a72b6d207ab0febf4ba1dd"
+      "sha256": "sha256:fc5f8231f3cc6038bc9dcdfd997204a341755a9bad095b4901aa2f92f1faeb58"
     },
     {
       "bytes": 22815,
@@ -522,6 +522,11 @@
       "bytes": 17483,
       "path": "scripts/token_ledger.py",
       "sha256": "sha256:00cadcf8c0abc816edb8c46ba318632cf5de317ccfba5db10a04a631c7926ab8"
+    },
+    {
+      "bytes": 26823,
+      "path": "scripts/tool_registry.py",
+      "sha256": "sha256:d08eb60b2deea953c9a6751685e0a10a2c892b239dedbaad3afdecd968c53e4d"
     },
     {
       "bytes": 15659,
@@ -609,6 +614,11 @@
       "sha256": "sha256:0ac6b536aae34fff490c589eaa1d37003370c799d5aac299c734c197b1d51bbe"
     },
     {
+      "bytes": 7200,
+      "path": "spec/tool_registry.json",
+      "sha256": "sha256:5fc3c35e7703f2e20662aa6078e10f10cab63992ca6da83f748321631770b53e"
+    },
+    {
       "bytes": 599,
       "path": "state/members.json",
       "sha256": "sha256:caae8b02abc54b92c5cfeaadd6e9a68e460c08a499a829bf311350d0302c106f"
@@ -634,9 +644,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 126,
+  "entry_count": 128,
   "manifest_version": 1,
-  "sig": "hmac-sha256:315fc5ad10c26f3f8d7838c862d4c1f53f0bf13ac5c239e74705aaae1c1ea555",
+  "sig": "hmac-sha256:c6985ad723fcaaff3123eed3ec054573519b35c36b56a46d9fe4cca3b0b4b22e",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

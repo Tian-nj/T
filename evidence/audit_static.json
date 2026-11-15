@@ -282,8 +282,8 @@
   "dead": []
  },
  "gen_spec.py": {
-  "loc": 1266,
-  "funcs": 17,
+  "loc": 1369,
+  "funcs": 18,
   "silent": [
    {
     "line": 372,
@@ -665,7 +665,7 @@
   "dead": []
  },
  "spec_lint.py": {
-  "loc": 670,
+  "loc": 714,
   "funcs": 11,
   "silent": [
    {
@@ -694,6 +694,12 @@
  },
  "token_ledger.py": {
   "loc": 456,
+  "funcs": 16,
+  "silent": [],
+  "dead": []
+ },
+ "tool_registry.py": {
+  "loc": 606,
   "funcs": 16,
   "silent": [],
   "dead": []

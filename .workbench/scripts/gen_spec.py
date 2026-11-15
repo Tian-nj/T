@@ -1124,6 +1124,108 @@ def _gen_executor_registry():
     }
 
 
+def _gen_tool_registry():
+    """工具能力分级注册表（阶段 3）。
+
+    为什么这张表必须存在
+
+        方案 §3 的分级→闸门映射有四行，其中三行早就有执行点：只读自动放行
+        （`run_all_checks` 的 run()）、写本地受 `spec/paths.yaml` 约束
+        （`agent_runner.py:783` 等四处）、人工 gate（`mg_gate.py` 的
+        never_waive）。缺的是把这三行**挂到工具上**的那一栏：没有任何地方
+        知道「`gc_helper.py` 属于哪一档」。没有这一栏，「写本地要受约束」
+        约束的是路径而不是工具 —— 一个 destructive 工具照样能在允许路径里
+        删掉一切。
+
+    分三层，与 executor_registry 同构
+
+        spec/tool_registry.json   声明（本函数生成、进可信根）
+        scripts/*.py 的 AST       事实（人真正跑的代码）
+        tool_registry.py          对账（扫 AST、定档、与声明逐条比）
+
+        **档位是推导出来的，不是声明的。** 本函数只定策略（`rule_table`
+        判据 + `tiers` 的闸门映射 + `overrides` 的人工加严），具体每个工具
+        落哪档由 `tool_registry.classify()` 现算，这里存的是**快照**。
+
+        快照不是第二份真相 —— 它是给人看的 diff：`git diff spec/tool_registry.json`
+        会显示「gc_helper.py: write_local → destructive」。签名只证明「文件
+        变过」，说不出「哪个工具变危险了」，而后者才是需要人看一眼的东西。
+
+    为什么 rule_table 的顺序就是判据
+
+        规则**从重到轻**排、先撞先赢。否则一个既删文件又写文件的工具会先撞
+        writes 被定成 write_local，删除那一面永久消失。`_selftest` 有一条
+        专门钉这个顺序，`tool_registry.reconcile()` 的 T3 也会复核。
+
+    为什么后两档不由 AST 推导
+
+        `credentials` / `release` 只能经 `overrides` 加严（且只许升不许降）。
+        AST 分不出「处理凭据的脚本」与「列出凭据文件名的脚本」：本仓
+        `secret_scan.py` 的检测规则里就有 `password` / `private_key` 字面量，
+        `mg_gate.py` 的 never_waive 里也有 `.pem` / `id_rsa` —— 这两个都是
+        扫描器，不是凭据处理者。拿字面量命中当判据，会让一个专门抓泄漏的
+        工具被标成「碰凭据」，然后每个新写的过滤器都会得到同样的误判。
+    """
+    # 顺序 = 判据（从重到轻），见 docstring。
+    rule_table = [
+        {"when": "deletes", "tier": "destructive"},
+        {"when": "connects", "tier": "outbound"},
+        {"when": "writes", "tier": "write_local"},
+        {"when": "spawns", "tier": "write_local"},
+        # listens 判 write_local 而不是 outbound：`verify_harness.free_port()`
+        # 只是 bind(("127.0.0.1", 0)) 取个空闲端口再关掉，数据没离开本机。
+        # 真有服务绑 0.0.0.0 的场景由 overrides 升档，而不是把整类判成外发。
+        {"when": "listens", "tier": "write_local"},
+    ]
+    tiers = {
+        "read_only": {"gate": "auto", "derivable": True,
+                      "why": "不写盘、不起子进程、不联外网；调用只记 token_ledger"},
+        "write_local": {"gate": "path_policy", "derivable": True,
+                        "why": "写盘或起子进程，受 spec/paths.yaml 的 allow_write 约束"},
+        "outbound": {"gate": "human_gate", "derivable": True,
+                     "why": "建立外部连接（数据可能离开本机），人工确认后才放行"},
+        "destructive": {"gate": "human_gate", "derivable": True,
+                        "why": "删除文件系统内容，不可回滚，人工确认后才放行"},
+        "credentials": {"gate": "human_gate_never_waive", "derivable": False,
+                        "why": "读写密钥/凭据，命中 never_waive，只能人工加严"},
+        "release": {"gate": "human_gate_never_waive", "derivable": False,
+                    "why": "发布/推送/改版本，命中 never_waive，只能人工加严"},
+    }
+
+    # 快照由真扫描得出。生成器 import 对账模块，而不是把扫描逻辑抄一份 ——
+    # 抄一份就是第二个真相，两边迟早会对不上，而且对不上的时候没人知道该信谁。
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import tool_registry as tr  # noqa: E402  （延迟 import：本文件其它生成器不依赖它）
+
+    facts = tr.classify(rule_table)
+    tools = {}
+    by_tier = {}
+    for name in sorted(facts):
+        info = facts[name]
+        tools[name] = {"tier": info["tier"], "loc": info["loc"]}
+        by_tier[info["tier"]] = by_tier.get(info["tier"], 0) + 1
+
+    return {
+        "schema": 1,
+        "criterion": tr.SCHEMA,
+        "note": ("档位由 tool_registry.classify() 现算，本表只存策略与快照。"
+                 "overrides 只能升档：想放宽请改 rule_table（全体一起变），"
+                 "不要给单个工具开口子 —— 开口子会被下一个工具复制。"),
+        "tiers": tiers,
+        "rule_table": rule_table,
+        "overrides": {},
+        "tools": tools,
+        "counts": {
+            "tools": len(tools),
+            "by_tier": by_tier,
+            "derivable_tiers": 4,
+            "override_only_tiers": 2,
+        },
+    }
+
+
 def _gen_lock_semantics():
     """跨平台锁语义对照表（第三十六轮）。
 
@@ -1231,6 +1333,7 @@ def build():
         "config_compat.json": enc(_gen_config_compat()),
         "lock_semantics.json": enc(_gen_lock_semantics()),
         "executor_registry.json": enc(_gen_executor_registry()),
+        "tool_registry.json": enc(_gen_tool_registry()),
         "changelog.json": enc({"schema": 1, "entries": CHANGELOG}),
     }
 

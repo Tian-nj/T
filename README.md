@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 126 个文件的 HMAC 清单
+  root.manifest            # 128 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 58 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 59 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（58 个 .py / 32913 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（59 个 .py / 33666 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -170,13 +170,14 @@ docs/
 | `platform_ops.py` | 被 import | 九项平台原语 | atomic_replace 退避 100/300/900ms |
 | `toolchain.py` | 被 import / 人工 | 解析 python/git/bash/node/pnpm 的绝对路径并补 PATH | 顺序 env→config→PATH→探测；商店存根按「不存在」处理；找不到回落工具名而非 None |
 | `executor_registry.py` | 被 import / 人工 | 4 类执行体 + 5 家 provider 的能力**对账**（声明 vs 代码/角色表） | 声明在 `spec/executor_registry.json`（gen_spec 生成）里，但它不能自己为真；E1–E11 任一命中即非零；`--supports TAG` 分「能做 / 不能 / 未声明」三桶 |
+| `tool_registry.py` | 被 import / 人工 | 61 个工具的**能力分级**（只读/写本地/外发/删除/凭据/发布）与闸门映射对账 | 档位由 AST **现算**、不是声明的；`overrides` 只能升档（降档报 T4）；删自己 `mkdtemp` 出来的目录不抬到 destructive；T1–T8 任一命中即非零 |
 | `health.py` | timer | 看门狗 E06/E43 | 心跳不进主链 |
 | `dep_resolver.py` | 被调 | 依赖级联取消 | never_spawned 只记 meta |
 | `gate_timer.py` | timer | 三闸门超时 | 方向写死，不给配置 |
 | `gc_helper.py` | timer | GC-1..GC-6 | 幂等键三元组；GC-6 回收前查租约；**撞上占用是「延后」(rc=3) 不是失败** |
 | `metrics_collector.py` | timer | 八指标 | **比率用万分比整数** |
 | `constitution_check.py` | timer | K1–K9 | 便宜、可高频；K4 窗口有链上终点 |
-| `spec_lint.py` | 人工/CI | S001–S024 | S019 查三证完整性；S020 真跑相对账本 report；S024 执行体能力注册表对账（声明不能自己为真）；mutation 验证过 |
+| `spec_lint.py` | 人工/CI | S001–S025 | S019 查三证完整性；S020 真跑相对账本 report；S024 执行体能力注册表对账（声明不能自己为真）；S025 工具档位对账 + 单档占比不得超 70%；mutation 验证过 |
 | `migrate_vx_to_vy.py` | system | 五步迁移 | 源版本不符拒绝猜；切主失败按相反顺序回滚 + E38 |
 | `mg_gate.py` | 被 import | **MG 四分支闸门（纯判定）** | 缺 `statuses`/`commands` 时降级，不许"没证据=通过" |
 | `secret_scan.py` | submit | 六面密钥扫描 + alerts | 只扫新增行；命中只告警；给行号不给全文 |
@@ -398,6 +399,33 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 > **代码改了，就不能再拿改之前的证据当背书** —— 所以重跑一轮全量，
 > 并删掉 `evidence/round139_full.txt`：它是修复前的中间轮次，留着等于用旧证据为最终代码担保。
 > round140 `passed 117 / failed 0 / ALL PASS`（`evidence/round140_full.txt`）。
+>
+> **2026-11-15 阶段 3（工具能力分级注册表）**：`spec/tool_registry.json` +
+> `tool_registry.py` + `tests/test_tool_registry.py` + `spec_lint` **S025**。
+> 起因是方案 §3 那张分级→闸门表里，「写本地受 `paths.yaml` 约束」早就有四个
+> 执行点，但**没有任何地方知道某个脚本属于哪一档** —— 约束的是路径，不是工具；
+> 一个 destructive 工具照样能在允许路径里删掉一切。档位现在由 AST 现算，
+> 声明里只存策略与快照。
+>
+> 这一轮最值得记的不是新增了什么，是**一个自己写出来的、差点通过的误判**：
+> 首版把 `shutil.rmtree(tmp, ignore_errors=True)` 一律算删除，于是 61 个工具里
+> 27 个（44%）落 `destructive`。数字出来时我差点接受它 —— 「本仓确实删很多东西」
+> 听起来完全成立。但门禁的可怕之处就在这：**它红得太频繁，人就会用肌肉记忆
+> 点掉，真正危险的那一次一起点掉**。44% 的 `human_gate` 不是严格，是噪音。
+>
+> 抽查之后真相是：多数删除删的是**它自己刚 mkdtemp 出来的临时目录**。于是加了
+> 一条判据 —— 删除目标必须绑定到本文件内 `tempfile.*` 的返回值才算「删临时」，
+> 绑不上（`a['path']`、函数参数、`os.makedirs` 建的目录）一律仍算 destructive。
+> 方向永远是保守的那一边：**证不出来就不放宽**。改完 `destructive` 27 → 15（25%）。
+>
+> 判据本身也被正面钉住了（4 条 snippet 真跑 `scan()`，不是断言「我写了那个 if」）
+> 和反向验证过（把降档判据临时改成 `if False:` → 测试立刻 `FAIL (2)` 并点名
+> 「开只读口子 → 必须报红」「→ 报的是 T4」，说明对抗层在真跑、不是空转）。
+>
+> 还修了一处 `migrate_vx_to_vy.py` 差点被误判的地方：它删的 `_migrate_tmp` 是
+> `os.makedirs` 建的（不是 tempfile），而且它同时删 `EVENTS` 里的真文件 ——
+> 保持 destructive 是对的。这条留作反例：**判据放宽时，必须能找到一条「它仍
+> 该红」的例子**，否则放宽的边界画在哪里都不知道。
 
 前四个问"对不对"，`audit_closure` 问的是**"有没有人管"**。
 一条规则最危险的失效形态不是写错，是没有任何执行点读它 ——
@@ -410,7 +438,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 117 项：79 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 118 项：80 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1059,7 +1087,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 79 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **117 项 / 117 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 80 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **118 项 / 118 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 

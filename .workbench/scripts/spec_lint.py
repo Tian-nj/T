@@ -644,6 +644,50 @@ def lint() -> list:
     except Exception as _exc:
         bad("S024", "执行体能力对账失败: %s" % _exc)
 
+    # S025 工具能力分级注册表必须与代码事实一致（阶段 3，线 B）。
+    #
+    # 为什么要这条：方案 §3 的分级→闸门映射里，「写本地受 path_policy 约束」
+    # 那一行早就成立（paths.yaml 有四个执行点），但**没有任何地方知道某个
+    # 脚本属于哪一档**。约束的是路径，不是工具 —— 一个 destructive 工具
+    # 照样能在允许路径里删掉一切。`spec/tool_registry.json` 补上档位这一栏，
+    # 剩下的风险与 S024 同构：声明改了自己变得像真的。
+    #
+    # 判据同样不接受「声明里写了就算」，必须由 tool_registry.reconcile()
+    # 扫 AST 现算。任一 T 码算红；声明缺失也判红（可信根少一块）。
+    try:
+        import tool_registry as _tr
+        _tfind, _tfacts = _tr.reconcile()
+        if _tr.declaration() is None:
+            bad("S025", "spec/tool_registry.json 缺失（先跑 gen_spec.py）")
+        # 与 S024 同一处教训：findings 是 (code, detail) 二元组，取字段前
+        # 必须先认容器类型，否则「永远报错」会假装自己有效。
+        for _f in _tfind:
+            if isinstance(_f, (tuple, list)) and len(_f) >= 2:
+                _code, _detail = _f[0], _f[1]
+            elif isinstance(_f, dict):
+                _code, _detail = _f.get("code"), _f.get("detail")
+            else:
+                _code, _detail = "?", repr(_f)
+            bad("S025", "%s %s" % (_code, _detail))
+        if not _tfacts:
+            bad("S025", "工具档位对账返回 0 个工具（classify() 没扫到任何脚本）")
+        # 档位分布本身也是判据：如果某个档位吃掉七成工具，那条闸门就等于
+        # 常态。常态的门禁会被人用肌肉记忆点掉，真正危险的那次一起点掉。
+        _dist = {}
+        for _v in _tfacts.values():
+            _dist[_v["tier"]] = _dist.get(_v["tier"], 0) + 1
+        _n = len(_tfacts) or 1
+        for _tier in ("outbound", "destructive", "credentials", "release"):
+            _c = _dist.get(_tier, 0)
+            if _c * 100 > 70 * _n:
+                bad("S025", "%s 档占 %d/%d（>70%%）—— 这条闸门已变成常态，"
+                            "多半是 rule_table 判得太宽，或者把「删自己建的临时"
+                            "目录」也算成了删数据" % (_tier, _c, _n))
+    except ImportError as _exc:
+        bad("S025", "无法 import tool_registry: %s" % _exc)
+    except Exception as _exc:
+        bad("S025", "工具档位对账失败: %s" % _exc)
+
     return out
 
 

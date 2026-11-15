@@ -1,0 +1,317 @@
+{
+  "schema": 1,
+  "criterion": "tool_registry_v1",
+  "note": "档位由 tool_registry.classify() 现算，本表只存策略与快照。overrides 只能升档：想放宽请改 rule_table（全体一起变），不要给单个工具开口子 —— 开口子会被下一个工具复制。",
+  "tiers": {
+    "read_only": {
+      "gate": "auto",
+      "derivable": true,
+      "why": "不写盘、不起子进程、不联外网；调用只记 token_ledger"
+    },
+    "write_local": {
+      "gate": "path_policy",
+      "derivable": true,
+      "why": "写盘或起子进程，受 spec/paths.yaml 的 allow_write 约束"
+    },
+    "outbound": {
+      "gate": "human_gate",
+      "derivable": true,
+      "why": "建立外部连接（数据可能离开本机），人工确认后才放行"
+    },
+    "destructive": {
+      "gate": "human_gate",
+      "derivable": true,
+      "why": "删除文件系统内容，不可回滚，人工确认后才放行"
+    },
+    "credentials": {
+      "gate": "human_gate_never_waive",
+      "derivable": false,
+      "why": "读写密钥/凭据，命中 never_waive，只能人工加严"
+    },
+    "release": {
+      "gate": "human_gate_never_waive",
+      "derivable": false,
+      "why": "发布/推送/改版本，命中 never_waive，只能人工加严"
+    }
+  },
+  "rule_table": [
+    {
+      "when": "deletes",
+      "tier": "destructive"
+    },
+    {
+      "when": "connects",
+      "tier": "outbound"
+    },
+    {
+      "when": "writes",
+      "tier": "write_local"
+    },
+    {
+      "when": "spawns",
+      "tier": "write_local"
+    },
+    {
+      "when": "listens",
+      "tier": "write_local"
+    }
+  ],
+  "overrides": {},
+  "tools": {
+    "executors/ext_ai_subagent.py": {
+      "tier": "outbound",
+      "loc": 778
+    },
+    "executors/ref_subagent.py": {
+      "tier": "outbound",
+      "loc": 356
+    },
+    "scripts/acc_edit.py": {
+      "tier": "write_local",
+      "loc": 113
+    },
+    "scripts/agent_runner.py": {
+      "tier": "destructive",
+      "loc": 1257
+    },
+    "scripts/appcontainer_probe.py": {
+      "tier": "destructive",
+      "loc": 1287
+    },
+    "scripts/bootstrap.py": {
+      "tier": "write_local",
+      "loc": 208
+    },
+    "scripts/boss_report.py": {
+      "tier": "read_only",
+      "loc": 569
+    },
+    "scripts/calibrate_drills.py": {
+      "tier": "write_local",
+      "loc": 124
+    },
+    "scripts/capability_escape_child.py": {
+      "tier": "outbound",
+      "loc": 116
+    },
+    "scripts/capability_gate.py": {
+      "tier": "read_only",
+      "loc": 247
+    },
+    "scripts/capability_probe_child.py": {
+      "tier": "outbound",
+      "loc": 35
+    },
+    "scripts/capability_probes.py": {
+      "tier": "write_local",
+      "loc": 653
+    },
+    "scripts/ci_narrow_probe.py": {
+      "tier": "destructive",
+      "loc": 617
+    },
+    "scripts/constitution_check.py": {
+      "tier": "write_local",
+      "loc": 777
+    },
+    "scripts/containment_telemetry.py": {
+      "tier": "write_local",
+      "loc": 278
+    },
+    "scripts/contract_registry.py": {
+      "tier": "write_local",
+      "loc": 335
+    },
+    "scripts/demo_baseline_gen.py": {
+      "tier": "write_local",
+      "loc": 73
+    },
+    "scripts/dep_resolver.py": {
+      "tier": "read_only",
+      "loc": 120
+    },
+    "scripts/diff_sandbox_check.py": {
+      "tier": "write_local",
+      "loc": 286
+    },
+    "scripts/doc_numbers.py": {
+      "tier": "write_local",
+      "loc": 413
+    },
+    "scripts/dream_consolidation.py": {
+      "tier": "write_local",
+      "loc": 1050
+    },
+    "scripts/emotion_engine.py": {
+      "tier": "write_local",
+      "loc": 411
+    },
+    "scripts/executor_registry.py": {
+      "tier": "read_only",
+      "loc": 525
+    },
+    "scripts/ext_review.py": {
+      "tier": "write_local",
+      "loc": 340
+    },
+    "scripts/ext_route.py": {
+      "tier": "read_only",
+      "loc": 246
+    },
+    "scripts/gate_timer.py": {
+      "tier": "read_only",
+      "loc": 114
+    },
+    "scripts/gc_helper.py": {
+      "tier": "destructive",
+      "loc": 358
+    },
+    "scripts/gen_spec.py": {
+      "tier": "write_local",
+      "loc": 1369
+    },
+    "scripts/health.py": {
+      "tier": "write_local",
+      "loc": 169
+    },
+    "scripts/human_cli.py": {
+      "tier": "read_only",
+      "loc": 454
+    },
+    "scripts/job_object_probe.py": {
+      "tier": "write_local",
+      "loc": 692
+    },
+    "scripts/joint_acceptance.py": {
+      "tier": "destructive",
+      "loc": 776
+    },
+    "scripts/lead.py": {
+      "tier": "write_local",
+      "loc": 1614
+    },
+    "scripts/lock_calibrate.py": {
+      "tier": "destructive",
+      "loc": 908
+    },
+    "scripts/lock_truth.py": {
+      "tier": "destructive",
+      "loc": 446
+    },
+    "scripts/memory_bundle.py": {
+      "tier": "destructive",
+      "loc": 721
+    },
+    "scripts/memory_store.py": {
+      "tier": "destructive",
+      "loc": 1764
+    },
+    "scripts/merge_queue.py": {
+      "tier": "destructive",
+      "loc": 756
+    },
+    "scripts/metrics_collector.py": {
+      "tier": "destructive",
+      "loc": 368
+    },
+    "scripts/mg_gate.py": {
+      "tier": "read_only",
+      "loc": 293
+    },
+    "scripts/migrate_vx_to_vy.py": {
+      "tier": "destructive",
+      "loc": 279
+    },
+    "scripts/persona_loader.py": {
+      "tier": "write_local",
+      "loc": 529
+    },
+    "scripts/platform_ops.py": {
+      "tier": "write_local",
+      "loc": 813
+    },
+    "scripts/platform_runner_probe.py": {
+      "tier": "destructive",
+      "loc": 736
+    },
+    "scripts/purpose_store.py": {
+      "tier": "write_local",
+      "loc": 273
+    },
+    "scripts/sched_install.py": {
+      "tier": "write_local",
+      "loc": 339
+    },
+    "scripts/scheduler.py": {
+      "tier": "write_local",
+      "loc": 603
+    },
+    "scripts/scheduler_observe.py": {
+      "tier": "destructive",
+      "loc": 1423
+    },
+    "scripts/secret_scan.py": {
+      "tier": "outbound",
+      "loc": 360
+    },
+    "scripts/sign_manifest.py": {
+      "tier": "write_local",
+      "loc": 430
+    },
+    "scripts/signature_backend.py": {
+      "tier": "write_local",
+      "loc": 692
+    },
+    "scripts/silent_swallow_probe.py": {
+      "tier": "read_only",
+      "loc": 291
+    },
+    "scripts/smoke.py": {
+      "tier": "write_local",
+      "loc": 72
+    },
+    "scripts/spec_lint.py": {
+      "tier": "write_local",
+      "loc": 714
+    },
+    "scripts/team_protocol.py": {
+      "tier": "read_only",
+      "loc": 504
+    },
+    "scripts/telemetry_aggregate.py": {
+      "tier": "write_local",
+      "loc": 957
+    },
+    "scripts/token_ledger.py": {
+      "tier": "read_only",
+      "loc": 456
+    },
+    "scripts/tool_registry.py": {
+      "tier": "write_local",
+      "loc": 606
+    },
+    "scripts/toolchain.py": {
+      "tier": "write_local",
+      "loc": 382
+    },
+    "scripts/verify_harness.py": {
+      "tier": "write_local",
+      "loc": 483
+    },
+    "scripts/wb_core.py": {
+      "tier": "destructive",
+      "loc": 1842
+    }
+  },
+  "counts": {
+    "tools": 61,
+    "by_tier": {
+      "outbound": 5,
+      "write_local": 30,
+      "destructive": 15,
+      "read_only": 11
+    },
+    "derivable_tiers": 4,
+    "override_only_tiers": 2
+  }
+}
