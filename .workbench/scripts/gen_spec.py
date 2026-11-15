@@ -730,7 +730,24 @@ def _gen_config_schema(now_ms=None):
             "platform": {"type": T["map"], "required": True, "children": {
                 "os": {"type": T["enum"], "enum": ["auto", "win32", "posix"]},
                 "case_sensitive_paths": {"type": T["enum"], "enum": ["auto", "true", "false"]},
-                "min_git_version": {"type": T["str"]}}},
+                "min_git_version": {"type": T["str"]},
+                # 第 137 轮（阶段 2.5）：本机工具链的**绝对路径登记**。
+                # 为什么必须进受签配置而不是靠 PATH：本机 PATH 里没有 git，
+                # 同一份代码在 Git bash 里全绿、在 PowerShell 里
+                # `FileNotFoundError [WinError 2]`——而 PowerShell 才是人
+                # 真正打开的 shell。靠调用者的环境决定行为，等于让
+                # 「能不能跑」取决于谁启的进程。
+                # 登记成配置之后：可复现（换机器改一处）、可审计（进 manifest，
+                # 谁改了报 drift）、可回退（改动是一次 commit）。
+                # 值为空/缺失时 toolchain.py 回落到 PATH 与本机已知安装点探测，
+                # 并把 source 标成 path/probe —— 「解析到了」和「登记过」
+                # 在输出里永远能分开。
+                "toolchain": {"type": T["map"], "children": {
+                    "python": {"type": T["str"]},
+                    "git": {"type": T["str"]},
+                    "bash": {"type": T["str"]},
+                    "node": {"type": T["str"]},
+                    "pnpm": {"type": T["str"]}}}}},
             "global_config": {"type": T["map"], "required": True, "children": {
                 "batch_max_parallel": {"type": T["int"], "min": 1, "max": 3},
                 "lease_ttl_sec": {"type": T["int"], "min": 5, "max": 600},

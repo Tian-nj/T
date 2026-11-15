@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794744440031,
-  "digest": "hmac-sha256:14634ff4e7d0c941d5a7a090c1499b42d51d9e457281ad223732e8dfd3ea0c1d",
+  "created_ms": 1794750876604,
+  "digest": "hmac-sha256:103d0a545d38338261a0fa60afffcd993e49be1d1a96713d557c28d6c12efb26",
   "entries": [
     {
       "bytes": 3315,
@@ -199,9 +199,9 @@
       "sha256": "sha256:74b70c3dd02e5fdc24916917b16326a0dd7a06f8174bcc95989bb7c5e8966116"
     },
     {
-      "bytes": 9901,
+      "bytes": 11005,
       "path": "config.yaml",
-      "sha256": "sha256:19f3691683f8c3c7f420882a013d7146b2e7d0ed4ea5ef2b177150f37494d83d"
+      "sha256": "sha256:d0dbd799061c05ab81a5009946c2e3e653993f5f97749732eb98807ee43828e1"
     },
     {
       "bytes": 1053,
@@ -259,9 +259,9 @@
       "sha256": "sha256:37d66d83cf85a2fc8c5f3bb9bd288a0bcb910fd1d3a6501062b1ae3a331c4672"
     },
     {
-      "bytes": 8719,
+      "bytes": 9643,
       "path": "scripts/bootstrap.py",
-      "sha256": "sha256:e6469419037b5cd4c1e37c465927108848ba072f68b9c5b9ec71ceaa74dcc3bc"
+      "sha256": "sha256:609f7f4e4b10095f1a300a88c64269ae72de904a663d4aa7230a1e66abbcb08c"
     },
     {
       "bytes": 25932,
@@ -364,9 +364,9 @@
       "sha256": "sha256:19db56bd537d1a1f4f99d8e69e102b4822f2346a48807d39ba84c373cef4eb2e"
     },
     {
-      "bytes": 74554,
+      "bytes": 75790,
       "path": "scripts/gen_spec.py",
-      "sha256": "sha256:5a670efd9a416acec476d0150421f688ae72de426738a6d90854d96f92b3d712"
+      "sha256": "sha256:c9b85fdb087969b7584053a1b87891c0cfe399f097311c57a1e7d431322dc0fa"
     },
     {
       "bytes": 6464,
@@ -519,6 +519,11 @@
       "sha256": "sha256:00cadcf8c0abc816edb8c46ba318632cf5de317ccfba5db10a04a631c7926ab8"
     },
     {
+      "bytes": 15659,
+      "path": "scripts/toolchain.py",
+      "sha256": "sha256:7d53d9cec920e887a7f4cfe9b06836c279e6a9eecf35ccb0f113dca4730ef02e"
+    },
+    {
       "bytes": 1795,
       "path": "scripts/verify.sh",
       "sha256": "sha256:582672b886cf83a159f57301985d771b95eb81778df9b15c04f3b36e8ee0390d"
@@ -544,9 +549,9 @@
       "sha256": "sha256:cb2209044a5657f7aff38fea0f46c12728c1911d60b3246c2b6c6f28beacbca7"
     },
     {
-      "bytes": 12726,
+      "bytes": 13164,
       "path": "spec/config.schema.json",
-      "sha256": "sha256:b908834daa287e9296efa925fdb995629e7b99cf7ab36cea03d5964dfa8a854e"
+      "sha256": "sha256:08c0b04de614f6fb6145e775efff88a24e7e327f386ee30c5f25df4b56684131"
     },
     {
       "bytes": 1350,
@@ -619,9 +624,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 123,
+  "entry_count": 124,
   "manifest_version": 1,
-  "sig": "hmac-sha256:14634ff4e7d0c941d5a7a090c1499b42d51d9e457281ad223732e8dfd3ea0c1d",
+  "sig": "hmac-sha256:103d0a545d38338261a0fa60afffcd993e49be1d1a96713d557c28d6c12efb26",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

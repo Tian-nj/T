@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 123 个文件的 HMAC 清单
+  root.manifest            # 124 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 56 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 57 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（56 个 .py / 31850 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（57 个 .py / 32264 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -168,6 +168,7 @@ docs/
 | `merge_queue.py` | system | 预演→合并→冒烟→回滚 | `merge-tree` 预演不动工作区 |
 | `human_cli.py` | 人 | 三闸门 + override | 签名 + nonce + 状态机 |
 | `platform_ops.py` | 被 import | 九项平台原语 | atomic_replace 退避 100/300/900ms |
+| `toolchain.py` | 被 import / 人工 | 解析 python/git/bash/node/pnpm 的绝对路径并补 PATH | 顺序 env→config→PATH→探测；商店存根按「不存在」处理；找不到回落工具名而非 None |
 | `health.py` | timer | 看门狗 E06/E43 | 心跳不进主链 |
 | `dep_resolver.py` | 被调 | 依赖级联取消 | never_spawned 只记 meta |
 | `gate_timer.py` | timer | 三闸门超时 | 方向写死，不给配置 |
@@ -334,6 +335,23 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 > 合成一个缺 `purpose_id` 的调用点做负向验证（改进 round134 只做一次性人工注入）
 > ③`purpose_store._selftest` 原先 13/13 全绿却从不传 `store=`，补真 `Store` 的 5 条断言，
 > 现 18/18。负向验证：退回旧 payload → 干净的 `FAIL (14/18)` 并列出 4 条失败项。
+>
+> **2026-11-15 round138（阶段 2.5 运行时对齐）修掉一处「回归全绿却没证明这台机器能跑」**：
+> 本机 PATH 里**没有 git**（捆绑 PortableGit 装好了但从未进 PATH），于是同一份代码
+> —— `Git bash` 里 `python bootstrap.py` 全绿，`PowerShell` 里同一句报
+> `git version check failed: [WinError 2]`；而 PowerShell 才是人打开的那个 shell。
+> 也就是说「115/0」证明的是「在某个 shell 里能跑」，不是「能跑」。
+> 新增 `.workbench/scripts/toolchain.py`：按 `env → config → PATH → 本机已知安装点`
+> 解析 python/git/bash/node/pnpm 的绝对路径并把它补进 `PATH`（一次覆盖全仓二十多处
+> 写死 `["git", ...]` 的调用点，而不是逐个改）；`config.yaml` 新增受签的
+> `platform.toolchain.*`；`bootstrap.py` 在问 git 版本**之前**先跑 toolchain，
+> 并把解析结果写进 `checks.toolchain`。
+> 两个自己踩到的坑写进了代码：①`WindowsApps\python.exe` 是商店存根，
+> `--version` 打不出东西，被 `which()` 当成真解释器接回来 —— 现在按「不存在」处理；
+> ②`pnpm` 分发的是 `.cjs`，单有路径跑不起来，`argv()` 必须自动带 `node`。
+> 效果：`PowerShell` 里 `bootstrap.py` 的 git 检查由红转绿，`toolchain --selftest` 11/11；
+> 全量回归 round138 `passed 116 / failed 0 / ALL PASS`（`evidence/round138_full.txt`），
+> 同一份 `tests/test_toolchain.py` 在 PowerShell 与 Git bash 两个 shell 里都 `PASS (0 failed)`。
 
 前四个问"对不对"，`audit_closure` 问的是**"有没有人管"**。
 一条规则最危险的失效形态不是写错，是没有任何执行点读它 ——
@@ -346,7 +364,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 115 项：77 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 116 项：78 测试 + 5 审计 + 32 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -995,7 +1013,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 77 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **115 项 / 115 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 78 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = **116 项 / 116 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 

@@ -44,6 +44,26 @@
         },
         "min_git_version": {
           "type": "string"
+        },
+        "toolchain": {
+          "type": "object",
+          "children": {
+            "python": {
+              "type": "string"
+            },
+            "git": {
+              "type": "string"
+            },
+            "bash": {
+              "type": "string"
+            },
+            "node": {
+              "type": "string"
+            },
+            "pnpm": {
+              "type": "string"
+            }
+          }
         }
       }
     },

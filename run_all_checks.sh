@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
-# run_all_checks.sh —— 一键回归：77 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = 115 项
-#   77 测试（for 清单）/ 5 audit / 29 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
+# run_all_checks.sh —— 一键回归：78 测试 + 5 审计 + 32 校验 + 覆盖率 + e2e = 116 项
+#   78 测试（for 清单）/ 5 audit / 29 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
 #   覆盖率段单独打印，不走 run()，因此不计入 PASSED（别把两个数字混成一个）。
 #
 # 为什么要有这个脚本：
@@ -603,7 +603,8 @@ for t in test_mg_gate test_gate_integration test_actor_and_freeze \
          test_agent_runner_verbose test_silent_swallow test_lock_losses test_lock_provenance \
          test_joint_acceptance test_dream_backlog test_recall_injection \
          test_memory_layers test_memory_lifecycle test_memory_ledger_audit \
-         test_round60 test_round61 test_round62 test_round63 test_round64; do
+         test_round60 test_round61 test_round62 test_round63 test_round64 \
+         test_toolchain; do
     # 慢件按有效期复用（见本文件 §一·补 的说明）：演练 80s / 其余亚秒。
     # 复盘结论：跳过的是「重复证明同一件结构性不变量」，不是跳过验收。
     if _slow_reusable "$t"; then

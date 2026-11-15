@@ -11,6 +11,19 @@ platform:
   os: auto
   case_sensitive_paths: auto
   min_git_version: "2.38"
+  # 本机工具链绝对路径（第 137 轮 / 阶段 2.5）。由 scripts/toolchain.py 解析。
+  # 为什么要写死：这台机器的 PATH 里**没有** git（捆绑的 PortableGit 从没进过
+  # PATH），于是同一份代码在 Git bash 里能跑、在 PowerShell 里报
+  # FileNotFoundError [WinError 2]——而 PowerShell 才是人打开的那个 shell。
+  # 登记在这里 = 换机器只改这一处、谁改了 manifest 会报 drift。
+  # 路径不存在时 toolchain 不采信，自动回落到 PATH / 本机已知安装点探测，
+  # 并把 source 标成 path/probe，所以这份配置在别的机器上不会把工具弄丢。
+  toolchain:
+    python: 'C:\Users\admin\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe'
+    git: 'C:\Users\admin\AppData\Local\Programs\PortableGit\cmd\git.exe'
+    bash: 'C:\Users\admin\AppData\Local\Programs\PortableGit\bin\bash.exe'
+    node: 'C:\Users\admin\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe'
+    pnpm: 'C:\Users\admin\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\pnpm\bin\pnpm.cjs'
 
 global_config:
   batch_max_parallel: 3

@@ -55,7 +55,22 @@ def run(write_events=True) -> dict:
     # `git merge-tree --write-tree` 那里以一句 "unknown option" 失败，
     # 而错误看起来像合并逻辑写错了，不像环境不合格。
     # 版本不够必须启动即拒：越晚发现，代价越大。
+    #
+    # 第 137 轮（阶段 2.5）：先让 toolchain 把工具目录补进 PATH 再问版本。
+    # 本机实测的差别在这里最刺眼 —— 同一份代码，
+    #   Git bash 里 python bootstrap.py   → git 检查通过
+    #   PowerShell 里 python bootstrap.py → FileNotFoundError [WinError 2]
+    # 而 PowerShell 才是人真正打开的那个 shell。「在某个 shell 里能跑」
+    # 不是「能跑」，所以这件事不能留给调用者自己配 PATH。
     import platform_ops
+    import toolchain
+    try:
+        added = toolchain.ensure_path()
+        res["checks"]["toolchain"] = {"ok": True, "path_added": added,
+                                      "resolved": toolchain.probe_all()}
+    except Exception as exc:      # noqa: BLE001 - 解析层崩了也要留下痕迹
+        res["checks"]["toolchain"] = {"ok": False,
+                                      "error": "%s: %s" % (type(exc).__name__, exc)}
     try:
         gv = platform_ops.git_version()          # 返回 (maj, min, patch)
         need = str((wb_core.yaml_parse_file(os.path.join(WB, "config.yaml"))
