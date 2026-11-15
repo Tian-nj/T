@@ -32,6 +32,44 @@ import subprocess
 import sys
 import tempfile
 
+import atexit
+import shutil
+import tempfile
+
+
+def _rmtree(path):
+    """删一棵树，只读文件也删。
+
+    为什么不直接 `shutil.rmtree(path, True)`：Windows 上 `.git/objects/**`
+    里是只读文件，`rmtree` 遇到只读项会**静默失败并留下整棵树**（实测改完
+    单跑 test_revert_boundary.py 仍有 3 个目录各 19-20 项留下，只读文件
+    全在 .git 下）。先删一次，删不掉就摘掉只读位再删。
+    """
+    shutil.rmtree(path, ignore_errors=True)
+    if not os.path.exists(path):
+        return
+    for root, _dirs, files in os.walk(path):
+        for fn in files:
+            try:
+                os.chmod(os.path.join(root, fn), 0o777)
+            except OSError:
+                pass
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def _mkdtemp(prefix):
+    """建临时目录，并在进程退出时删掉。
+
+    为什么不用裸 `tempfile.mkdtemp(...)`：整轮回归由 `run_all_checks.sh` 的
+    TEMP 沙箱兜底，但**单跑这一个文件时没有任何东西负责清理**——2026-11-15
+    一天里 %TEMP% 攒下 264 个 `wb_*` 目录 / 17.5 MB，实测单跑
+    `test_scheduler.py` 一次就新增 7 个。沙箱管「整轮」，管不到「随手跑一个」。
+    """
+    d = tempfile.mkdtemp(prefix=prefix)
+    atexit.register(_rmtree, d)
+    return d
+
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 WB = os.path.join(ROOT, ".workbench")
@@ -116,7 +154,7 @@ def t_read_sidecar():
     import wb_core
     import sign_manifest
 
-    base = tempfile.mkdtemp(prefix="r63-sidecar-")
+    base = _mkdtemp(prefix="r63-sidecar-")
     wb = os.path.join(base, ".workbench")
     os.makedirs(os.path.join(wb, "events", "sidecar"), exist_ok=True)
     with io.open(os.path.join(wb, "config.yaml"), "w",
@@ -205,7 +243,7 @@ def t_revert_boundary():
     # 仓库当试验台，比不测更坏。
     import merge_queue as mq_mod
 
-    base_dir = tempfile.mkdtemp(prefix="r63-revert-")
+    base_dir = _mkdtemp(prefix="r63-revert-")
     io.open(os.path.join(base_dir, "a.txt"), "w", encoding="utf-8").write("A0\n")
     io.open(os.path.join(base_dir, "b.txt"), "w", encoding="utf-8").write("B-EDIT\n")
 
@@ -268,7 +306,7 @@ def t_revert_boundary_crossed():
     """
     import merge_queue as mq_mod
 
-    base_dir = tempfile.mkdtemp(prefix="r63-revert-x-")
+    base_dir = _mkdtemp(prefix="r63-revert-x-")
     io.open(os.path.join(base_dir, "a.txt"), "w", encoding="utf-8").write("A0\n")
     io.open(os.path.join(base_dir, "b.txt"), "w", encoding="utf-8").write("B-EDIT\n")
     BASE, CUR = "b" * 40, "c" * 40

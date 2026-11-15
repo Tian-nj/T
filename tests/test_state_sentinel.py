@@ -46,6 +46,44 @@ sys.path.insert(0, SCRIPTS)
 import wb_core  # noqa: E402
 import spec_lint  # noqa: E402
 
+import atexit
+import shutil
+import tempfile
+
+
+def _rmtree(path):
+    """删一棵树，只读文件也删。
+
+    为什么不直接 `shutil.rmtree(path, True)`：Windows 上 `.git/objects/**`
+    里是只读文件，`rmtree` 遇到只读项会**静默失败并留下整棵树**（实测改完
+    单跑 test_revert_boundary.py 仍有 3 个目录各 19-20 项留下，只读文件
+    全在 .git 下）。先删一次，删不掉就摘掉只读位再删。
+    """
+    shutil.rmtree(path, ignore_errors=True)
+    if not os.path.exists(path):
+        return
+    for root, _dirs, files in os.walk(path):
+        for fn in files:
+            try:
+                os.chmod(os.path.join(root, fn), 0o777)
+            except OSError:
+                pass
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def _mkdtemp(prefix):
+    """建临时目录，并在进程退出时删掉。
+
+    为什么不用裸 `tempfile.mkdtemp(...)`：整轮回归由 `run_all_checks.sh` 的
+    TEMP 沙箱兜底，但**单跑这一个文件时没有任何东西负责清理**——2026-11-15
+    一天里 %TEMP% 攒下 264 个 `wb_*` 目录 / 17.5 MB，实测单跑
+    `test_scheduler.py` 一次就新增 7 个。沙箱管「整轮」，管不到「随手跑一个」。
+    """
+    d = tempfile.mkdtemp(prefix=prefix)
+    atexit.register(_rmtree, d)
+    return d
+
+
 FAILS = []
 
 
@@ -207,7 +245,7 @@ def t_lint_and_writer_agree():
     行为层与结构层都过了也不代表两边接的是同一个值——这条做端到端确认。
     """
     print("[5] 端到端：E02 写得进去，lint 不报 S023")
-    tmp = tempfile.mkdtemp(prefix="wb_sentinel_")
+    tmp = _mkdtemp(prefix="wb_sentinel_")
     wb = os.path.join(tmp, ".workbench")
     for sub in ("spec", "events", "state"):
         os.makedirs(os.path.join(wb, sub), exist_ok=True)

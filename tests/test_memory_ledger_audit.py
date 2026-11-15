@@ -38,6 +38,44 @@ import memory_store as ms  # noqa: E402
 import scheduler as sch  # noqa: E402
 import scheduler_observe as so  # noqa: E402
 
+import atexit
+import shutil
+import tempfile
+
+
+def _rmtree(path):
+    """删一棵树，只读文件也删。
+
+    为什么不直接 `shutil.rmtree(path, True)`：Windows 上 `.git/objects/**`
+    里是只读文件，`rmtree` 遇到只读项会**静默失败并留下整棵树**（实测改完
+    单跑 test_revert_boundary.py 仍有 3 个目录各 19-20 项留下，只读文件
+    全在 .git 下）。先删一次，删不掉就摘掉只读位再删。
+    """
+    shutil.rmtree(path, ignore_errors=True)
+    if not os.path.exists(path):
+        return
+    for root, _dirs, files in os.walk(path):
+        for fn in files:
+            try:
+                os.chmod(os.path.join(root, fn), 0o777)
+            except OSError:
+                pass
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def _mkdtemp(prefix):
+    """建临时目录，并在进程退出时删掉。
+
+    为什么不用裸 `tempfile.mkdtemp(...)`：整轮回归由 `run_all_checks.sh` 的
+    TEMP 沙箱兜底，但**单跑这一个文件时没有任何东西负责清理**——2026-11-15
+    一天里 %TEMP% 攒下 264 个 `wb_*` 目录 / 17.5 MB，实测单跑
+    `test_scheduler.py` 一次就新增 7 个。沙箱管「整轮」，管不到「随手跑一个」。
+    """
+    d = tempfile.mkdtemp(prefix=prefix)
+    atexit.register(_rmtree, d)
+    return d
+
+
 FAILED = []
 
 
@@ -60,7 +98,7 @@ class TempWB:
     """只换 `ledger_summary` 读的根目录，不碰生产 sidecar。"""
 
     def __init__(self, tag):
-        self.tmp = tempfile.mkdtemp(prefix="wb-ledger-%s-" % tag)
+        self.tmp = _mkdtemp(prefix="wb-ledger-%s-" % tag)
         self.side = os.path.join(self.tmp, "events", "sidecar")
         os.makedirs(self.side)
 
@@ -114,7 +152,7 @@ class TempMem:
     """只换 `ms.MEM`，不碰生产记忆文件。"""
 
     def __init__(self, tag):
-        self.tmp = tempfile.mkdtemp(prefix="wb-mem-%s-" % tag)
+        self.tmp = _mkdtemp(prefix="wb-mem-%s-" % tag)
         self.old = ms.MEM
         ms.MEM = self.tmp
 
