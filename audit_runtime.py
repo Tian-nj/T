@@ -7,6 +7,7 @@ P 系列 = 探针编号，对应审计报告里的缺陷编号。
 """
 from __future__ import annotations
 
+import atexit
 import io
 import json
 import os
@@ -21,6 +22,19 @@ sys.path.insert(0, ".workbench/scripts")
 import wb_core  # noqa: E402
 
 RESULTS = []
+
+# 运行时探针建的临时目录必须回收：harness 会把 TEMP 重定向到 WB_TMP 并在
+# 结束时统一删，但直接运行本文件（README 与排障时都会这么干）没人兜底 ——
+# 实测一次直接运行漏 13 个 probe_* 目录。atexit 覆盖两条路径。
+_FRESH_DIRS = []
+
+
+def _cleanup_fresh():
+    for d in _FRESH_DIRS:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+atexit.register(_cleanup_fresh)
 
 
 # 拒绝型探针：期望抛出 SpecViolation。抛出 = 声称被证实，写入 = 缺陷。
@@ -44,6 +58,7 @@ def probe(pid, title, fn):
 
 def fresh():
     d = tempfile.mkdtemp(prefix="probe_")
+    _FRESH_DIRS.append(d)
     os.makedirs(os.path.join(d, "events", "sidecar"), exist_ok=True)
     os.makedirs(os.path.join(d, "state"), exist_ok=True)
     return d
@@ -272,10 +287,19 @@ def p13_frozen_whitelist_from_spec():
                          if str(_actor).startswith("human:") else None)
                 st.append_event(e["kind"], _pay, _actor, None, meta=_meta)
                 live.add(e["id"])
-            except wb_core.SpecViolation:
-                pass
+            except wb_core.SpecViolation as exc:
+                # append_event 里 frozen 闸门(:868) 与 from_states 校验(:919)
+                # 抛的是同一个 SpecViolation。只有「not writable_in_frozen」
+                # 才是真被冻结拦下；倒在状态机/字段校验上的事件恰恰说明
+                # frozen 放行了它 —— 一律 pass 会让 14 项白名单报差 8 项。
+                # 尺子做错比没尺子更坏的第三例（前两例见 _probe_actor / _meta），
+                # 与 tests/test_actor_and_freeze.py:112 用同一条判据。
+                if "not writable_in_frozen" in str(exc):
+                    pass                # 真被 frozen 拦 → 不在白名单
+                else:
+                    live.add(e["id"])   # 倒在别的校验 → frozen 放行了它
             except Exception:
-                live.add(e["id"])       # 因别的原因失败，不算白名单
+                live.add(e["id"])       # 非 SpecViolation 的意外失败，保守算放行
             finally:
                 wb_core.FROZEN = False
     return (set(live) == spec_ids,
@@ -315,16 +339,12 @@ def p15_empty_change_refused():
 
     这是最容易"看起来成功"的失败：链上七条事件条条合法，主干却一行没变。
     """
-    import subprocess as sp
+    # 这里曾经 `git init/add/commit` 起一个空仓库，但 dsc.check() 只遍历
+    # 传入的 changed 列表（此处恒为 []），根本不读工作树 —— 那三行 git 是
+    # 纯死代码，还让探针在「PATH 里没有 git」时抛 FileNotFoundError 被记成
+    # DEFECT（直接运行本文件时实测）。删掉后 P15 只测它真正要测的东西。
     tmp = tempfile.mkdtemp(prefix="wb_p15_")
     try:
-        repo = os.path.join(tmp, "r")
-        os.makedirs(os.path.join(repo, "src"), exist_ok=True)
-        open(os.path.join(repo, "src", "a.py"), "w").write("x = 1\n")
-        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t",
-                   GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        for args in (["init", "-q"], ["add", "-A"], ["commit", "-qm", "base"]):
-            sp.run(["git"] + args, cwd=repo, env=env, capture_output=True)
         import diff_sandbox_check as dsc
         empty = []
         chk = dsc.check(["src/"], empty, ["src/**"])
@@ -378,7 +398,10 @@ def main():
                   f, ensure_ascii=False, indent=1)
     print()
     print("wrote evidence/audit_runtime.json")
-    return 0
+    # 探针结论必须进回归：恒 return 0 时，一条常年假 DEFECT（P13）与一条
+    # 真缺陷在 run_all_checks.sh 里长得一模一样，115/0 照样全绿。对齐
+    # audit_closure.py:413 的口径：有缺陷就非零，让 run() 记进 FAILED。
+    return 0 if bad == 0 else 1
 
 
 if __name__ == "__main__":

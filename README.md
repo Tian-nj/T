@@ -314,6 +314,16 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 | `run_all_checks.sh` | **每一件一起跑过，还是分别跑过？** | 90 项 / 90 通过（第四十轮全量回归） |
 | `response_guard.py` | **这次改动该跑到哪一级？漏跑了没有？** | 分级 S/A/B + 条件式必跑 + `MISSED_GATE` 非 0 + 纪律账本 |
 
+> **2026-11-15 round134 深度自检修好一处「尺子自己错还无人复核」**：`audit_runtime.py`
+> 的 P13 把 `from_states` 校验抛的 `SpecViolation` 误算成冻结拒绝（两者是同一个异常类，
+> 见 `wb_core.py:868` 与 `:919`），于是 14 项白名单从 round60 起常年报差 8 项；而 `main()`
+> **恒 `return 0`**、15 条探针结论没有任何测试或闸门读 —— 上面表里「15/15 证实」这句话
+> 在几十轮里一直是假的，假的 DEFECT 与真缺陷在 `run_all_checks.sh:634` 里长得一模一样。
+> 现已改成 `return 0 if bad == 0 else 1`（对齐 `audit_closure.py:413`）：**一次给 15 条探针
+> 全部补上活断言**，尺子再坏回归立刻红，不必再单加一条测试。P13 只认异常消息里的
+> `not writable_in_frozen`；`fresh()` 的临时目录由 `atexit` 回收；P15 删掉不读工作树的
+> `git init` 死代码。负向验证：注入假缺陷 → `rc=1`。
+
 前四个问"对不对"，`audit_closure` 问的是**"有没有人管"**。
 一条规则最危险的失效形态不是写错，是没有任何执行点读它 ——
 它躺在 spec 里，review 时看得见、出事后翻得到，运行时从来没跑过。
