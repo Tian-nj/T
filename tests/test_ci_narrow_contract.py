@@ -35,11 +35,30 @@ def main():
     # --- 1. probe source must really carry the honest-registry fields, the
     #        four narrow test names, and both workflow paths -----------------
     src = (SCRIPTS / "ci_narrow_probe.py").read_text(encoding="utf-8")
-    ck("源码含 actions_ran = False", "actions_ran = False" in src)
+    # 1a. actions_ran 由证据推导，不是写死的常量。
+    # 旧断言 ck("源码含 actions_ran = False", ...) 把 bug 锁成了期望：它保证
+    # actions_ran 永远是 False，于是真跑一次 Actions 也拿不到 JOINT_PASS。
+    # 改成断言行为：空根回落 False；造出两份已验签产物 + 一致矩阵后变 True；
+    # 缺 CI 密钥时仍 False。全程只用临时目录，不依赖本机有没有 remote。
+    _tmp_ev = Path(tempfile.mkdtemp(prefix="test_ci_narrow_actions_"))
+    try:
+        _env = {"WORKBENCH_CI_KEY": "selftest-ci-key-ci-narrow"}
+        _e0 = probe.actions_evidence(root=_tmp_ev, env=_env)
+        ck("无 CI 产物时 actions_ran 诚实回落 False",
+           _e0["actions_ran"] is False)
+        probe._selftest_ci_pair(_tmp_ev, _env["WORKBENCH_CI_KEY"])
+        _e1 = probe.actions_evidence(root=_tmp_ev, env=_env)
+        ck("两份已验签产物 + 矩阵一致时 actions_ran 为 True",
+           _e1["actions_ran"] is True)
+        _e2 = probe.actions_evidence(root=_tmp_ev, env={"WORKBENCH_CI_KEY": ""})
+        ck("本机无 CI 密钥时 actions_ran 仍 False",
+           _e2["actions_ran"] is False)
+    finally:
+        shutil.rmtree(str(_tmp_ev), ignore_errors=True)
     ck("源码含 remote_configured", "remote_configured" in src)
     ck("源码含 local_equivalent_passed", "local_equivalent_passed" in src)
-    ck("源码含 actions_ran_reason 固定文案",
-       "本机无 remote / GitHub Actions 从未真跑" in src)
+    ck("actions_ran 由 actions_evidence() 推导（源码真接了这条取数）",
+       "actions_evidence(root=r)" in src)
     for tst in ("test_lock_timeout_and_contention.py",
                 "test_cross_process_lock.py",
                 "test_state_sentinel.py",

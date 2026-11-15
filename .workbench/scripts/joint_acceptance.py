@@ -7,7 +7,7 @@
 仓里已经有三件事各自的就绪探针：
 
     tests/test_model_readiness.py   真供应商模型（缺 env 时 fail-closed）
-    ci_narrow_probe.py              GitHub Actions（无 remote 时 actions_ran=false）
+    ci_narrow_probe.py              GitHub Actions（actions_ran 由已验签 CI 产物推导）
     scheduler_observe.py            7 天观察窗口（未满 168h 时 basis=point_estimate）
 
 三件都**只报自己那一项**。于是「现在能不能宣布整套系统验收完成」这个问题，
@@ -174,7 +174,7 @@ def _probe_model(root=None, now_ms=None):
 
 
 def _probe_actions():
-    """GitHub Actions。就绪 = 有 remote 且 ACTIONS_RAN 不是固定 false。
+    """GitHub Actions。就绪 = 有 remote（能不能跑）；验收 = 有已验签 CI 产物且契约过（跑过且验过）。
 
     判断依据必须是**证据文件**里的 `actions_ran`，不是「我看过 workflow 了」。
     """
@@ -196,9 +196,11 @@ def _probe_actions():
         out["actions_ran_reason"] = rep.get("actions_ran_reason")
         out["workflow_contract_passed"] = bool(
             (rep.get("workflow_contract") or {}).get("passed"))
-        # 就绪 = 有 remote。actions_ran 需要真的 push 过一次才会为真，
-        # 所以它属于「验收」而不是「就绪」：有 remote 但没 push，
-        # 正确结论是「能跑但还没跑」，不是「跑过了」。
+        # 就绪 = 有 remote（能不能跑）。actions_ran 需要真的 push + Actions
+        # 真跑 + 把两份已验签产物 ingest 回来才会为真，所以它属于「验收」
+        # 而不是「就绪」：有 remote 但没有产物，正确结论是「能跑但还没跑」，
+        # 不是「跑过了」。ready 只判 remote 字符串不等于「假 remote 就能骗到
+        # PASS」——验收那侧从证据重新核，没有产物时 acceptance 恒 False。
         out["ready"] = out["remote_configured"]
         if not out["ready"]:
             out["why"] = ("git remote -v 为空：workflow 从未真跑过，"

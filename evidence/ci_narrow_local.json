@@ -1,12 +1,17 @@
 {
   "schema": "ci_narrow_local/v1",
-  "generated_at": "2026-11-12T15:35:31.878329+08:00",
+  "generated_at": "2026-11-15T11:45:06.793859+08:00",
   "platform": "win32",
-  "root": "D:\\Users\\THH32\\DSH-ZNT\\workbench",
+  "root": "C:\\Users\\admin\\.dsh\\DSH\\02-projects\\znz-workbench\\workbench",
   "remote_configured": false,
-  "remote_lines": "",
+  "remote_lines": "git remote -v 调用失败: FileNotFoundError(2, '系统找不到指定的文件。', None, 2, None)",
   "actions_ran": false,
-  "actions_ran_reason": "本机无 remote / GitHub Actions 从未真跑",
+  "actions_ran_reason": "缺少 CI 产物 linux.json（尚未 ingest）",
+  "actions_evidence": {
+    "actions_ran": false,
+    "reason": "缺少 CI 产物 linux.json（尚未 ingest）",
+    "platforms": {}
+  },
   "workflow_contract": {
     "files": [
       ".github/workflows/posix-lock.yml",
@@ -16,8 +21,8 @@
     "passed": true
   },
   "local_equivalent": {
-    "cwd": "D:\\Users\\THH32\\DSH-ZNT\\workbench",
-    "python": "C:\\Users\\THH32\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\python.exe",
+    "cwd": "C:\\Users\\admin\\.dsh\\DSH\\02-projects\\znz-workbench\\workbench",
+    "python": "C:\\Users\\admin\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\python.exe",
     "tests": [
       {
         "name": "test_lock_timeout_and_contention.py",

@@ -1,14 +1,25 @@
 # -*- coding: utf-8 -*-
 """CI narrow-gate probe: local equivalent run + workflow contract + honest registry.
 
-This machine has no git remote and GitHub Actions has never executed here, so
 "CI narrow gate really ran once" is landed as three honest pieces:
 
   1. local equivalent  -- really execute the four narrow tests via subprocess
   2. workflow contract  -- validate the two workflow files as plain text/regex
-                         (no PyYAML available in this runtime)
-  3. honest registry    -- actions_ran is always False, remote_configured comes
-                           from `git remote -v`, platform comes from sys.platform
+                          (no PyYAML available in this runtime)
+  3. honest registry    -- actions_ran is DERIVED from ingested + attested
+                          cross-OS CI artifacts (linux.json / macos.json +
+                          matrix.json); remote_configured from `git remote -v`;
+                          platform from sys.platform
+
+  Until 2026-11-15 actions_ran was hardcoded to False, which made JOINT_PASS
+  structurally unreachable: a real push + real Actions run could never turn
+  acceptance.passed True, and a regression test asserted that literal `False`.
+  Now actions_evidence() derives it -- honestly False with no artifacts (this
+  machine), True once platform_runner_probe.py ingest has pulled back both
+  signed runner artifacts and matrix.json agrees. A bare remote URL never
+  flips it: "can run" (ready) and "ran and verified" (actions_ran) stay
+  separate. The local-equivalent verdict below deliberately does NOT depend
+  on actions_ran: it names the LOCAL gate, not the real CI gate.
 
 `--check` is read-only with respect to the workbench tree (it never writes
 evidence). `--write` writes exactly one file: evidence/ci_narrow_local.json.
@@ -42,7 +53,7 @@ FOUR_TESTS = (
     "test_from_states.py",
 )
 
-ACTIONS_RAN_REASON = "本机无 remote / GitHub Actions 从未真跑"
+ACTIONS_RAN_REASON = "未发现已 ingest 且验签通过的 CI 平台产物（actions_ran 由证据推导，不是常量）"
 
 
 # --------------------------------------------------------------------------- #
@@ -225,14 +236,153 @@ def write_evidence(report, root=None):
     return p
 
 
+def _selftest_ci_pair(root, key):
+    """TEST ONLY: land a valid ingested linux+macos pair + agreeing matrix.
+
+    Mirrors what platform_runner_probe.py ingest writes, so the selftest and
+    test_ci_narrow_contract can prove actions_evidence() CAN return True
+    without a real GitHub account. Never called by build_report / production.
+    The artifacts still carry a real HMAC, and actions_evidence re-verifies it.
+    """
+    import hashlib
+    import platform_runner_probe as prp
+    root = Path(root)
+    cap = root / ".workbench" / "capability_evidence" / "platform_runners"
+    cap.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for plat, host in (("linux", "linux"), ("macos", "darwin")):
+        doc = {"schema": 1, "criterion": prp.CRITERION,
+               "host_platform": host, "platform": plat,
+               "verdict": "INSPECTED_NOT_VALIDATED", "w4_participates": False,
+               "generated_at_ms": 0, "surface": {}}
+        doc["attestation"] = prp.attest(doc, key=key.encode("utf-8"))
+        blob = json.dumps(doc, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        sha = "sha256:" + hashlib.sha256(blob).hexdigest()
+        doc["ingested"] = {"artifact_sha256": sha, "attested": True,
+                           "attestation_mac": doc["attestation"]["mac"]}
+        (cap / (plat + ".json")).write_text(
+            json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+        rows.append({"platform": plat, "verdict": "INSPECTED_NOT_VALIDATED",
+                     "evidence_sha256": sha})
+    (cap / "matrix.json").write_text(
+        json.dumps({"rows": rows, "w4_participates": False}), encoding="utf-8")
+    return cap
+
+
+def actions_evidence(root=None, env=None):
+    """Derive `actions_ran` from REAL ingested CI artifacts, never a constant.
+
+    Until 2026-11-15 this was hardcoded to False, which made JOINT_PASS
+    structurally unreachable: a real push + real Actions run could never turn
+    acceptance.passed True, and a regression test asserted that literal value.
+    The honest source of "Actions really ran once" is the pair of cross-OS
+    artifacts that platform_runner_probe.py ingest pulls back (it refuses
+    anything unattested / wrong host / proof verdict / w4-claiming), plus
+    matrix.json agreeing with them.
+
+    ALL of the following must hold for actions_ran=True:
+      * linux.json + macos.json both exist and parse as JSON;
+      * each has ingested.attested is True, w4_participates is False,
+        host_platform matches its file, verdict is a non-UNTESTED member of
+        the allowed non-proof set (a real runner inspection landed);
+      * each attestation STILL verifies under WORKBENCH_CI_KEY -- re-checked
+        here rather than trusting the `attested` flag: a file that merely
+        says "attested: true" with no live check is exactly the 声明悬空 this
+        repo keeps removing;
+      * matrix.json rows for linux+macos are non-UNTESTED and each
+        evidence_sha256 equals its artifact's ingested.artifact_sha256
+        (file and registry must not disagree).
+
+    With no artifacts it is honestly False (this machine's current state).
+    A bare `git remote` string can never flip it: 能跑 (ready) and
+    跑过且验过 (actions_ran) remain different fields on purpose.
+
+    `root` / `env` are injectable so tests can forge both the empty and the
+    fully-attested cases without depending on this machine's state.
+    """
+    r = Path(root) if root is not None else ROOT
+    cap = r / ".workbench" / "capability_evidence" / "platform_runners"
+    out = {"actions_ran": False, "reason": ACTIONS_RAN_REASON, "platforms": {}}
+
+    def _fail(why):
+        out["reason"] = why
+        return out
+
+    try:
+        return _actions_evidence_impl(cap, out, env)
+    except Exception as exc:
+        # never let a read-only probe crash the gate; fail honestly instead
+        return _fail("CI 产物复核异常（如实回落 False）：%s: %s"
+                     % (type(exc).__name__, exc))
+
+
+def _actions_evidence_impl(cap, out, env):
+    import platform_runner_probe as prp
+
+    def _fail(why):
+        out["reason"] = why
+        return out
+
+    arts = {}
+    for plat in ("linux", "macos"):
+        p = cap / (plat + ".json")
+        if not p.is_file():
+            return _fail("缺少 CI 产物 %s（尚未 ingest）" % p.name)
+        try:
+            doc = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            return _fail("%s 不是合法 JSON：%s" % (p.name, exc))
+        ing = doc.get("ingested") or {}
+        if ing.get("attested") is not True:
+            return _fail("%s 没有已验签的 ingested 溯源块" % p.name)
+        host = str(doc.get("host_platform") or "")
+        good_host = host.startswith("linux") if plat == "linux" else host == "darwin"
+        if not good_host:
+            return _fail("%s 的 host_platform=%r 与文件不符" % (p.name, host))
+        verdict = str(doc.get("verdict") or "")
+        if verdict == "UNTESTED" or verdict not in prp.ALLOWED_NONPROOF \
+                or verdict in prp.PROOF_VERDICTS:
+            return _fail("%s 的 verdict=%r 不是真 runner 探测结论" % (p.name, verdict))
+        if doc.get("w4_participates") is not False:
+            return _fail("%s 的 w4_participates 不是 False" % p.name)
+        att_ok, att_why = prp.verify_attestation(doc, env=env)
+        if not att_ok:
+            return _fail("%s 证言复核失败：%s" % (p.name, att_why))
+        if str(ing.get("attestation_mac") or "") != \
+                str((doc.get("attestation") or {}).get("mac") or ""):
+            return _fail("%s 的 ingested mac 与产物不一致" % p.name)
+        arts[plat] = (doc, ing)
+
+    mp = cap / "matrix.json"
+    if not mp.is_file():
+        return _fail("缺少平台矩阵 matrix.json")
+    try:
+        matrix = json.loads(mp.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return _fail("matrix.json 不是合法 JSON：%s" % exc)
+    rows = {str(x.get("platform")): x for x in (matrix.get("rows") or [])}
+    for plat, (doc, ing) in arts.items():
+        row = rows.get(plat) or {}
+        if not row.get("verdict") or str(row.get("verdict")) == "UNTESTED":
+            return _fail("矩阵 %s 行仍停在 UNTESTED" % plat)
+        if row.get("evidence_sha256") != ing.get("artifact_sha256"):
+            return _fail("矩阵 %s 行的 sha 与产物不一致" % plat)
+
+    out["actions_ran"] = True
+    out["reason"] = "两份已 ingest 且验签通过的 CI 平台产物与矩阵一致"
+    out["platforms"] = {p: str(d.get("verdict")) for p, (d, _i) in arts.items()}
+    return out
+
+
 def build_report(do_write=False, root=None):
     r = Path(root) if root is not None else ROOT
     findings = contract(root=r)
     local = run_local_equivalent(root=r)
     remote_configured, remote_lines = git_remote_configured(root=r)
 
-    actions_ran = False
-    actions_ran_reason = ACTIONS_RAN_REASON
+    ev = actions_evidence(root=r)
+    actions_ran = bool(ev["actions_ran"])
+    actions_ran_reason = ev["reason"] or ACTIONS_RAN_REASON
     local_equivalent_passed = (local["all_rc_zero"] and not findings)
     verdict = _verdict(findings, local["all_rc_zero"])
 
@@ -251,6 +401,7 @@ def build_report(do_write=False, root=None):
         "remote_lines": remote_lines,
         "actions_ran": actions_ran,
         "actions_ran_reason": actions_ran_reason,
+        "actions_evidence": ev,
         "workflow_contract": {
             "files": [POSIX_REL, PLATFORM_REL],
             "findings": findings,
@@ -404,8 +555,33 @@ def selftest():
        _verdict(["x"], True) == "CI_NARROW_CONTRACT_FAIL")
     ck("verdict rc 非 0 时 FAIL",
        _verdict([], False) == "CI_NARROW_CONTRACT_FAIL")
-    ck("actions_ran_reason 固定文案",
-       ACTIONS_RAN_REASON == "本机无 remote / GitHub Actions 从未真跑")
+    # 5b. actions_ran 由证据推导，不是常量：空根回落 False；造出两份已验签
+    #     产物 + 一致矩阵后变 True；缺钥匙 / 矩阵 UNTESTED 时仍 False。
+    #     全程只用临时目录，不依赖本机有没有 remote 或真 CI 凭据。
+    _tmp_ev = Path(tempfile.mkdtemp(prefix="ci_narrow_actions_"))
+    try:
+        _env = {"WORKBENCH_CI_KEY": "selftest-ci-key-ci-narrow"}
+        _e0 = actions_evidence(root=_tmp_ev, env=_env)
+        ck("无 CI 产物时 actions_ran 诚实回落 False",
+           _e0["actions_ran"] is False)
+        _selftest_ci_pair(_tmp_ev, _env["WORKBENCH_CI_KEY"])
+        _e1 = actions_evidence(root=_tmp_ev, env=_env)
+        ck("两份已验签产物 + 矩阵一致时 actions_ran 为 True",
+           _e1["actions_ran"] is True)
+        _e2 = actions_evidence(root=_tmp_ev, env={"WORKBENCH_CI_KEY": ""})
+        ck("本机无 CI 密钥时 actions_ran 仍 False",
+           _e2["actions_ran"] is False)
+        _mp = (_tmp_ev / ".workbench" / "capability_evidence" /
+               "platform_runners" / "matrix.json")
+        _mp.write_text(json.dumps({"rows": [
+            {"platform": "linux", "verdict": "UNTESTED", "evidence_sha256": "x"},
+            {"platform": "macos", "verdict": "UNTESTED", "evidence_sha256": "y"}],
+            "w4_participates": False}), encoding="utf-8")
+        _e3 = actions_evidence(root=_tmp_ev, env=_env)
+        ck("矩阵仍 UNTESTED 时 actions_ran 仍 False",
+           _e3["actions_ran"] is False)
+    finally:
+        shutil.rmtree(str(_tmp_ev), ignore_errors=True)
 
     if failed:
         print("ci_narrow_probe: FAIL (%d checks, %d failed)" % (checks, failed))

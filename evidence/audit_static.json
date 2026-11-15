@@ -154,8 +154,8 @@
   "dead": []
  },
  "ci_narrow_probe.py": {
-  "loc": 441,
-  "funcs": 16,
+  "loc": 617,
+  "funcs": 20,
   "silent": [],
   "dead": []
  },
@@ -334,7 +334,7 @@
   "dead": []
  },
  "joint_acceptance.py": {
-  "loc": 737,
+  "loc": 739,
   "funcs": 15,
   "silent": [],
   "dead": []
