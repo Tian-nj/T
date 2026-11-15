@@ -84,7 +84,7 @@ def add(note: str, source_seq: str = "manual", actor: str = "companion", store=N
     _save(doc)
     if store is not None:
         store.append_event("purpose_add",
-                           {"note": item["note"], "source_seq": item["source_seq"]},
+                           {"purpose_id": item["id"], "note": item["note"], "source_seq": item["source_seq"]},
                            actor, None)
     return item
 
@@ -108,7 +108,8 @@ def resolve(pid: str, verdict: str = "resolved", actor: str = "companion",
     hit["last_touch_ms"] = _now_ms()
     _save(doc)
     if store is not None:
-        store.append_event("purpose_resolve", {"id": pid, "verdict": verdict},
+        store.append_event("purpose_resolve",
+                           {"purpose_id": pid, "id": pid, "verdict": verdict},
                            actor, None)
     return hit
 
@@ -170,6 +171,36 @@ def _selftest() -> int:
         check("空 note 拒", _raises(lambda: add("   ", "manual")))
         check("重复了结幂等", resolve("p-0001", "dropped")["status"] == "resolved")
         check("touch 刷新时间", touch("p-0002")["last_touch_ms"] > 0)
+
+        # round135 深度自检补的覆盖缺口：selftest 原先 13/13 全绿却从不传 store=，
+        # 于是 add()/resolve() 里 payload 缺 spec 要求的 purpose_id 潜伏了几十轮 ——
+        # 真 Store 会当场抛 SpecViolation（用户敲 `--emit` 就是这条路径）。
+        # 这里造一个临时 Store 真写两条；异常要收成 check 失败而不是抛栈，
+        # 否则「判红」看起来像「测试自己崩了」，下一个人分不清。
+        import wb_core
+        emitted = []
+        emit_err = []
+        try:
+            ev = os.path.join(tmp, "events")
+            os.makedirs(os.path.join(ev, "sidecar"), exist_ok=True)
+            st = wb_core.Store(tmp, "0" * 32)
+            orig = st.append_event
+
+            def capture(kind, payload, actor, task=None, meta=None, lock_timeout_ms=None):
+                emitted.append((kind, dict(payload)))
+                return orig(kind, payload, actor, task, meta, lock_timeout_ms)
+
+            st.append_event = capture
+            add("第四条（带 store）", "manual", store=st)
+            resolve("p-0004", "resolved", store=st)
+        except Exception as ex:
+            emit_err.append("%s: %s" % (type(ex).__name__, ex))
+        check("带 store 的 add/resolve 不炸", not emit_err)
+        by_kind = {k: p for k, p in emitted}
+        check("add 走 append_event", "purpose_add" in by_kind)
+        check("resolve 走 append_event", "purpose_resolve" in by_kind)
+        check("purpose_add payload 含 purpose_id", "purpose_id" in by_kind.get("purpose_add", {}))
+        check("purpose_resolve payload 含 purpose_id", "purpose_id" in by_kind.get("purpose_resolve", {}))
     finally:
         PURPOSE = saved
         shutil.rmtree(tmp, ignore_errors=True)

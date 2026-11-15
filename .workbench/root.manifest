@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794728442031,
-  "digest": "hmac-sha256:9a66553ff89d8507bd9818c19fa8fecb9b2682df35905b046270caf4403ba826",
+  "created_ms": 1794744440031,
+  "digest": "hmac-sha256:14634ff4e7d0c941d5a7a090c1499b42d51d9e457281ad223732e8dfd3ea0c1d",
   "entries": [
     {
       "bytes": 3315,
@@ -449,9 +449,9 @@
       "sha256": "sha256:8974aad12a07484d7f1e7426fcd71442d94b508cca79447f1be8a0dfcedc8683"
     },
     {
-      "bytes": 8481,
+      "bytes": 10245,
       "path": "scripts/purpose_store.py",
-      "sha256": "sha256:2d370409549e6ea6f33f708b5440682783510a1c646a745d094d3b1b6282ac01"
+      "sha256": "sha256:bc68cf2fe4f9cdaf11178c44dc536a42ec98300222464f6c18f9f968b1b3c95b"
     },
     {
       "bytes": 15032,
@@ -621,7 +621,7 @@
   ],
   "entry_count": 123,
   "manifest_version": 1,
-  "sig": "hmac-sha256:9a66553ff89d8507bd9818c19fa8fecb9b2682df35905b046270caf4403ba826",
+  "sig": "hmac-sha256:14634ff4e7d0c941d5a7a090c1499b42d51d9e457281ad223732e8dfd3ea0c1d",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

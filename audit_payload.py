@@ -2,6 +2,11 @@
 
 这是"加校验前先量伤害"的步骤。append_event 现在会拒收缺必填键的写入，
 如果不先核对，run.sh 会在某个中间步骤突然炸，而炸点看起来像别的问题。
+
+2026-11-15 round135：main() 原先恒 return 0 —— 算出 problems 却不判红，
+README 因此常年写「0 处问题」而实跑有 2 处。现改为 bad>0 就非零，并加
+持久化负向验证 selftest()：每次跑都合成一条缺 purpose_id 的调用点，
+证明 gate 真的会拦，而不是只靠人工记得注入一次。
 """
 from __future__ import annotations
 
@@ -98,8 +103,44 @@ def main() -> int:
     print("-" * 78)
     print("调用点 %d 个，静态可见的问题 %d 处" % (len(rows), problems))
     print("（payload 非字面量的调用点由运行期 SpecViolation 兜底，属预期）")
-    return 0
+    return 0 if problems == 0 else 1
+
+
+def selftest() -> int:
+    """负向验证：合成一条缺 purpose_id 的调用点，gate 必须返回非零。
+
+    走的是与真实审计完全相同的 main() 路径，只把 SCRIPTS 临时指向一个
+    只含探针文件的目录；用完还原，不落盘仓库、不污染真实结论。
+    """
+    import contextlib
+    import shutil
+    import tempfile
+    global SCRIPTS
+    saved = SCRIPTS
+    tmp = tempfile.mkdtemp(prefix="payload_gate_")
+    try:
+        with open(os.path.join(tmp, "probe.py"), "w", encoding="utf-8") as fh:
+            fh.write("def f(store):\n"
+                     "    store.append_event('purpose_add', {'note': 'x'}, "
+                     "'companion', None)\n")
+        SCRIPTS = tmp
+        # 静默 main() 的逐行输出：否则「静态可见的问题 1 处」会与真实审计段
+        # 的「0 处」同形并排出现 —— 假的红不能长得像真的红（round134 的教训）。
+        # 这里只取它的退出码，负向结论用下面一行带明确标记的话单独说明。
+        sink = io.StringIO()
+        with contextlib.redirect_stdout(sink):
+            injected = main()
+    finally:
+        SCRIPTS = saved
+        shutil.rmtree(tmp, ignore_errors=True)
+    ok = injected == 1
+    print("gate selftest（合成缺 purpose_id 的调用点，不计入真实结论）: %s（注入缺陷 rc=%d，期望 1）"
+          % ("PASS" if ok else "FAIL", injected))
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    rc = main()
+    gate = selftest()
+    # 真实审计发现缺陷、或 gate 自身失效，都必须判红
+    raise SystemExit(rc if rc != 0 else gate)

@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（56 个 .py / 31819 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（56 个 .py / 31850 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -309,7 +309,7 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 | `audit_static.py` | 哪些函数定义了没人调？哪些异常被静默吞掉？ | A 合计 0 处 / B 无 |
 | `audit_drift.py` | `wb_core` 与 `spec/*.json` 是不是同一份事实？ | NO DRIFT |
 | `audit_runtime.py` | 15 条"我以为它应该这样，实际呢？" | 15/15 证实 |
-| `audit_payload.py` | 每个 `append_event` 调用点是否带齐必填键？ | 调用点静态核对，0 处问题 |
+| `audit_payload.py` | 每个 `append_event` 调用点是否带齐必填键？ | 调用点静态核对，0 处问题（已接入 gate + 每次自注入负向验证） |
 | `audit_closure.py` | **规则写在这里，谁在读它？** | 11 条闭合，0 条悬空 |
 | `run_all_checks.sh` | **每一件一起跑过，还是分别跑过？** | 90 项 / 90 通过（第四十轮全量回归） |
 | `response_guard.py` | **这次改动该跑到哪一级？漏跑了没有？** | 分级 S/A/B + 条件式必跑 + `MISSED_GATE` 非 0 + 纪律账本 |
@@ -323,6 +323,17 @@ S 级不启 Architect/Auditor/Reviewer/Scribe；`plan → plan_audit → dispatc
 > 全部补上活断言**，尺子再坏回归立刻红，不必再单加一条测试。P13 只认异常消息里的
 > `not writable_in_frozen`；`fresh()` 的临时目录由 `atexit` 回收；P15 删掉不读工作树的
 > `git init` 死代码。负向验证：注入假缺陷 → `rc=1`。
+>
+> **2026-11-15 round135 再次深挖，发现同构的第二处「算出问题却不判红」**：`audit_payload.py`
+> 的 `main()` 累加了 `problems` 却恒 `return 0`，与 round134 的 `audit_runtime.py` 是同一个
+> 失效形态 —— 上表「0 处问题」在 round60–134 期间也是没有活断言的声明。这一轮用 AST 把
+> 全仓「累加可疑计数却所有 int 字面 return 都是 0」的函数扫了一遍，只剩它一处。三处一起修：
+> ①`purpose_store.py` 的 `purpose_add` / `purpose_resolve` 补 spec 要求的 `purpose_id`（否则
+> 用户敲 `--emit` 时 `wb_core.py:933-936` 会当场抛 `SpecViolation`，是可达路径不是理论隐患）
+> ②`audit_payload.py` 改 `return 0 if problems == 0 else 1`，并新增 `selftest()` 每次运行都
+> 合成一个缺 `purpose_id` 的调用点做负向验证（改进 round134 只做一次性人工注入）
+> ③`purpose_store._selftest` 原先 13/13 全绿却从不传 `store=`，补真 `Store` 的 5 条断言，
+> 现 18/18。负向验证：退回旧 payload → 干净的 `FAIL (14/18)` 并列出 4 条失败项。
 
 前四个问"对不对"，`audit_closure` 问的是**"有没有人管"**。
 一条规则最危险的失效形态不是写错，是没有任何执行点读它 ——
