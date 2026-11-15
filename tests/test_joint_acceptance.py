@@ -217,28 +217,52 @@ def t_longrun_risks_untimed():
 
 # ------------------------------------------- [3] 三件外部输入联合验收
 def t_joint_ready_is_not_acceptance():
-    saved = {k: os.environ.get(k) for k in
-             (ja.MODEL_ENDPOINT_ENV, ja.MODEL_KEY_ENV)}
-    try:
-        os.environ.pop(ja.MODEL_ENDPOINT_ENV, None)
-        os.environ.pop(ja.MODEL_KEY_ENV, None)
-        m = ja._probe_model()
-        ok("缺 env 时 model 不就绪", m["ready"], False)
-        ok("缺 env 时点名缺什么", sorted(m["missing"]),
-           [ja.MODEL_ENDPOINT_ENV, ja.MODEL_KEY_ENV])
-        ok("不就绪时不编验收结论", m.get("acceptance"), None)
+    """第六十七轮：model 格切证据链口径后，「就绪 != 验收」仍真跑一遍。
 
-        os.environ[ja.MODEL_ENDPOINT_ENV] = "http://127.0.0.1:1/x"
-        os.environ[ja.MODEL_KEY_ENV] = "dummy"
+    monkeypatch _model_evidence 测 _probe_model 的组装（读文件/时间窗那层
+    由 joint_acceptance.py --selftest 真造文件覆盖），不依赖常驻 env。
+    """
+    saved = ja._model_evidence
+    try:
+        def empty(root=None, now_ms=None):
+            return {"cred_present": False, "cred_placeholder": True,
+                    "evidence_present": False, "structure_ok": False,
+                    "endpoint_kind": None, "model_roundtrip": {},
+                    "fresh": False, "error": None}
+
+        def full(**kw):
+            base = {"cred_present": True, "cred_placeholder": False,
+                    "evidence_present": True, "structure_ok": True,
+                    "endpoint_kind": "external_endpoint",
+                    "vendor_status": "real_endpoint_ok",
+                    "requested_model": ja.EXPECTED_MODEL, "outcome": "RAN",
+                    "real_vendor_verified": True, "fresh": True,
+                    "generated_at_ms": 1794624923641,
+                    "model_roundtrip": {"has_model_output": True, "signed": True,
+                                        "key_not_in_sentinel": True, "rc": 0},
+                    "error": None}
+            base.update(kw)
+            return base
+
+        ja._model_evidence = empty
+        m = ja._probe_model()
+        ok("空证据链 model 不就绪", m["ready"], False)
+        ok("不就绪时不编验收结论", m.get("acceptance"), None)
+        ok("不就绪时点名缺件", "credential_file" in m["missing"]
+           and "model_evidence" in m["missing"], True)
+
+        ja._model_evidence = lambda root=None, now_ms=None: full()
         m2 = ja._probe_model()
-        ok("给齐 env 后 model 就绪", m2["ready"], True)
-        ok("就绪之后仍不许冒充验收通过", m2.get("acceptance"), None)
+        ok("证据链齐全 model 就绪", m2["ready"], True)
+        ok("证据链齐全验收通过", m2["acceptance"]["passed"], True)
+
+        ja._model_evidence = lambda root=None, now_ms=None: full(
+            vendor_status="real_endpoint_failed")
+        m3 = ja._probe_model()
+        ok("篡改证据后仍就绪（文件在 != 验过）", m3["ready"], True)
+        ok("篡改证据后验收不过", m3["acceptance"]["passed"], False)
     finally:
-        for k, v in saved.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
+        ja._model_evidence = saved
 
 
 def t_joint_verdict_order():

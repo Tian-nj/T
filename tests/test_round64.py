@@ -15,6 +15,8 @@
       证据真落盘，outcome=RAN / vendor_status=local_fixture。
   [5] runner 不伪造 PASS：model 就绪后 verdict 仍是 JOINT_BLOCKED，
       still_blocked 恰好是 actions+window，real_vendor_verified=False。
+      （R67 起就绪口径改为证据链：env 注入不算凭据到位，故此处是 0/3、
+      still_blocked=model,actions,window —— 见 t_runner_true_run 注释。）
   [6] 密钥不进证据、不进签署；runner 不硬编码真凭据。
 
 R65 新增（「配」这一步的通道本身，必须有尺子量）：
@@ -124,35 +126,71 @@ def t_provider_classify():
 
 
 def t_probe_model_annotation():
-    saved = {k: os.environ.get(k) for k in (ja.MODEL_ENDPOINT_ENV, ja.MODEL_KEY_ENV)}
+    """第六十七轮：provider_kind 从证据链透传，不再由常驻 env 分类。"""
+    saved_ev = ja._model_evidence
+    saved_env = {k: os.environ.get(k) for k in (ja.MODEL_ENDPOINT_ENV, ja.MODEL_KEY_ENV)}
     try:
+        def full(**kw):
+            base = {"cred_present": True, "cred_placeholder": False,
+                    "evidence_present": True, "structure_ok": True,
+                    "endpoint_kind": "external_endpoint",
+                    "vendor_status": "real_endpoint_ok",
+                    "requested_model": ja.EXPECTED_MODEL, "outcome": "RAN",
+                    "real_vendor_verified": True, "fresh": True,
+                    "generated_at_ms": 1, "error": None,
+                    "model_roundtrip": {"has_model_output": True, "signed": True,
+                                        "key_not_in_sentinel": True, "rc": 0}}
+            base.update(kw)
+            return base
+
+        ja._model_evidence = lambda root=None, now_ms=None: full(
+            cred_present=False, cred_placeholder=True,
+            evidence_present=False, structure_ok=False, endpoint_kind=None)
+        m = ja._probe_model()
+        ok("空证据链 provider_kind=unset", m.get("provider_kind"), "unset")
+        ok("空证据链 ready=False", m["ready"], False)
+
+        ja._model_evidence = lambda root=None, now_ms=None: full()
+        m2 = ja._probe_model()
+        ok("external 带 provider_kind=external_endpoint",
+           m2.get("provider_kind"), "external_endpoint")
+        ok("证据链齐全 ready=True", m2["ready"], True)
+        ok("证据链齐全验收通过", m2["acceptance"]["passed"], True)
+
+        # 篡改 vendor_status -> 仍就绪但验收不过（不冒充通过）
+        ja._model_evidence = lambda root=None, now_ms=None: full(
+            vendor_status="real_endpoint_failed")
+        m3 = ja._probe_model()
+        ok("篡改证据后仍就绪", m3["ready"], True)
+        ok("篡改证据后验收不过", m3["acceptance"]["passed"], False)
+
+        # 删证据 -> 不就绪、不编验收结论（BLOCKED 分支真可达）
+        ja._model_evidence = lambda root=None, now_ms=None: full(
+            evidence_present=False, structure_ok=False)
+        m4 = ja._probe_model()
+        ok("删证据后 ready=False", m4["ready"], False)
+        ok("删证据后不编验收结论", m4["acceptance"], None)
+
+        # A-2：设/不设常驻 env，证据链结论不变
+        ja._model_evidence = lambda root=None, now_ms=None: full()
         os.environ.pop(ja.MODEL_ENDPOINT_ENV, None)
         os.environ.pop(ja.MODEL_KEY_ENV, None)
-        m = ja._probe_model()
-        ok("缺 env 时带 provider_kind=unset", m.get("provider_kind"), "unset")
-        ok("缺 env 时 ready=False", m["ready"], False)
-
-        os.environ[ja.MODEL_ENDPOINT_ENV] = "http://127.0.0.1:1/v1/chat/completions"
+        a = ja._probe_model()
+        os.environ[ja.MODEL_ENDPOINT_ENV] = "http://127.0.0.1:1/x"
         os.environ[ja.MODEL_KEY_ENV] = "k"
-        m2 = ja._probe_model()
-        ok("loopback 带 provider_kind=loopback_fixture",
-           m2.get("provider_kind"), "loopback_fixture")
-        ok("loopback 仍 ready=True（标注不改判据）", m2["ready"], True)
-        ok("loopback 仍不冒充验收通过", m2.get("acceptance"), None)
-
-        os.environ[ja.MODEL_ENDPOINT_ENV] = "https://api.example.com/v1/chat/completions"
-        m3 = ja._probe_model()
-        ok("external 带 provider_kind=external_endpoint",
-           m3.get("provider_kind"), "external_endpoint")
-        ok("external 也 ready=True", m3["ready"], True)
+        b = ja._probe_model()
+        ok("设不设 env 与证据链结论无关（A-2）",
+           (a["ready"], (a["acceptance"] or {}).get("passed")),
+           (b["ready"], (b["acceptance"] or {}).get("passed")))
     finally:
-        for k, v in saved.items():
+        ja._model_evidence = saved_ev
+        for k, v in saved_env.items():
             if v is None:
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
 
-    # 标注纯描述：同一真值不同标注，verdict 必须相同
+    # 标注纯描述：同一真值不同标注，verdict 必须相同（判据逐字未改）
     def mk(kind):
         return {"id": "p", "title": "p", "ready": True,
                 "acceptance": {"passed": True}, "provider_kind": kind,
@@ -165,10 +203,17 @@ def t_probe_model_annotation():
 
 
 def t_readiness_human_annotation():
-    saved = {k: os.environ.get(k) for k in (ja.MODEL_ENDPOINT_ENV, ja.MODEL_KEY_ENV)}
+    """证据链口径：让 model 探针透传 loopback_fixture，测展示逻辑不依赖 env。"""
+    saved_ev = ja._model_evidence
     try:
-        os.environ[ja.MODEL_ENDPOINT_ENV] = "http://127.0.0.1:1/v1/chat/completions"
-        os.environ[ja.MODEL_KEY_ENV] = "k"
+        ja._model_evidence = lambda root=None, now_ms=None: dict(
+            cred_present=True, cred_placeholder=False, evidence_present=True,
+            structure_ok=True, endpoint_kind="loopback_fixture",
+            vendor_status="real_endpoint_ok", requested_model=ja.EXPECTED_MODEL,
+            outcome="RAN", real_vendor_verified=True, fresh=True,
+            generated_at_ms=1, error=None,
+            model_roundtrip={"has_model_output": True, "signed": True,
+                             "key_not_in_sentinel": True, "rc": 0})
         rd = ja.readiness()
         model = next(i for i in rd["items"] if i["id"] == "model")
         ok("readiness items 带 provider_kind",
@@ -183,11 +228,7 @@ def t_readiness_human_annotation():
         ok("human 用真实换行", NL in h and "\\\\" + "n" not in h, True)
         ok("readiness 不宣布验收", "verdict" in rd, False)
     finally:
-        for k, v in saved.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
+        ja._model_evidence = saved_ev
 
 
 def t_credential_loader():
@@ -287,13 +328,16 @@ def t_runner_true_run():
         ok("签署带 model_output", rt.get("has_model_output"), True)
         ok("密钥没漏进签署", rt.get("key_not_in_sentinel"), True)
         rd = d.get("readiness") or {}
-        ok("readiness 1/3（只 model 就绪）", rd.get("ready_count"), 1)
+        # 第六十七轮起就绪口径是证据链，不是 env：fixture 走 env 注入、
+        # 没有凭据文件，所以 model 一格也必须如实报不就绪（0/3）。
+        # 这正是「跑通了 HTTP 往返」与「凭据到位」两件事不同形的落地。
+        ok("readiness 0/3（env 注入不算凭据到位）", rd.get("ready_count"), 0)
         ok("readiness 三项齐全", len(rd.get("items") or []), 3)
         # 不伪造 PASS
         ok("joint_verdict 仍 BLOCKED", d.get("joint_verdict"), "JOINT_BLOCKED")
         hb = d.get("honest_boundary") or {}
-        ok("still_blocked = actions,window",
-           sorted(hb.get("still_blocked") or []), ["actions", "window"])
+        ok("still_blocked = model,actions,window",
+           sorted(hb.get("still_blocked") or []), ["actions", "model", "window"])
         ok("real_vendor_verified=False", hb.get("real_vendor_verified"), False)
         ok("runner_rc_means 写明 ≠ 验收通过",
            "验收通过" in (hb.get("runner_rc_means") or ""), True)
@@ -434,22 +478,23 @@ def t_real_external_failure():
 
 
 def t_no_fake_pass_evaluate():
-    """production evaluate()：本机三项真实输入全缺，verdict 只能是 BLOCKED。"""
-    saved = {k: os.environ.get(k) for k in (ja.MODEL_ENDPOINT_ENV, ja.MODEL_KEY_ENV)}
+    """production evaluate()：另两格真阻塞时，model 再齐也不许判 PASS。"""
+    saved = ja._probe_model
     try:
-        os.environ.pop(ja.MODEL_ENDPOINT_ENV, None)
-        os.environ.pop(ja.MODEL_KEY_ENV, None)
+        ja._probe_model = lambda root=None, now_ms=None: {
+            "id": "model", "title": "真供应商模型", "ready": True,
+            "acceptance": {"passed": True}, "how": "h", "verify": "v",
+            "why": None, "missing": [], "provider_kind": "external_endpoint"}
         rep = ja.evaluate()
-        ok("无 env 时 evaluate verdict=BLOCKED", rep["verdict"], ja.BLOCKED)
-        ok("blocked_count=3", rep["blocked_count"], 3)
-        ok("没有一项被伪造为通过",
-           all(i.get("ready") is False for i in rep["items"]), True)
+        ok("model 全通过但另两格阻塞时 verdict 仍 BLOCKED",
+           rep["verdict"], ja.BLOCKED)
+        ok("actions 与 window 都在阻塞项里",
+           sorted(i["id"] for i in rep["items"] if not i["ready"]),
+           ["actions", "window"])
+        ok("合并器不把单项通过冒充总体 PASS",
+           rep["verdict"] != ja.PASSED, True)
     finally:
-        for k, v in saved.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
+        ja._probe_model = saved
 
 
 def t_source_truth():
@@ -492,11 +537,25 @@ def t_source_truth():
     ja_src = _src(".workbench/scripts/joint_acceptance.py")
     ok("_classify_endpoint 定义在 joint_acceptance",
        "def _classify_endpoint(" in ja_src, True)
-    # 定义行 def _classify_endpoint(ep): 自身也含该串，所以量真实赋值点
-    ok("分类只在 model 探针消费一次",
-       ja_src.count('"provider_kind": _classify_endpoint(ep)'), 1)
+    ok("model 探针的 provider_kind 从证据透传（不再从 env 分类）",
+       '"provider_kind": ev.get("endpoint_kind")' in ja_src, True)
     ok("readiness 把标注透传（不是另算一份）",
        '"provider_kind": p.get("provider_kind")' in ja_src, True)
+    # R67：证据链口径 + JOINT_PASS 可达，判据本身逐字未改
+    ok("证据链常量在场",
+       all(x in ja_src for x in ("MODEL_CRED_REL", "MODEL_EVIDENCE_REL",
+                                 "EXPECTED_MODEL", "MODEL_EVIDENCE_MAX_AGE_MS")), True)
+    ok("有只读 _model_evidence 核对函数",
+       "def _model_evidence(" in ja_src, True)
+    # 补丁原文写的是 _probe_model(now_ms) —— 位置传参，把 now_ms 喂给了
+    # root。签名是 (root=None, now_ms=None)，所以必须关键字传参，否则
+    # 任何显式传 now_ms 的调用都会 TypeError。这里断言正确形态。
+    ok("evaluate 把 now_ms 关键字传给 model 探针",
+       "_probe_model(now_ms=now_ms)" in ja_src, True)
+    ok("evaluate_items 判据未改（就绪 != 验收）",
+       "if blocked:" in ja_src and "elif unverified:" in ja_src, True)
+    ok("不再用 env 判 model 就绪（旧写法不在）",
+       '"ready": not missing' not in ja_src, True)
 
 
 def main():
