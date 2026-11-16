@@ -188,7 +188,7 @@
     },
     "scripts/golden_gate.py": {
       "tier": "write_local",
-      "loc": 230
+      "loc": 252
     },
     "scripts/health.py": {
       "tier": "write_local",

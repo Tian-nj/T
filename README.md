@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（68 个 .py / 36907 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（68 个 .py / 36929 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 130 项：88 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 131 项：89 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 88 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **130 项 / 130 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 89 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **131 项 / 131 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1667,3 +1667,17 @@ fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静�
 其余 scheduler job 的幂等性（本次 grep 逐条看过）：`health`（heartbeat_lost/resumed 条件触发）、`gc_helper`（第二遍找不到可清的）、`dream`（幂等键 (date,action,sha)）、`metrics`（时间序列，按 stamp 新文件，设计如此）—— 都幂等或按设计追加。唯 gate_timer 的 escalated 分支漏了。
 
 教训：一个每分钟被调的定时器，最该测的就是「跑两遍会不会有副作用」。E25 本是提醒，刷成每分钟一条就从提醒变成了噪音——这和「门禁常态化即噪音」是同一件事的时间维版本。
+
+### 19.19 第一百五十二轮：golden_gate 从「12 道精选题」到「任意任务」（阶段 7 泛化）
+
+**为什么做**：O9 的 `golden_gate` 一直只能跑写死的确定性任务（12 道精选题，每个 kind 一个 handler）。但阶段 7 要的是「**通用**任务验收…回放用例」——给**任意**任务「录一次验收→日后回放、看会不会回归」。这两者差一个泛化。
+
+**怎么做（扩展而非另建）**：不新建平行的 replay 工具（那会是两套真相）。给 `golden_gate.HANDLERS` 加一个 `generic` handler：跑一条 verify 命令（`subprocess.run(list, shell=False)`，temp 目录里、不写生产）→ 返回 `{exit, stdout}` → 复用同一套 `_match / run_tasks / reconcile / baseline`。于是「录一次→回放→与 baseline 比→判 G1 回归/G2 通过率降」对任意任务成立。
+
+**安全约束**：verify 给的是命令**列表**不经 shell 拼接（防注入）、在 temp 跑、不写生产（prod_drift_guard 铁律）；单条超时/异常算该用例失败、不崩整体（`run_tasks` 兜）。未知 kind 报 `NO_HANDLER` 计失败。
+
+**判据（`test_acceptance_replay.py`，6 checks）**：generic handler 真跑命令并返回 {exit,stdout}、非零退出如实返回 / 登记 generic 用例→回放通过无回归 / **改坏 expected→回放判 G1 回归**（regress=r1）/ 未知 kind 计失败不崩。用例登记在**临时** registry（不碰生产 golden_tasks.json / baseline）。
+
+**负向验证**：破坏 `_h_generic`（恒返回 exit=0/stdout=hello）→ 3 条断言精确红（generic exit/stdout、回放回归、G1 检测），无 Traceback、还原转绿。证明「通用验收回放」真能抓回归。
+
+**教训**：一个能力该是「已有机制的扩展」还是「新机制」，判据是它能不能复用同一套判据与记录。golden_gate 的 registry + baseline 回归检测本就通用，缺的只是「跑任意 verify」这个入口——补一个 handler 就够，不必另起炉灶。

@@ -74,11 +74,33 @@ def _h_file_organize(t):
         shutil.rmtree(d, ignore_errors=True)
 
 
+def _h_generic(t):
+    """通用任务验收回放（阶段 7 泛化）：跑一条 verify 命令，返回 {exit, stdout} 供比对。
+
+    为什么加它：上面 4 个 handler 只覆盖写死的确定性任务（O9 的 12 道精选题）。要给**任意**
+    任务「录一次验收→日后回放、看会不会回归」，得有执行任意 verify 的通道。判据与 replay
+    沿用同一套（`_match` / `run_tasks` / `reconcile` / baseline），不另建平行机制（两套真相）。
+
+    安全约束（prod_drift_guard 铁律 + 防注入）：在 temp 目录跑、`shell=False`（给的是命令列表，
+    不经 shell 拼接）、不写任何生产内容；单条超时/异常算该用例失败、不崩整体（`run_tasks` 兜）。
+    """
+    import subprocess
+    d = tempfile.mkdtemp(prefix="gold-gen-")
+    try:
+        r = subprocess.run(list(t["verify"]), cwd=d, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace",
+                           timeout=t.get("timeout", 30))
+        return {"exit": r.returncode, "stdout": (r.stdout or "").strip()}
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
 HANDLERS = {
     "call": _h_call,
     "count_lines": _h_count_lines,
     "doc_gen": _h_doc_gen,
     "file_organize": _h_file_organize,
+    "generic": _h_generic,
 }
 
 
