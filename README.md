@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 161 个文件的 HMAC 清单
+  root.manifest            # 162 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 67 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 68 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（67 个 .py / 36740 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（68 个 .py / 36897 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 128 项：86 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 129 项：87 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 86 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **128 项 / 128 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 87 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **129 项 / 129 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1629,3 +1629,25 @@ fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静�
 负向验证：把 ``audit_payload.py`` 的调用点计数改成 0（模拟 vacuous）→ 活消费者精确红（`调用点实质（0>=40）`）、无 Traceback、还原转绿。
 
 这道判据补的是「查没查」这一层：rc 只答「过没过」，活断言答「有没有真在查」。判据的作者不豁免于判据，审计自己也得有人盯着它别退化成空转。
+
+### 19.17 第一百五十轮：人工闸的超时早就有，缺的是「谁在等我」（round150）
+
+阶段 8（观测、人机协同与界面）开工前先核实现状，免得重造已有的东西：
+
+- `gate_timer.py` 已经把人工闸的 SLA/超时做完了：SLA 取自 `config.global_config.human_gate_sla_min`（240 分钟），三闸门超时方向写死朝保守走（`gate_open` 超时→noop 不开工、`pending_human` 超时→blocked 停住不猜、`escalated` 超时→stay 绝不自动 done），超时写 `E25 human_timeout`、必要时经 `T23` 迁 blocked。scheduler 里 `gate_timer` 是真 job。
+- `metrics_collector.py` 统计 first_pass/rework/zombies/human_touch/escalations，输出 human_touch_rate_bp、escalate_false_rate_bp。
+- 但**没有任何一处能看到「现在有谁在等我裁决、每条等了多久、离 SLA 还有多远、哪条已经逾期」**：`boss_report.py` 是单任务（--task required），`gate_timer` 只报**已经超时**的那一部分，没有聚合的、带 SLA 视角的等待清单。
+
+所以本轮只补两样真正缺的：一块只读审批台 + 一条从没被证明的 DoD。
+
+**新建 `.workbench/scripts/gate_board.py`（只读）**：扫全链出「等待中的闸门」（`pending_human/escalated/blocked`），每条给 age / SLA / 状态（`on_sla/approaching/overdue`，approaching=过了 SLA 八成）+ action_hint（该怎么裁，指向 `human_cli.py`）。核心 `_board_from(rows, rb, now_ms, sla_min)` 是**纯函数**，IO 只在薄壳 `board()` 里 —— 测分类喂合成行就行，不用造真链。
+
+**DoD③「界面不绕过控制面闸门」第一次被证明**：裁决的权力和看到状态的权力必须分开。合并进一个能写的状态面板，迟早有人从面板上顺手放行、绕过签名与状态机。所以 `gate_board.py` **只读**：全文件不调 `st.append_event` / `st.transition`，结构上写不了、也就不可能替人放行。要批/拒走 `human_cli.py`（E20–E24），要超时走 `gate_timer.py`。
+
+**`tests/test_gate_board.py`（13 checks）**：①分类正确（纯函数）②只读 + 非绕过（跑一遍 `board()` 链事件数不变 + **AST 断言 `gate_board.py` 没有任何 `append_event/transition` 调用**）③诚实边界（记录不全 age=None/status=unknown 不冒充 0；非等待态不列）。
+
+**负向验证（`neg_verify_gate_board.py`）**：①往文件里塞一个带 `st.append_event(...)` 的 helper（模拟「界面顺手放行」）→ AST 断言精确红在「非绕过」、无 Traceback、还原转绿②把 `_classify` 改成恒返 on_sla（模拟「逾期判不出来」）→ overdue 两条红。**两个负向都成立**，证明新判据真能抓违规、不是空转。
+
+一处自纠：非绕过的负向验证第一版把写入注入进 `board()` 开头，那行 `st` 还没定义 → `NameError` 让测试在 `t_read_only` 就崩了，`t_no_bypass` 根本没跑到、报不出干净的「非绕过」红。改成注入一个**不被调用**的 helper（AST 照样看得见那句写入，但 `board()` 不崩）→ 干净红。判据没错，是注入点选错了：要证「文件里不许有写入口」，就别把写入口塞进会被先执行的路径。
+
+教训：DoD 里「界面不绕过控制面闸门」这种**性质**，不会自己现形——它得被一条 AST 判据盯住。而「只读」是最强的非绕过证明：一个没有写入口的界面，结构上就不可能绕过闸门。

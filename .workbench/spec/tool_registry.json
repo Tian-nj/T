@@ -170,6 +170,10 @@
       "tier": "read_only",
       "loc": 246
     },
+    "scripts/gate_board.py": {
+      "tier": "read_only",
+      "loc": 157
+    },
     "scripts/gate_timer.py": {
       "tier": "read_only",
       "loc": 114
@@ -336,12 +340,12 @@
     }
   },
   "counts": {
-    "tools": 69,
+    "tools": 70,
     "by_tier": {
       "outbound": 5,
       "write_local": 34,
       "destructive": 15,
-      "read_only": 15
+      "read_only": 16
     },
     "derivable_tiers": 4,
     "override_only_tiers": 2

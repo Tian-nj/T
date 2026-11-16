@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794793162612,
-  "digest": "hmac-sha256:61aac2d107f02b7b142dc8edd38948765e264a50e4984f54b4a829a0e294b8a8",
+  "created_ms": 1794796814514,
+  "digest": "hmac-sha256:45e8bdbbdc6f3e6ddc3d2f48c9e2719a61cf150a6aaa54b3154af80bc8a0bdac",
   "entries": [
     {
       "bytes": 3315,
@@ -479,6 +479,11 @@
       "sha256": "sha256:6eddfd25febf84b78ba6c06a2e2f537851df5492f3bf08ac1800b3beeedb12e1"
     },
     {
+      "bytes": 6733,
+      "path": "scripts/gate_board.py",
+      "sha256": "sha256:014c5238a028e948e842f00e9bc1b62c8fcfa370e90765f6a4ae6c8e448b0b9e"
+    },
+    {
       "bytes": 4680,
       "path": "scripts/gate_timer.py",
       "sha256": "sha256:ab5fa4f6813c3522b301367d55e218de9cb85916a9d5a5e5ed4ba7b3d7225a3c"
@@ -779,9 +784,9 @@
       "sha256": "sha256:0ac6b536aae34fff490c589eaa1d37003370c799d5aac299c734c197b1d51bbe"
     },
     {
-      "bytes": 7907,
+      "bytes": 7989,
       "path": "spec/tool_registry.json",
-      "sha256": "sha256:9a25e009d99573dd4c6b5411da6b23e93852b322ec39016c34535d1c8f54ed13"
+      "sha256": "sha256:3948ac3db22a86b72b0e381085643d78191744ed19998f7fe1b0ccaefb11c32e"
     },
     {
       "bytes": 599,
@@ -809,9 +814,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 161,
+  "entry_count": 162,
   "manifest_version": 1,
-  "sig": "hmac-sha256:61aac2d107f02b7b142dc8edd38948765e264a50e4984f54b4a829a0e294b8a8",
+  "sig": "hmac-sha256:45e8bdbbdc6f3e6ddc3d2f48c9e2719a61cf150a6aaa54b3154af80bc8a0bdac",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

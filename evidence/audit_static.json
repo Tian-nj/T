@@ -297,6 +297,12 @@
   "silent": [],
   "dead": []
  },
+ "gate_board.py": {
+  "loc": 157,
+  "funcs": 6,
+  "silent": [],
+  "dead": []
+ },
  "gate_timer.py": {
   "loc": 114,
   "funcs": 3,
