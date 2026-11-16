@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（68 个 .py / 36897 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（68 个 .py / 36907 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 129 项：87 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 130 项：88 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 87 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **129 项 / 129 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 88 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **130 项 / 130 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1651,3 +1651,19 @@ fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静�
 一处自纠：非绕过的负向验证第一版把写入注入进 `board()` 开头，那行 `st` 还没定义 → `NameError` 让测试在 `t_read_only` 就崩了，`t_no_bypass` 根本没跑到、报不出干净的「非绕过」红。改成注入一个**不被调用**的 helper（AST 照样看得见那句写入，但 `board()` 不崩）→ 干净红。判据没错，是注入点选错了：要证「文件里不许有写入口」，就别把写入口塞进会被先执行的路径。
 
 教训：DoD 里「界面不绕过控制面闸门」这种**性质**，不会自己现形——它得被一条 AST 判据盯住。而「只读」是最强的非绕过证明：一个没有写入口的界面，结构上就不可能绕过闸门。
+
+### 19.18 第一百五十一轮：跑两遍会怎样 —— 一条每分钟刷一条的 E25（round151）
+
+换维度（前几轮查「对不对/有没有人读/会不会红/界面绕不绕过」，本轮查**幂等性：跑两遍会怎样**）。这是持续运行系统（scheduler 每分钟 tick）最典型的隐患。
+
+**真缺陷**：`gate_timer.py` 对 **escalated-超时**闸门的动作是 `stay`（不迁状态），而起点时间戳 `opened[tid]`（开闸时刻）不随 `human_timeout` 事件前进 → 下一轮仍超时、再写一条 `E25 human_timeout`，**每个 tick 刷一条**。`pending_human` 迁 blocked 后停（幂等），唯独 escalated 会刷。scheduler 每 tick 跑 gate_timer，于是长期挂起的升级会把链刷爆。
+
+**打桩坐实（`probe_gate_idempotency.py`）**：喂合成链调**真的** `scan()`（不是复制品），两次 scan 各写一条 `human_timeout`（escalated）；pending_human 只写 1 条。fake 让 `append_event` 落进事件链 + `transition` 回写状态（否则 pending_human 会被误判成也不幂等——它迁走后本该停）。
+
+**修法（E25 每闸只报一次）**：记每条任务最近一次 `human_timeout` 时刻 `timed_out[tid]`，fired 循环里「这一轮开闸之后已报过就不再报」（`timed_out[tid] >= 开闸 ts → skip`）。跑 N 遍 scan 恰好 1 条 E25。
+
+**`tests/test_gate_timer_idem.py`（5 checks）**：escalated 跑 5 遍只报 1 条 + stay 不迁状态；pending_human 只报 1 条 + 迁 blocked 后停；未超 SLA 不报。**负向验证**（`neg_verify_gate_idem.py`）：去掉 dedup → escalated 刷 5 条 → 干净红、无 Traceback、还原转绿。
+
+其余 scheduler job 的幂等性（本次 grep 逐条看过）：`health`（heartbeat_lost/resumed 条件触发）、`gc_helper`（第二遍找不到可清的）、`dream`（幂等键 (date,action,sha)）、`metrics`（时间序列，按 stamp 新文件，设计如此）—— 都幂等或按设计追加。唯 gate_timer 的 escalated 分支漏了。
+
+教训：一个每分钟被调的定时器，最该测的就是「跑两遍会不会有副作用」。E25 本是提醒，刷成每分钟一条就从提醒变成了噪音——这和「门禁常态化即噪音」是同一件事的时间维版本。

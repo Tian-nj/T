@@ -47,6 +47,7 @@ def scan(dry_run=False, now_ms=None) -> dict:
 
     # 最近一次 gate_open / pending_human / escalated 的时间
     opened = {}
+    timed_out = {}      # 每条任务最近一次 human_timeout 的时刻（幂等判据）
     for r in rows:
         k = r.get("kind")
         p = r.get("payload") or {}
@@ -55,12 +56,21 @@ def scan(dry_run=False, now_ms=None) -> dict:
             opened[tid] = (r.get("ts_ms"), "gate_open")
         elif k == "state" and p.get("to") in ("pending_human", "escalated"):
             opened[tid] = (r.get("ts_ms"), p.get("to"))
+        elif k == "human_timeout":
+            timed_out[tid] = r.get("ts_ms")
     fired = []
     for tid, (ts, kind) in sorted(opened.items()):
         state = rb.get(tid, {}).get("state")
         if state not in ("pending_human", "escalated"):
             continue
         if not isinstance(ts, int) or now - ts <= sla:
+            continue
+        # 幂等（第一百五十一轮）：E25 每闸只报一次 —— 这一轮开闸之后已经报过
+        # human_timeout 就不再报。否则 escalated 的超时动作是 stay（不迁状态），
+        # opened[tid] 不随 human_timeout 前进 → 每个 tick 都再刷一条 E25（实测
+        # probe_gate_idempotency：两次 scan 各写一条）。timed_out[tid] >= 开闸 ts
+        # 即「本闸已报过」。跑 N 遍 scan 恰好 1 条 E25。
+        if timed_out.get(tid, -1) >= ts:
             continue
         # 两张表都要真被读到：GATE_FROM 校验「闸门类型 ↔ 当前状态」一致，
         # TIMEOUT_ACTION 按类型取动作。此前这里硬编码 state→action，

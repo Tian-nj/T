@@ -176,7 +176,7 @@
     },
     "scripts/gate_timer.py": {
       "tier": "read_only",
-      "loc": 114
+      "loc": 124
     },
     "scripts/gc_helper.py": {
       "tier": "destructive",
