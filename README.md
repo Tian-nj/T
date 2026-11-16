@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 131 项：89 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 132 项：90 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 89 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **131 项 / 131 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 90 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **132 项 / 132 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1681,3 +1681,15 @@ fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静�
 **负向验证**：破坏 `_h_generic`（恒返回 exit=0/stdout=hello）→ 3 条断言精确红（generic exit/stdout、回放回归、G1 检测），无 Traceback、还原转绿。证明「通用验收回放」真能抓回归。
 
 **教训**：一个能力该是「已有机制的扩展」还是「新机制」，判据是它能不能复用同一套判据与记录。golden_gate 的 registry + baseline 回归检测本就通用，缺的只是「跑任意 verify」这个入口——补一个 handler 就够，不必另起炉灶。
+
+### 19.20 第一百五十三轮：换维度「并发与竞态」—— 给并发安全装护栏（round153）
+
+**为什么做**：持续运行系统（scheduler 每分钟 tick + 多 job + 残留超时线程）最怕并发竞态，前几轮没查过。
+
+**实测并发模型健全**：`wb_core.Store._Lock` 是 OS 级字节范围锁（win32 msvcrt.locking / posix fcntl.flock，带超时重试）；`append_event / transition / lease` 全在 `self._lock` 内；job 顺序执行；tick `IgnoreNew` 防重叠。
+
+**但正确性没有回归护栏**（与 round145「门禁对但没人守」同型）：一旦有人摘掉 `self._lock`、或把 `os.replace` 改成裸写，没人喊。建 `test_chain_concurrency.py` 双层：①真实并发压测（24 线程同时 append→链必须恰好 24 条、seq 唯一连续、payload 不交错损坏）②AST 判据（`append_event` 持 `self._lock`、`transition` 委托单写入口、`save_state` 用 `os.replace`）。
+
+**负向验证（强）**：摘掉 `append_event` 的 `self._lock` → 压测**真抓到损坏**（22/24 条、seq=[1,1,1,1,1,2,2,3,3,3] 重复=丢失+竞态），AST 判据也红，还原转绿。
+
+教训：并发安全要有回归护栏，否则锁被摘没人喊。测链写入要用**已声明事件 + 合法 actor**（如 E34 `gc` / `system:gc`，纯追加无状态机约束），否则 SpecViolation。
