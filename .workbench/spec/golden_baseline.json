@@ -1,0 +1,20 @@
+{
+  "criterion": "golden_baseline_v1",
+  "pass_rate": 1.0,
+  "passed": [
+    "g01",
+    "g02",
+    "g03",
+    "g04",
+    "g05",
+    "g06",
+    "g07",
+    "g08",
+    "g09",
+    "g10",
+    "g11",
+    "g12"
+  ],
+  "schema": 1,
+  "total": 12
+}

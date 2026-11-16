@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
-# run_all_checks.sh —— 一键回归：84 测试 + 5 审计 + 34 校验 + 覆盖率 + e2e = 124 项
-#   84 测试（for 清单）/ 5 audit / 31 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
+# run_all_checks.sh —— 一键回归：84 测试 + 5 审计 + 35 校验 + 覆盖率 + e2e = 125 项
+#   84 测试（for 清单）/ 5 audit / 32 check（含 1 scheduler status，warn-only）/ 2 contract + 1 sign_manifest / 1 e2e
 #   覆盖率段单独打印，不走 run()，因此不计入 PASSED（别把两个数字混成一个）。
 #
 # 为什么要有这个脚本：
@@ -665,6 +665,7 @@ done
 # 一旦红了分不清是谁动的手。
 run "check prod_drift (测试不得写生产)" "$PY" .workbench/scripts/prod_drift_guard.py check "$PROD_SNAP"
 run "check index_consistency (三份索引文档一致)" "$PY" .workbench/scripts/index_consistency.py
+run "check golden_gate (golden set 通过率不降)" "$PY" .workbench/scripts/golden_gate.py
 
 
 # ---------------------------------------------------------------------------

@@ -182,6 +182,10 @@
       "tier": "write_local",
       "loc": 1720
     },
+    "scripts/golden_gate.py": {
+      "tier": "write_local",
+      "loc": 230
+    },
     "scripts/health.py": {
       "tier": "write_local",
       "loc": 169
@@ -328,10 +332,10 @@
     }
   },
   "counts": {
-    "tools": 67,
+    "tools": 68,
     "by_tier": {
       "outbound": 5,
-      "write_local": 33,
+      "write_local": 34,
       "destructive": 15,
       "read_only": 14
     },

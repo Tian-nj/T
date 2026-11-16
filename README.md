@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 157 个文件的 HMAC 清单
+  root.manifest            # 160 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 65 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 66 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（65 个 .py / 36200 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（66 个 .py / 36430 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 124 项：84 测试 + 5 审计 + 34 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 125 项：84 测试 + 5 审计 + 35 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 84 测试 + 5 审计 + 34 校验 + 覆盖率 + e2e = **124 项 / 124 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 84 测试 + 5 审计 + 35 校验 + 覆盖率 + e2e = **125 项 / 125 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1592,3 +1592,20 @@ spec_lint、demo e2e 全红）—— 那正是 tool_registry 该抓的，按它�
 
 教训：跨工件一致是「装饰性安全」的又一镜像 —— 三份文档各自都对，合起来可能互相矛盾，而没有任何东西
 在核「它们说的是不是同一件事」。手写同步撑不长，只有把「对得上」变成机器判据，才不会在第 N 轮改数时漏。
+
+### 19.14 第一百四十七轮：先建质量判据，再建风险件（round147）
+
+线 C 阶段 4「通用规划循环」是方案里风险最高的一段（「通用规划器极易退化成乱试」）。方案自己的护栏是
+**golden task set**（O9）：只有 max_attempts 与预算防不了「规划自洽但产出错」，所以定义一组**已知正确答案**
+的任务，每次改动跑全量、通过率不得降、任一从通过变失败=回归。方案还规定「阶段 4 未过 golden set 不得进 7」。
+
+于是本轮**先建质量判据**（再建规划器那个风险件）：``.workbench/spec/golden_tasks.json``
+放 12 个确定性已知答案任务（纯代码 / 数据统计 / 文档生成 / 文件整理），``golden_gate.py``
+跑任务→比已知答案→与 baseline 比（G1 回归 / G2 通过率降）。**需外部 AI 的任务不可确定性复现**，单列用 mock
+契约校验、不混进主通过率——这是诚实标注，不是漏。文件/文档类任务在 temp 里做，不碰生产内容（prod_drift_guard 铁律）。
+
+回归门禁负向验证：篡改 g01 的已知答案→G1「回归：g01 从通过变失败」+ G2 红、还原转绿。**首跑还抓到我自己一处
+fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静默吞异常），被 silent_swallow 门禁逮到
+—— 正是我一路在禁的那类。改成可见非静默（落盘失败仍不掩盖判定，但必须喊出来），重跑 125/0。
+
+教训：连「写质量判据」的代码自己也会犯被它判的错。判据的作者不豁免于判据。

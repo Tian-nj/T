@@ -325,6 +325,12 @@
   ],
   "dead": []
  },
+ "golden_gate.py": {
+  "loc": 230,
+  "funcs": 12,
+  "silent": [],
+  "dead": []
+ },
  "health.py": {
   "loc": 169,
   "funcs": 7,

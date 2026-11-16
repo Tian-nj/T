@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794784915063,
-  "digest": "hmac-sha256:9104a4523c4fe570a54f9a0ea3c2aa9c75665eb8dd7bd77d1b8c87ee7238da5b",
+  "created_ms": 1794787307782,
+  "digest": "hmac-sha256:d73190e45eca071b89c9bdae516bb651289e2c6b02850a8252936e8358311724",
   "entries": [
     {
       "bytes": 3315,
@@ -494,6 +494,11 @@
       "sha256": "sha256:15d33bdb8f8491b51e9661e7f57ec07185f9db6530bd8755cc1b3ae77c719c17"
     },
     {
+      "bytes": 8828,
+      "path": "scripts/golden_gate.py",
+      "sha256": "sha256:accc800d92b28cf9a4d95b996a4a8ef51032d1a6605f54c8016d42542550abf5"
+    },
+    {
       "bytes": 6464,
       "path": "scripts/health.py",
       "sha256": "sha256:248eea1e00775d741f066c62bac28b818c98d61cf3bb6e1607df6129304b7e4d"
@@ -729,6 +734,16 @@
       "sha256": "sha256:8f86b2612be64ba9bc5e89a6e84c732fd323135ea22acebf597805e0cf3eb7c0"
     },
     {
+      "bytes": 239,
+      "path": "spec/golden_baseline.json",
+      "sha256": "sha256:104506c287be27c4b478533e1859be26ea3be6553105dc3b336b900062895087"
+    },
+    {
+      "bytes": 2378,
+      "path": "spec/golden_tasks.json",
+      "sha256": "sha256:be7ec4a0d679a417038bcb6de64b181d3a50a4172d9942fc0b66f8e3ff18fb09"
+    },
+    {
       "bytes": 2659,
       "path": "spec/lock_semantics.json",
       "sha256": "sha256:ba918d8e2a0311ff661573596716d41c373d22d4adc949073b24f9a49c04ceb5"
@@ -759,9 +774,9 @@
       "sha256": "sha256:0ac6b536aae34fff490c589eaa1d37003370c799d5aac299c734c197b1d51bbe"
     },
     {
-      "bytes": 7741,
+      "bytes": 7826,
       "path": "spec/tool_registry.json",
-      "sha256": "sha256:22209d184c1ad05bd4b964355ec4e1d8707275339834870e129d7f849ff2aaa1"
+      "sha256": "sha256:1d95dc73bbca0e925dda11cfc845053792773c2789d4426f39eb2558c7ae7d9d"
     },
     {
       "bytes": 599,
@@ -789,9 +804,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 157,
+  "entry_count": 160,
   "manifest_version": 1,
-  "sig": "hmac-sha256:9104a4523c4fe570a54f9a0ea3c2aa9c75665eb8dd7bd77d1b8c87ee7238da5b",
+  "sig": "hmac-sha256:d73190e45eca071b89c9bdae516bb651289e2c6b02850a8252936e8358311724",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }

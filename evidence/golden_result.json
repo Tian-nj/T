@@ -1,0 +1,26 @@
+{
+  "schema": "golden_result_v1",
+  "table": {
+    "base_rate": 1.0,
+    "failed": 0,
+    "failed_ids": [],
+    "pass_rate": 1.0,
+    "passed": 12,
+    "passed_ids": [
+      "g01",
+      "g02",
+      "g03",
+      "g04",
+      "g05",
+      "g06",
+      "g07",
+      "g08",
+      "g09",
+      "g10",
+      "g11",
+      "g12"
+    ],
+    "regress": [],
+    "total": 12
+  }
+}
