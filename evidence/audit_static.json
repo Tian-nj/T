@@ -589,6 +589,12 @@
   ],
   "dead": []
  },
+ "preflight.py": {
+  "loc": 310,
+  "funcs": 10,
+  "silent": [],
+  "dead": []
+ },
  "prod_drift_guard.py": {
   "loc": 231,
   "funcs": 7,

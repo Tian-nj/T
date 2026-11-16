@@ -258,6 +258,10 @@
       "tier": "destructive",
       "loc": 736
     },
+    "scripts/preflight.py": {
+      "tier": "read_only",
+      "loc": 310
+    },
     "scripts/prod_drift_guard.py": {
       "tier": "write_local",
       "loc": 231
@@ -332,12 +336,12 @@
     }
   },
   "counts": {
-    "tools": 68,
+    "tools": 69,
     "by_tier": {
       "outbound": 5,
       "write_local": 34,
       "destructive": 15,
-      "read_only": 14
+      "read_only": 15
     },
     "derivable_tiers": 4,
     "override_only_tiers": 2

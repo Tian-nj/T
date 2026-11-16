@@ -122,7 +122,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
   config.yaml              # config_version 5
   Constitution.md          # 七条不变量 I-1..I-7
   WORKING-AGREEMENT.md     # 生命周期 / 写域 / 合并 / 三闸门超时方向
-  root.manifest            # 160 个文件的 HMAC 清单
+  root.manifest            # 161 个文件的 HMAC 清单
   spec/                    # 全部由 gen_spec.py 生成，手改会被 --check 抓
     events.schema.json     #   56 个编号 / 52 在役（E11/E14/E47 退役）
     states.json            #   12 态 / 23 迁移 T01–T23 / 7 硬规则
@@ -131,7 +131,7 @@ bash tests/test_merge_conflict.sh              # 冲突预演的反证
     rules.json             #   六条 check
     paths.yaml             #   写域白名单/黑名单
     changelog.json         #   版本轨迹
-  scripts/                 # 66 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
+  scripts/                 # 67 个 .py（含 5 个识海脚本）+ worker_shim 子目录，见 §5
   capability_evidence/      #   18 份能力三证 + ledger，进 manifest
   token_ledger/             #   两轮相对账本 + workload 快照，进 manifest
   roles/                   # agents.json + 四张角色卡
@@ -154,7 +154,7 @@ docs/
 
 ---
 
-## 5. 脚本清单与职责边界（66 个 .py / 36430 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
+## 5. 脚本清单与职责边界（67 个 .py / 36740 行；另含 worker_shim 子目录。下表列主要控制面脚本，其余为入口 / 自检辅助）
 
 | 脚本 | 触发者 | 干什么 | 关键约束 |
 |---|---|---|---|
@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 125 项：84 测试 + 5 审计 + 35 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 127 项：85 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 84 测试 + 5 审计 + 35 校验 + 覆盖率 + e2e = **125 项 / 125 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 85 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **127 项 / 127 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1609,3 +1609,13 @@ fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静�
 —— 正是我一路在禁的那类。改成可见非静默（落盘失败仍不掩盖判定，但必须喊出来），重跑 125/0。
 
 教训：连「写质量判据」的代码自己也会犯被它判的错。判据的作者不豁免于判据。
+
+### 19.15 第一百四十八轮：跑不了的任务，先拦下来（round148）
+
+线 C 阶段 4 的规划循环里有一步「规划前可执行性预检（缺工具/凭据/权限先拦）」。此前 ``run_task.plan_drive`` 只审 plan_audit（A1-A10 + 三权分离），**不预检任务自身能不能跑** —— 一个点名 workbuddy（不可用供应商）的任务会一路跑到调外部 AI 才失败，白跑一轮。于是建 ``.workbench/scripts/preflight.py`` 在**调度之前**逐项判：P1 执行体在册、P2 执行体能用、P3 供应商可用（缺凭据先拦）、P4 写域被 paths.yaml 兜住（权限越界先拦）、P5 外发连接器已授权。任一证明不了能跑 → BLOCKED（fail-closed：注册表/paths.yaml 读不出也 BLOCKED，**「证明不了能跑」不等于「能跑」**）。接进 plan_drive：任一任务 BLOCKED 则整 plan REFUSE，不跑到一半才发现。
+
+常驻护栏 ``tests/test_preflight.py``（7 组：READY / 无供应商 / 不可用供应商 / 写域越界 / fail-closed / plan 任一 BLOCKED / 判据自证）。负向验证：破坏 P4 判据 → test_preflight 精确红、无 Traceback、还原转绿。
+
+**踩了一个自测坑**：fail-closed 那两例最初传 `None` 想模拟「读不出」，但 `preflight` 见 `None` 就重载（读成功）→ 测不到。改用 monkeypatch 让 loader 真返回 `None` 才测到。教训：**「读不到」和「没传」在参数上会长得一样，得让 loader 真失败才证明得了 fail-closed。**
+
+至此线 C 阶段 4 的判据（golden set）与预检（preflight）都到位，规划器循环本体（拆任务→执行→校验→回退）跑在其上。

@@ -820,6 +820,28 @@ def plan_drive(a, st) -> int:
         print("PLAN_DRIVE REFUSE: %s" % "; ".join(wave_errs))
         return EXIT_FAIL
 
+    # 5b) 可执行性预检：缺工具/凭据/权限先拦（第 148 轮，线 C 阶段 4）。
+    # 逐任务 fail-closed，任一 BLOCKED 则整 plan REFUSE —— 不跑到一半才发现
+    # 「这任务根本跑不了」。plan 任务默认走本机验收命令，故未声明执行体时按
+    # local_process 预检（写域/外发仍逐条核）。
+    try:
+        import preflight as _pf
+    except Exception as exc:
+        print("PLAN_DRIVE REFUSE: preflight 不可导入（%s: %s）"
+              % (type(exc).__name__, exc))
+        return EXIT_FAIL
+    _pf_tasks = []
+    for _tid in sorted(by_id):
+        _t = dict(by_id[_tid])
+        _t.setdefault("executor", "local_process")   # plan 任务默认本机执行
+        _pf_tasks.append(_t)
+    _pf_res = _pf.check_plan(_pf_tasks)
+    if _pf_res["verdict"] != "READY":
+        for _r in _pf_res["blocked"]:
+            print("PLAN_DRIVE REFUSE: preflight BLOCKED %s — %s"
+                  % (_r["id"], "; ".join(_r["reasons"])))
+        return EXIT_FAIL
+
     # 6/7) 逐 wave 打印 ran: 行；同 wave 用 ThreadPoolExecutor 并行
     cap = _plan_batch_max_parallel()
     print("\nDAG: %d waves / %d tasks (soft 不阻塞主链, batch_max_parallel=%d)"

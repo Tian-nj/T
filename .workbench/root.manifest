@@ -1,7 +1,7 @@
 {
   "algo": "hmac-sha256-v1",
-  "created_ms": 1794787307782,
-  "digest": "hmac-sha256:d73190e45eca071b89c9bdae516bb651289e2c6b02850a8252936e8358311724",
+  "created_ms": 1794791861949,
+  "digest": "hmac-sha256:96143ca60a217e5a58655b312d15e1ab633f9a576e86271266649188a8eeb65b",
   "entries": [
     {
       "bytes": 3315,
@@ -589,6 +589,11 @@
       "sha256": "sha256:8974aad12a07484d7f1e7426fcd71442d94b508cca79447f1be8a0dfcedc8683"
     },
     {
+      "bytes": 13127,
+      "path": "scripts/preflight.py",
+      "sha256": "sha256:af17b3b0d9b1e7ce9ffa967001a93061daa1e1e3adea44a4e31bfe125c93af18"
+    },
+    {
       "bytes": 9190,
       "path": "scripts/prod_drift_guard.py",
       "sha256": "sha256:5d0f492d12bda60de027f3133d37422042ab38cd271a42c3e82eab83cb1fadc2"
@@ -774,9 +779,9 @@
       "sha256": "sha256:0ac6b536aae34fff490c589eaa1d37003370c799d5aac299c734c197b1d51bbe"
     },
     {
-      "bytes": 7826,
+      "bytes": 7907,
       "path": "spec/tool_registry.json",
-      "sha256": "sha256:1d95dc73bbca0e925dda11cfc845053792773c2789d4426f39eb2558c7ae7d9d"
+      "sha256": "sha256:9a25e009d99573dd4c6b5411da6b23e93852b322ec39016c34535d1c8f54ed13"
     },
     {
       "bytes": 599,
@@ -804,9 +809,9 @@
       "sha256": "sha256:827f79423e533770ec674a3849f2ad31258879f64df4a2249e1f7f2ace4c8a9d"
     }
   ],
-  "entry_count": 160,
+  "entry_count": 161,
   "manifest_version": 1,
-  "sig": "hmac-sha256:d73190e45eca071b89c9bdae516bb651289e2c6b02850a8252936e8358311724",
+  "sig": "hmac-sha256:96143ca60a217e5a58655b312d15e1ab633f9a576e86271266649188a8eeb65b",
   "strength": "keyed_mac_not_public_key",
   "uuid": "175dcd06006595c5e20809e3138ba255"
 }
