@@ -492,7 +492,7 @@ export WORKBENCH_ROOT_KEY="..."
 PY=.../python.exe
 for s in static drift runtime payload closure; do "$PY" audit_$s.py; done
 
-bash run_all_checks.sh            # 127 项：85 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
+bash run_all_checks.sh            # 128 项：86 测试 + 5 审计 + 36 校验 + 覆盖率 + 1 端到端
                                   # （覆盖率段单独打印，不走 run()，不计入 PASSED）
 bash run_all_checks.sh 6 --no-run # 跳过端到端（它要起临时的 git 克隆，慢）
 SLOW_SKIP=0 bash run_all_checks.sh # 强制重跑所有慢件（默认会给 W4 演练走复用，见下方说明）
@@ -1141,7 +1141,7 @@ git show master:src/stats.py | grep -c "def rms"   → 1
 python tests/test_stats_rms.py                    → ok rms 符合契约 (rc=0)
 ```
 
-`run_all_checks.sh` → 85 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **127 项 / 127 通过**（`evidence/round76_full.txt`）；
+`run_all_checks.sh` → 86 测试 + 5 审计 + 36 校验 + 覆盖率 + e2e = **128 项 / 128 通过**（`evidence/round76_full.txt`）；
 `lead.py check` → `ran: C.A1 C.B1 C.C1 C.D1 H7 CHAIN CO1 CO2 CO3 CO4` / PASS。
 
 
@@ -1619,3 +1619,13 @@ fail-open**：golden_gate.py 证据落盘写了 `except Exception: pass`（静�
 **踩了一个自测坑**：fail-closed 那两例最初传 `None` 想模拟「读不出」，但 `preflight` 见 `None` 就重载（读成功）→ 测不到。改用 monkeypatch 让 loader 真返回 `None` 才测到。教训：**「读不到」和「没传」在参数上会长得一样，得让 loader 真失败才证明得了 fail-closed。**
 
 至此线 C 阶段 4 的判据（golden set）与预检（preflight）都到位，规划器循环本体（拆任务→执行→校验→回退）跑在其上。
+
+### 19.16 第一百四十九轮：别让审计「什么都没查也说通过」（round149）
+
+线 C 阶段 7 的 DoD 有一条「audit 探针结论有活断言消费」。此前 ``run_all_checks.sh`` 只 `run "audit audit_x" ...` 看退出码 rc==0。但**退出码抓不到 vacuous 通过**：一个探针退化成「0 条探针、0 条缺陷」的审计，rc 仍是 0 —— 它什么都没查，却和「真查了、真干净」长得一模一样。这正是本项目一路在清的那类恒绿。
+
+于是建 ``tests/test_audit_probe_consumers.py``：直接跑 5 件审计、解析它们的**结论计数**，断言三件事——①计数实质性（探针/调用点/闭合数 >= 阈值，不是 0/退化）②结论内部自洽（`confirmed + defects == probes`）③基线形态对（audit_payload 问题 0 / audit_static 死代码 0 个名字 / audit_drift 无分叉 / audit_runtime 缺陷不超已知 1 条）。阈值用 `>=` 而非精确值：代码演进让计数自然增长，但「掉到接近 0」= 探针退化，必须红。
+
+负向验证：把 ``audit_payload.py`` 的调用点计数改成 0（模拟 vacuous）→ 活消费者精确红（`调用点实质（0>=40）`）、无 Traceback、还原转绿。
+
+这道判据补的是「查没查」这一层：rc 只答「过没过」，活断言答「有没有真在查」。判据的作者不豁免于判据，审计自己也得有人盯着它别退化成空转。
